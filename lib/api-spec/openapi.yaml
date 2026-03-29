@@ -1,15 +1,16 @@
 openapi: 3.1.0
 info:
-  # Do not change the title, if the title changes, the import paths will be broken
   title: Api
   version: 0.1.0
-  description: API specification
+  description: Offera Proposal Builder API
 servers:
   - url: /api
     description: Base API path
 tags:
   - name: health
     description: Health operations
+  - name: proposals
+    description: Proposal management
 paths:
   /healthz:
     get:
@@ -24,6 +25,181 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HealthStatus"
+
+  /proposals:
+    get:
+      operationId: listProposals
+      tags: [proposals]
+      summary: List all proposals
+      responses:
+        "200":
+          description: List of proposals
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Proposal"
+    post:
+      operationId: createProposal
+      tags: [proposals]
+      summary: Create a new proposal
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateProposalRequest"
+      responses:
+        "201":
+          description: Created proposal
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Proposal"
+
+  /proposals/{id}:
+    get:
+      operationId: getProposal
+      tags: [proposals]
+      summary: Get a proposal by ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Proposal
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Proposal"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    put:
+      operationId: updateProposal
+      tags: [proposals]
+      summary: Update a proposal
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateProposalRequest"
+      responses:
+        "200":
+          description: Updated proposal
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Proposal"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    delete:
+      operationId: deleteProposal
+      tags: [proposals]
+      summary: Delete a proposal
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Deleted
+
+  /proposals/{id}/send:
+    post:
+      operationId: sendProposal
+      tags: [proposals]
+      summary: Send a proposal to a client
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SendProposalRequest"
+      responses:
+        "200":
+          description: Sent successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Proposal"
+
+  /proposals/public/{slug}:
+    get:
+      operationId: getPublicProposal
+      tags: [proposals]
+      summary: Get a proposal by public slug (no auth)
+      parameters:
+        - name: slug
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Public proposal view
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Proposal"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /proposals/public/{slug}/respond:
+    post:
+      operationId: respondToProposal
+      tags: [proposals]
+      summary: Accept or decline a proposal (client action)
+      parameters:
+        - name: slug
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RespondToProposalRequest"
+      responses:
+        "200":
+          description: Updated status
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Proposal"
+
 components:
   schemas:
     HealthStatus:
@@ -34,3 +210,186 @@ components:
       required:
         - status
 
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: string
+      required:
+        - error
+
+    ProposalStatus:
+      type: string
+      enum: [draft, sent, viewed, accepted, declined]
+
+    PricingRow:
+      type: object
+      properties:
+        id:
+          type: string
+        description:
+          type: string
+        quantity:
+          type: number
+        unitPrice:
+          type: number
+        total:
+          type: number
+      required:
+        - id
+        - description
+        - quantity
+        - unitPrice
+        - total
+
+    ContentBlock:
+      type: object
+      properties:
+        id:
+          type: string
+        type:
+          type: string
+          enum: [heading, text, image, pricing, divider]
+        content:
+          type: string
+        rows:
+          type: array
+          items:
+            $ref: "#/components/schemas/PricingRow"
+        discount:
+          type: number
+        vatEnabled:
+          type: boolean
+        imageUrl:
+          type: string
+        level:
+          type: integer
+      required:
+        - id
+        - type
+
+    ProposalSection:
+      type: object
+      properties:
+        id:
+          type: string
+        title:
+          type: string
+        blocks:
+          type: array
+          items:
+            $ref: "#/components/schemas/ContentBlock"
+      required:
+        - id
+        - title
+        - blocks
+
+    ProposalBranding:
+      type: object
+      properties:
+        logoUrl:
+          type: string
+        accentColor:
+          type: string
+        font:
+          type: string
+          enum: [inter, playfair, dm-sans]
+      required:
+        - accentColor
+        - font
+
+    Proposal:
+      type: object
+      properties:
+        id:
+          type: integer
+        title:
+          type: string
+        clientName:
+          type: string
+        clientEmail:
+          type: string
+        status:
+          $ref: "#/components/schemas/ProposalStatus"
+        totalValue:
+          type: number
+        publicSlug:
+          type: string
+        sections:
+          type: array
+          items:
+            $ref: "#/components/schemas/ProposalSection"
+        branding:
+          $ref: "#/components/schemas/ProposalBranding"
+        personalMessage:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+        lastActivityAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - title
+        - clientName
+        - status
+        - totalValue
+        - publicSlug
+        - sections
+        - branding
+        - createdAt
+        - updatedAt
+
+    CreateProposalRequest:
+      type: object
+      properties:
+        title:
+          type: string
+        clientName:
+          type: string
+        clientEmail:
+          type: string
+      required:
+        - title
+        - clientName
+
+    UpdateProposalRequest:
+      type: object
+      properties:
+        title:
+          type: string
+        clientName:
+          type: string
+        clientEmail:
+          type: string
+        sections:
+          type: array
+          items:
+            $ref: "#/components/schemas/ProposalSection"
+        branding:
+          $ref: "#/components/schemas/ProposalBranding"
+        totalValue:
+          type: number
+
+    SendProposalRequest:
+      type: object
+      properties:
+        clientEmail:
+          type: string
+        personalMessage:
+          type: string
+      required:
+        - clientEmail
+
+    RespondToProposalRequest:
+      type: object
+      properties:
+        action:
+          type: string
+          enum: [accept, decline]
+      required:
+        - action

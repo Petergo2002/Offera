@@ -1,0 +1,21 @@
+packages:
+  "framer-motion": "Smooth entry animations and page transitions"
+  "canvas-confetti": "Celebration effect when a proposal is accepted"
+  "@types/canvas-confetti": "Types for canvas-confetti"
+  "date-fns": "For formatting dates in Swedish style"
+  "@hello-pangea/dnd": "For drag and drop reordering of sections in the builder"
+  "clsx": "Utility for constructing className strings"
+  "tailwind-merge": "Utility for merging tailwind classes without style conflicts"
+
+images:
+  - path: "artifacts/offera/public/images/dashboard-empty.png"
+    description: "Abstract minimal 3D shapes representing documents and organization, clean soft lighting, light gray and subtle orange accents, premium B2B SaaS style"
+    aspect_ratio: "4:3"
+  - path: "artifacts/offera/public/images/auth-bg.png"
+    description: "Abstract gradient mesh background in very dark gray, almost black, with a subtle glowing orange accent in the corner, representing a modern premium SaaS"
+    aspect_ratio: "16:9"
+
+notes:
+  - Using wouter for routing.
+  - Relying on @workspace/api-client-react for TanStack query hooks.
+  - Swedish language used for UI elements as requested.
