@@ -33,6 +33,6 @@ export function requireAppOrigin() {
 
 export function buildSigningLink(appOrigin: string, slug: string, rawToken: string) {
   const url = new URL(`${appOrigin}/p/${slug}`);
-  url.searchParams.set("signing_token", rawToken);
+  url.searchParams.set("token", rawToken);
   return url.toString();
 }

@@ -5,23 +5,28 @@
  * Offera Proposal Builder API
  * OpenAPI spec version: 0.1.0
  */
+import type { ProposalParty } from "./proposalParty.js";
+import type { ProposalRecipient } from "./proposalRecipient.js";
 import type { ProposalBranding } from "./proposalBranding.js";
-import type { ProposalParties } from "./proposalParties.js";
 import type { ProposalSection } from "./proposalSection.js";
 import type { ProposalStatus } from "./proposalStatus.js";
 
 export interface PublicProposalView {
   id: number;
   title: string;
-  clientName: string;
+  clientName?: string;
   clientEmail?: string;
+  tokenRequired?: boolean;
   status: ProposalStatus;
   totalValue: number;
   publicSlug: string;
   templateId?: number;
   sections: ProposalSection[];
   branding: ProposalBranding;
-  parties: ProposalParties;
+  parties: {
+    sender: ProposalParty;
+    recipient?: ProposalRecipient;
+  };
   personalMessage?: string;
   signedByName?: string;
   signatureInitials?: string;

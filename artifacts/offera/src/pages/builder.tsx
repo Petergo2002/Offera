@@ -1,14 +1,23 @@
 import React from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useLocation, useRoute } from "wouter";
-import { CheckCircle2, Loader2, Send, SquarePen } from "lucide-react";
+import { CheckCircle2, Clock3, Loader2, Send, ShieldCheck, SquarePen } from "lucide-react";
 import type {
   Proposal,
+  ProposalStatus,
   ProposalParties,
   TemplateCategory,
 } from "@workspace/api-zod";
 import { DocumentBuilder, DocumentBuilderSkeleton } from "@/components/document-builder";
+import { StatusBadge } from "@/components/status-badge";
 import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import {
   Dialog,
   DialogContent,
@@ -28,6 +37,7 @@ import { useAuth } from "@/components/auth-provider";
 import {
   calculateDocumentTotal,
   ensurePartiesSection,
+  formatDate,
   normalizeDesignSettings,
   sectionsContainPlaceholders,
 } from "@/lib/document";
@@ -40,6 +50,47 @@ type SaveTemplateState = {
   description: string;
   successTemplateId?: number;
 };
+
+const TRACKING_STATUSES: ProposalStatus[] = [
+  "sent",
+  "viewed",
+  "accepted",
+  "declined",
+];
+
+function formatAuditEventLabel(value: string | undefined) {
+  switch (value) {
+    case "proposal_created":
+      return "Offert skapad";
+    case "proposal_updated":
+      return "Offert uppdaterad";
+    case "proposal_sent":
+      return "Offert skickad";
+    case "proposal_viewed":
+      return "Offert öppnad";
+    case "signing_link_opened":
+      return "Personlig länk öppnad";
+    case "proposal_signed":
+      return "Offert signerad";
+    case "proposal_declined":
+      return "Offert avböjd";
+    case "new_revision_created":
+      return "Ny revision skapad";
+    case "confirmation_sent":
+      return "Bekräftelse skickad";
+    case "tamper_detected":
+      return "Manipulation upptäckt";
+    default:
+      return "Registrerad aktivitet";
+  }
+}
+
+function formatAuditTimestamp(value: Date) {
+  return `${formatDate(value)} kl. ${new Intl.DateTimeFormat("sv-SE", {
+    hour: "2-digit",
+    minute: "2-digit",
+  }).format(value)}`;
+}
 
 function syncRecipientMirror(
   proposal: Proposal,
@@ -130,6 +181,22 @@ export default function ProposalBuilderPage() {
     name: "Ny mall",
     category: "ovrigt",
     description: "",
+  });
+  const trackingStatus = proposal?.status ?? fetchedProposal?.status;
+  const showTrackingPanel = Boolean(
+    trackingStatus && TRACKING_STATUSES.includes(trackingStatus),
+  );
+  const {
+    data: evidence,
+    isLoading: isEvidenceLoading,
+  } = useQuery({
+    queryKey: ["proposal-evidence", proposalId],
+    queryFn: () => api.getProposalEvidence(proposalId),
+    enabled:
+      Number.isFinite(proposalId) &&
+      isAuthenticated &&
+      !isAuthLoading &&
+      showTrackingPanel,
   });
 
   React.useEffect(() => {
@@ -397,6 +464,86 @@ export default function ProposalBuilderPage() {
         }}
         createdAt={proposal.createdAt}
       />
+
+      {showTrackingPanel ? (
+        <div className="border-t border-slate-200 bg-slate-50/70 px-4 py-6 sm:px-6 sm:py-8">
+          <div className="mx-auto max-w-6xl">
+            <Card className="overflow-hidden border-slate-200/80 shadow-sm">
+              <CardHeader className="gap-4 border-b border-slate-100 bg-white/95">
+                <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+                  <div className="space-y-2">
+                    <div className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-[11px] font-black uppercase tracking-[0.22em] text-slate-500">
+                      <ShieldCheck className="h-3.5 w-3.5" />
+                      Tracking
+                    </div>
+                    <div className="space-y-1">
+                      <CardTitle className="text-xl font-black tracking-tight text-slate-950">
+                        Händelseförlopp för offerten
+                      </CardTitle>
+                      <CardDescription className="max-w-2xl text-sm leading-6 text-slate-500">
+                        Följ status, öppningar och signeringar i samma ordning som de registrerades.
+                      </CardDescription>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-3 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3">
+                    <div className="space-y-1">
+                      <p className="text-[10px] font-black uppercase tracking-[0.22em] text-slate-400">
+                        Nuvarande status
+                      </p>
+                      <StatusBadge status={proposal.status} />
+                    </div>
+                  </div>
+                </div>
+              </CardHeader>
+
+              <CardContent className="bg-white p-5 sm:p-6">
+                {isEvidenceLoading ? (
+                  <div className="flex items-center justify-center gap-3 rounded-3xl border border-slate-200 bg-slate-50 px-4 py-12 text-sm text-slate-500">
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    Läser in spårning...
+                  </div>
+                ) : evidence?.auditEvents.length ? (
+                  <div className="relative space-y-6 pl-6">
+                    <div className="absolute bottom-2 left-[5px] top-2 w-px bg-slate-200" />
+                    {evidence.auditEvents.map((event) => (
+                      <div key={event.id} className="relative">
+                        <div className="absolute -left-[25px] top-1.5 h-3 w-3 rounded-full border-2 border-white bg-slate-900 shadow-sm" />
+                        <div className="rounded-3xl border border-slate-200 bg-slate-50/70 p-4 sm:p-5">
+                          <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                            <div className="space-y-1">
+                              <p className="text-sm font-black text-slate-950">
+                                {formatAuditEventLabel(event.eventType)}
+                              </p>
+                              <p className="text-xs font-medium text-slate-500">
+                                {event.actorEmail || "System"}
+                              </p>
+                            </div>
+
+                            <div className="flex flex-col gap-1 text-left sm:items-end sm:text-right">
+                              <p className="inline-flex items-center gap-1 text-xs font-semibold text-slate-500">
+                                <Clock3 className="h-3.5 w-3.5" />
+                                {formatAuditTimestamp(event.createdAt)}
+                              </p>
+                              <p className="text-[11px] font-mono text-slate-400">
+                                {event.ipAddress ? `IP ${event.ipAddress}` : "IP ej registrerad"}
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="rounded-3xl border border-dashed border-slate-200 bg-slate-50 px-4 py-10 text-center text-sm text-slate-500">
+                    Ingen registrerad historik hittades ännu.
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+      ) : null}
 
       <Dialog open={sendModalOpen} onOpenChange={setSendModalOpen}>
         <DialogContent className="sm:max-w-lg">

@@ -272,15 +272,18 @@ export interface Proposal {
 export interface PublicProposalView {
   id: number;
   title: string;
-  clientName: string;
+  clientName?: string;
   clientEmail?: string;
+  tokenRequired?: boolean;
   status: ProposalStatus;
   totalValue: number;
   publicSlug: string;
   templateId?: number;
   sections: ProposalSection[];
   branding: ProposalBranding;
-  parties: ProposalParties;
+  parties: Omit<ProposalParties, "recipient"> & {
+    recipient?: ProposalParties["recipient"];
+  };
   personalMessage?: string;
   signedByName?: string;
   signatureInitials?: string;

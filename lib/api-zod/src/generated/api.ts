@@ -652,8 +652,9 @@ export const getPublicProposalResponseBrandingGradientEnabledDefault = false;
 export const GetPublicProposalResponse = zod.object({
   id: zod.number(),
   title: zod.string(),
-  clientName: zod.string(),
+  clientName: zod.string().optional(),
   clientEmail: zod.string().optional(),
+  tokenRequired: zod.boolean().optional(),
   status: zod.enum(["draft", "sent", "viewed", "accepted", "declined"]),
   totalValue: zod.number(),
   publicSlug: zod.string(),
@@ -739,7 +740,8 @@ export const GetPublicProposalResponse = zod.object({
         zod.object({
           kind: zod.enum(["company", "person"]),
         }),
-      ),
+      )
+      .optional(),
   }),
   personalMessage: zod.string().optional(),
   signedByName: zod.string().optional(),
@@ -808,8 +810,9 @@ export const respondToProposalResponseBrandingGradientEnabledDefault = false;
 export const RespondToProposalResponse = zod.object({
   id: zod.number(),
   title: zod.string(),
-  clientName: zod.string(),
+  clientName: zod.string().optional(),
   clientEmail: zod.string().optional(),
+  tokenRequired: zod.boolean().optional(),
   status: zod.enum(["draft", "sent", "viewed", "accepted", "declined"]),
   totalValue: zod.number(),
   publicSlug: zod.string(),
@@ -895,7 +898,8 @@ export const RespondToProposalResponse = zod.object({
         zod.object({
           kind: zod.enum(["company", "person"]),
         }),
-      ),
+      )
+      .optional(),
   }),
   personalMessage: zod.string().optional(),
   signedByName: zod.string().optional(),

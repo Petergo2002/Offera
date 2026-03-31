@@ -4,11 +4,10 @@ import { motion, AnimatePresence } from "framer-motion";
 import confetti from "canvas-confetti";
 import { format } from "date-fns";
 import { sv } from "date-fns/locale";
-import { Loader2, CheckCircle2, RotateCcw, XCircle, Plus } from "lucide-react";
+import { Loader2, CheckCircle2, RotateCcw, XCircle, Plus, LockKeyhole } from "lucide-react";
 import SignatureCanvas from "react-signature-canvas";
 
 import { useQuery } from "@tanstack/react-query";
-import type { Proposal } from "@workspace/api-zod";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -22,7 +21,7 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/hooks/use-toast";
-import { api } from "@/lib/api";
+import { api, type PublicProposalView } from "@/lib/api";
 import {
   FONT_PAIRINGS,
   calculatePricingTotals,
@@ -56,9 +55,12 @@ function getErrorMessage(error: unknown) {
 export default function PublicProposal() {
   const [, params] = useRoute("/p/:slug");
   const slug = params?.slug || "";
-  const signingToken =
+  const accessToken =
     typeof window !== "undefined"
-      ? new URLSearchParams(window.location.search).get("signing_token") || ""
+      ? (() => {
+          const searchParams = new URLSearchParams(window.location.search);
+          return searchParams.get("token") || searchParams.get("signing_token") || "";
+        })()
       : "";
   const { toast } = useToast();
 
@@ -68,12 +70,12 @@ export default function PublicProposal() {
     error,
     refetch,
   } = useQuery({
-    queryKey: ["public-proposal", slug, signingToken],
-    queryFn: () => api.getPublicProposal(slug, signingToken || undefined),
+    queryKey: ["public-proposal", slug, accessToken],
+    queryFn: () => api.getPublicProposal(slug, accessToken || undefined),
   });
   const [isResponding, setIsResponding] = useState(false);
 
-  const [latestProposal, setLatestProposal] = useState<Proposal | null>(null);
+  const [latestProposal, setLatestProposal] = useState<PublicProposalView | null>(null);
   const [signatureModalOpen, setSignatureModalOpen] = useState(false);
   const [signerName, setSignerName] = useState("");
   const [initials, setInitials] = useState("");
@@ -194,11 +196,62 @@ export default function PublicProposal() {
     );
   }
 
+  if (proposal.tokenRequired) {
+    return (
+      <div className="min-h-screen bg-[#F7F6F3] px-4 py-6 sm:px-6 sm:py-10">
+        <div className="mx-auto flex min-h-[calc(100vh-3rem)] max-w-md items-center justify-center sm:min-h-[calc(100vh-5rem)]">
+          <motion.div
+            initial={{ opacity: 0, y: 18 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.45, ease: "easeOut" }}
+            className="w-full overflow-hidden rounded-[2rem] border border-black/5 bg-white shadow-[0_30px_90px_-30px_rgba(0,0,0,0.18)]"
+          >
+            <div className="border-b border-black/5 bg-[radial-gradient(circle_at_top,_rgba(255,92,0,0.14),_transparent_58%)] px-6 py-8 sm:px-8 sm:py-10">
+              <div className="inline-flex items-center gap-2 rounded-full border border-black/10 bg-white/90 px-3 py-1 text-[11px] font-black uppercase tracking-[0.24em] text-slate-500">
+                <span className="h-2 w-2 rounded-full bg-[#FF5C00]" />
+                Offera
+              </div>
+              <div className="mt-8 flex h-14 w-14 items-center justify-center rounded-[1.35rem] bg-[#111111] text-white shadow-[0_16px_40px_-22px_rgba(0,0,0,0.65)]">
+                <LockKeyhole className="h-6 w-6" />
+              </div>
+              <div className="mt-6 space-y-3">
+                <p className="text-[11px] font-black uppercase tracking-[0.24em] text-slate-400">
+                  Personlig offert
+                </p>
+                <h1 className="text-3xl font-black tracking-tight text-slate-950 sm:text-[2.2rem]">
+                  Åtkomst kräver din signeringslänk
+                </h1>
+                <p className="max-w-sm text-sm font-medium leading-6 text-slate-500 sm:text-[15px]">
+                  Den här offerten är personlig. Kontakta avsändaren för att få din signeringslänk.
+                </p>
+              </div>
+            </div>
+
+            <div className="space-y-4 px-6 py-6 sm:px-8 sm:py-8">
+              <div className="rounded-[1.4rem] border border-slate-200 bg-slate-50/90 p-4">
+                <p className="text-[11px] font-black uppercase tracking-[0.22em] text-slate-400">
+                  Så fungerar det
+                </p>
+                <p className="mt-2 text-sm leading-6 text-slate-600">
+                  Offerten öppnas först när mottagaren använder sin personliga länk från e-posten. Det skyddar kunduppgifter och ser till att rätt person kan signera.
+                </p>
+              </div>
+
+              <div className="rounded-[1.4rem] border border-dashed border-slate-200 px-4 py-4 text-sm leading-6 text-slate-500">
+                Om du är avsändaren kan du öppna offerten från din inloggade workspacevy.
+              </div>
+            </div>
+          </motion.div>
+        </div>
+      </div>
+    );
+  }
+
   const isAccepted = proposal.status === "accepted";
   const isDeclined = proposal.status === "declined";
   const isAwaitingResponse =
     proposal.status === "sent" || proposal.status === "viewed";
-  const canRespond = isAwaitingResponse && signingToken.length > 0;
+  const canRespond = isAwaitingResponse && accessToken.length > 0;
   const hasPreviewBanner = isAwaitingResponse;
   const previewBadgeLabel = canRespond
     ? "Signeringslänk aktiv"
@@ -219,9 +272,20 @@ export default function PublicProposal() {
       ? FONT_PAIRINGS[branding.fontPairing].headingFamily
       : "'Manrope', sans-serif",
   } as React.CSSProperties;
+  const recipient = proposal.parties.recipient ?? {
+    companyName: "",
+    orgNumber: "",
+    contactName: "",
+    email: "",
+    phone: "",
+    address: "",
+    postalCode: "",
+    city: "",
+    kind: "company" as const,
+  };
   const placeholderContext = {
-    clientName: proposal.clientName || proposal.parties.recipient.companyName,
-    clientEmail: proposal.clientEmail || proposal.parties.recipient.email,
+    clientName: proposal.clientName || recipient?.companyName || "",
+    clientEmail: proposal.clientEmail || recipient?.email || "",
     createdAt: proposal.createdAt,
     serviceName: proposal.title,
     title: proposal.title,
@@ -268,8 +332,7 @@ export default function PublicProposal() {
     try {
       const response = await api.respondToProposal(slug, {
         action: "decline",
-        signingToken,
-      });
+      }, accessToken);
       setLatestProposal(response);
       setSignatureModalOpen(false);
       await refetch();
@@ -312,12 +375,11 @@ export default function PublicProposal() {
       setIsResponding(true);
       const response = await api.respondToProposal(slug, {
         action: "accept",
-        signingToken,
         signerName: normalizedName,
         initials,
         signatureDataUrl,
         termsAccepted: true,
-      });
+      }, accessToken);
 
       setLatestProposal(response);
       setSignatureModalOpen(false);
@@ -611,35 +673,35 @@ export default function PublicProposal() {
                           Motpart
                         </p>
                         <h3 className="text-xl sm:text-2xl font-black tracking-tight text-foreground break-words">
-                          {proposal.parties.recipient.kind === "company"
-                            ? proposal.parties.recipient.companyName || "Ej angivet"
-                            : proposal.parties.recipient.contactName || "Ej angivet"}
+                          {recipient.kind === "company"
+                            ? recipient.companyName || "Ej angivet"
+                            : recipient.contactName || "Ej angivet"}
                         </h3>
-                        {proposal.parties.recipient.kind === "company" &&
-                        proposal.parties.recipient.orgNumber ? (
+                        {recipient.kind === "company" &&
+                        recipient.orgNumber ? (
                           <p className="mt-2 text-[10px] font-black uppercase tracking-widest text-gray-400">
-                            Org: {proposal.parties.recipient.orgNumber}
+                            Org: {recipient.orgNumber}
                           </p>
                         ) : null}
                         <div className="mt-5 space-y-1.5 text-sm font-medium leading-6 text-gray-600 break-words">
-                          {proposal.parties.recipient.kind === "company" &&
-                          proposal.parties.recipient.contactName ? (
-                            <p>{proposal.parties.recipient.contactName}</p>
+                          {recipient.kind === "company" &&
+                          recipient.contactName ? (
+                            <p>{recipient.contactName}</p>
                           ) : null}
-                          {proposal.parties.recipient.email ? (
-                            <p className="text-xs sm:text-sm">{proposal.parties.recipient.email}</p>
+                          {recipient.email ? (
+                            <p className="text-xs sm:text-sm">{recipient.email}</p>
                           ) : null}
-                          {proposal.parties.recipient.phone ? (
-                            <p>{proposal.parties.recipient.phone}</p>
+                          {recipient.phone ? (
+                            <p>{recipient.phone}</p>
                           ) : null}
-                          {proposal.parties.recipient.address ? (
+                          {recipient.address ? (
                             <p>
-                              {proposal.parties.recipient.address}
-                              {proposal.parties.recipient.postalCode ||
-                              proposal.parties.recipient.city
+                              {recipient.address}
+                              {recipient.postalCode ||
+                              recipient.city
                                 ? `, ${[
-                                    proposal.parties.recipient.postalCode,
-                                    proposal.parties.recipient.city,
+                                    recipient.postalCode,
+                                    recipient.city,
                                   ]
                                     .filter(Boolean)
                                     .join(" ")}`

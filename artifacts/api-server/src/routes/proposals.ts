@@ -199,7 +199,7 @@ function toPublicProposalView<
   T extends {
     id: number;
     title: string;
-    clientName: string;
+    clientName?: string;
     clientEmail?: string;
     status: string;
     totalValue: number;
@@ -215,6 +215,7 @@ function toPublicProposalView<
     createdAt: string;
     updatedAt: string;
     lastActivityAt?: string;
+    tokenRequired?: boolean;
   },
 >(proposal: T) {
   return {
@@ -236,7 +237,42 @@ function toPublicProposalView<
     createdAt: proposal.createdAt,
     updatedAt: proposal.updatedAt,
     lastActivityAt: proposal.lastActivityAt,
+    tokenRequired: proposal.tokenRequired,
   };
+}
+
+function getPublicAccessToken(req: Request) {
+  const token =
+    typeof req.query.token === "string"
+      ? req.query.token.trim()
+      : typeof req.query.signing_token === "string"
+        ? req.query.signing_token.trim()
+        : "";
+
+  return token;
+}
+
+function buildTokenRequiredProposalView(
+  proposal:
+    | ReturnType<typeof serializeProposal>
+    | ReturnType<typeof buildPublicProposalFromRevision>,
+) {
+  const normalizedParties = normalizeProposalParties(
+    (proposal.parties as ProposalParties | null | undefined) ?? undefined,
+    "",
+    "",
+  );
+
+  return toPublicProposalView({
+    ...proposal,
+    clientName: undefined,
+    clientEmail: undefined,
+    parties: {
+      sender: normalizedParties.sender,
+    },
+    personalMessage: undefined,
+    tokenRequired: true,
+  });
 }
 
 async function findPublicViewSigningToken(
@@ -1205,8 +1241,7 @@ router.post("/", async (req, res) => {
 router.get("/public/:slug", async (req, res) => {
   try {
     const { slug } = req.params;
-    const signingTokenParam =
-      typeof req.query.signing_token === "string" ? req.query.signing_token.trim() : "";
+    const signingTokenParam = getPublicAccessToken(req);
 
     if (!hasDatabase) {
       const proposal = await getLocalPublicProposal(slug);
@@ -1239,10 +1274,7 @@ router.get("/public/:slug", async (req, res) => {
 
     if (!activeRevision) {
       if (!internalViewer) {
-        res.status(403).json({
-          error:
-            "Den här offerten kräver en personlig signeringslänk eller en inloggad workspace-session för att visas.",
-        });
+        res.json(buildTokenRequiredProposalView(serializeProposal(proposal as ProposalRecord)));
         return;
       }
 
@@ -1251,6 +1283,7 @@ router.get("/public/:slug", async (req, res) => {
     }
 
     let signingToken: ProposalSigningTokenRecord | undefined;
+    let hasValidToken = false;
     if (!internalViewer && signingTokenParam) {
       signingToken = await findPublicViewSigningToken(
         dbModule,
@@ -1258,35 +1291,20 @@ router.get("/public/:slug", async (req, res) => {
         activeRevision.id,
         signingTokenParam,
       );
-      if (!signingToken) {
-        res.status(403).json({
-          error:
-            "Signeringslänken är ogiltig eller matchar inte den aktuella dokumentversionen.",
-        });
-        return;
-      }
-
       const isAwaitingResponse =
         activeRevision.status === "sent" || activeRevision.status === "viewed";
-      if (
-        isAwaitingResponse &&
-        signingToken.expiresAt.getTime() <= Date.now()
-      ) {
-        res.status(403).json({
-          error:
-            "Signeringslänken har gått ut. Be avsändaren skicka en ny personlig länk.",
-        });
-        return;
-      }
+      const isFinalized =
+        activeRevision.status === "accepted" || activeRevision.status === "declined";
 
       if (
-        normalizeEmail(signingToken.recipientEmail) !==
-        normalizeEmail(activeRevision.signingRecipientEmail)
+        signingToken &&
+        normalizeEmail(signingToken.recipientEmail) ===
+          normalizeEmail(activeRevision.signingRecipientEmail)
       ) {
-        res.status(403).json({
-          error: "Signeringslänken matchar inte längre den registrerade mottagaren.",
-        });
-        return;
+        const isExpired = signingToken.expiresAt.getTime() <= Date.now();
+        const isUsed = Boolean(signingToken.usedAt);
+
+        hasValidToken = isFinalized || (!isExpired && !isUsed);
       }
     }
 
@@ -1313,6 +1331,18 @@ router.get("/public/:slug", async (req, res) => {
         error:
           "Offerten kunde inte verifieras eftersom dokumentintegriteten inte längre stämmer.",
       });
+      return;
+    }
+
+    if (!internalViewer && !hasValidToken) {
+      res.json(
+        buildTokenRequiredProposalView(
+          buildPublicProposalFromRevision(
+            integrity.snapshot,
+            activeRevision,
+          ),
+        ),
+      );
       return;
     }
 
@@ -1368,6 +1398,7 @@ router.post("/public/:slug/respond", async (req, res) => {
   try {
     const { slug } = req.params;
     const body = RespondToProposalBody.parse(req.body);
+    const signingTokenParam = getPublicAccessToken(req);
 
     if (!hasDatabase) {
       const proposal = await respondToLocalProposal(slug, {
@@ -1437,7 +1468,7 @@ router.post("/public/:slug/respond", async (req, res) => {
       return;
     }
 
-    if (!body.signingToken?.trim()) {
+    if (!signingTokenParam) {
       res.status(403).json({
         error:
           "Den här signeringen kräver den personliga länken från e-posten som skickades till motparten.",
@@ -1445,7 +1476,7 @@ router.post("/public/:slug/respond", async (req, res) => {
       return;
     }
 
-    const tokenHash = hashSigningToken(body.signingToken.trim());
+    const tokenHash = hashSigningToken(signingTokenParam);
     const [signingToken] = await dbModule.db
       .select()
       .from(dbModule.proposalSigningTokensTable)
@@ -1607,8 +1638,8 @@ router.post("/public/:slug/respond", async (req, res) => {
           `/p/${revisionSnapshot.publicSlug}`,
           `${appOrigin}/`,
         ).toString();
-        const recipientLink = body.signingToken?.trim()
-          ? buildSigningLink(appOrigin, revisionSnapshot.publicSlug, body.signingToken.trim())
+        const recipientLink = signingTokenParam
+          ? buildSigningLink(appOrigin, revisionSnapshot.publicSlug, signingTokenParam)
           : publicLink;
         const confirmationRecipients = [
           normalizeEmail(updatedRevision.signingRecipientEmail),

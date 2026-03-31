@@ -25,6 +25,7 @@ import {
   type Me,
   type ProposalEvidence,
   type Proposal,
+  type PublicProposalView,
   type RespondToProposalRequest,
   type SendProposalRequest,
   type Template,
@@ -97,22 +98,31 @@ export const api = {
     ),
   deleteProposal: async (id: number) =>
     request<void>(`/api/proposals/${id}`, { method: "DELETE" }),
-  getPublicProposal: async (slug: string, signingToken?: string) =>
+  getPublicProposal: async (slug: string, token?: string) =>
     GetPublicProposalResponse.parse(
       await request<unknown>(
         `/api/proposals/public/${slug}${
-          signingToken
-            ? `?signing_token=${encodeURIComponent(signingToken)}`
+          token
+            ? `?token=${encodeURIComponent(token)}`
             : ""
         }`,
       ),
     ),
-  respondToProposal: async (slug: string, data: RespondToProposalRequest) =>
+  respondToProposal: async (
+    slug: string,
+    data: RespondToProposalRequest,
+    token?: string,
+  ) =>
     RespondToProposalResponse.parse(
-      await request<unknown>(`/api/proposals/public/${slug}/respond`, {
-        method: "POST",
-        body: JSON.stringify(RespondToProposalBody.parse(data)),
-      }),
+      await request<unknown>(
+        `/api/proposals/public/${slug}/respond${
+          token ? `?token=${encodeURIComponent(token)}` : ""
+        }`,
+        {
+          method: "POST",
+          body: JSON.stringify(RespondToProposalBody.parse(data)),
+        },
+      ),
     ),
   listTemplates: async () =>
     ListTemplatesResponse.parse(await request<unknown>("/api/templates")),
@@ -143,4 +153,11 @@ export const api = {
     request<void>(`/api/templates/${id}`, { method: "DELETE" }),
 };
 
-export type { CompanyProfile, Me, Proposal, ProposalEvidence, Template };
+export type {
+  CompanyProfile,
+  Me,
+  Proposal,
+  ProposalEvidence,
+  PublicProposalView,
+  Template,
+};

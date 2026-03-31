@@ -163,6 +163,11 @@ paths:
           required: true
           schema:
             type: string
+        - name: token
+          in: query
+          required: false
+          schema:
+            type: string
       responses:
         "200":
           description: Public proposal view
@@ -192,6 +197,11 @@ paths:
         - name: slug
           in: path
           required: true
+          schema:
+            type: string
+        - name: token
+          in: query
+          required: false
           schema:
             type: string
       requestBody:
@@ -676,6 +686,8 @@ components:
           type: string
         clientEmail:
           type: string
+        tokenRequired:
+          type: boolean
         status:
           $ref: "#/components/schemas/ProposalStatus"
         totalValue:
@@ -691,7 +703,14 @@ components:
         branding:
           $ref: "#/components/schemas/ProposalBranding"
         parties:
-          $ref: "#/components/schemas/ProposalParties"
+          type: object
+          properties:
+            sender:
+              $ref: "#/components/schemas/ProposalParty"
+            recipient:
+              $ref: "#/components/schemas/ProposalRecipient"
+          required:
+            - sender
         personalMessage:
           type: string
         signedByName:
@@ -713,7 +732,6 @@ components:
       required:
         - id
         - title
-        - clientName
         - status
         - totalValue
         - publicSlug
