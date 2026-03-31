@@ -1,7 +1,7 @@
 import React from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useLocation, useRoute } from "wouter";
-import { CheckCircle2, Clock3, Loader2, Send, ShieldCheck, SquarePen } from "lucide-react";
+import { CheckCircle2, Clock3, Copy, Download, Loader2, Lock, Send, ShieldCheck, SquarePen } from "lucide-react";
 import type {
   Proposal,
   ProposalStatus,
@@ -177,6 +177,8 @@ export default function ProposalBuilderPage() {
   const [saveTemplateModalOpen, setSaveTemplateModalOpen] =
     React.useState(false);
   const [isSavingTemplate, setIsSavingTemplate] = React.useState(false);
+  const [isDuplicating, setIsDuplicating] = React.useState(false);
+  const [isGeneratingPdf, setIsGeneratingPdf] = React.useState(false);
   const [templateState, setTemplateState] = React.useState<SaveTemplateState>({
     name: "Ny mall",
     category: "ovrigt",
@@ -253,6 +255,10 @@ export default function ProposalBuilderPage() {
       templateState.name.trim().toLowerCase(),
   );
   const hasPlaceholders = sectionsContainPlaceholders(proposal.sections);
+  const isLockedProposal = proposal.status === "accepted";
+  const canDownloadPdf = ["sent", "viewed", "accepted", "declined"].includes(
+    proposal.status,
+  );
 
   const saveProposal = async () => {
     setIsSaving(true);
@@ -283,6 +289,45 @@ export default function ProposalBuilderPage() {
       return false;
     } finally {
       setIsSaving(false);
+    }
+  };
+
+  const duplicateProposal = async () => {
+    setIsDuplicating(true);
+
+    try {
+      const created = await api.createProposal({
+        title: proposal.title.startsWith("Kopia av ")
+          ? proposal.title
+          : `Kopia av ${proposal.title}`,
+        clientName: proposal.clientName,
+        clientEmail: proposal.clientEmail,
+      });
+
+      const duplicated = await api.updateProposal(created.id, {
+        title: created.title,
+        clientName: proposal.clientName,
+        clientEmail: proposal.clientEmail,
+        sections: structuredClone(proposal.sections),
+        branding: structuredClone(proposal.branding),
+        parties: structuredClone(proposal.parties),
+        totalValue: calculateDocumentTotal(proposal.sections),
+      });
+
+      await queryClient.invalidateQueries({ queryKey: ["proposals"] });
+      toast({
+        title: "Kopia skapad",
+        description: "Den signerade offerten är låst. Du redigerar nu en ny kopia.",
+      });
+      setLocation(`/proposal/${duplicated.id}`);
+    } catch (error) {
+      toast({
+        variant: "destructive",
+        title: "Kunde inte skapa kopia",
+        description: error instanceof Error ? error.message : "Försök igen.",
+      });
+    } finally {
+      setIsDuplicating(false);
     }
   };
 
@@ -381,32 +426,74 @@ export default function ProposalBuilderPage() {
     }
   };
 
+  const downloadPdf = async () => {
+    setIsGeneratingPdf(true);
+
+    try {
+      const blob = await api.getProposalPdf(proposal.id);
+      const objectUrl = window.URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      const normalizedTitle = proposal.title
+        .normalize("NFKD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .replace(/[^a-z0-9]+/gi, "-")
+        .replace(/^-+|-+$/g, "")
+        .toLowerCase();
+
+      link.href = objectUrl;
+      link.download = `offert-${normalizedTitle || "offera"}.pdf`;
+      document.body.append(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(objectUrl);
+    } catch (error) {
+      toast({
+        variant: "destructive",
+        title: "Kunde inte skapa PDF",
+        description: error instanceof Error ? error.message : "Försök igen.",
+      });
+    } finally {
+      setIsGeneratingPdf(false);
+    }
+  };
+
 
 
   return (
     <>
       <DocumentBuilder
         mode="proposal"
+        readOnly={isLockedProposal}
         title={proposal.title}
         status={proposal.status}
         sections={proposal.sections}
         designSettings={normalizeDesignSettings(proposal.branding)}
         onTitleChange={(value) =>
-          setProposal((current) =>
-            current ? { ...current, title: value } : current,
-          )
+          !isLockedProposal
+            ? setProposal((current) =>
+                current ? { ...current, title: value } : current,
+              )
+            : undefined
         }
         onSectionsChange={(sections) =>
-          setProposal((current) =>
-            current ? { ...current, sections } : current,
-          )
+          !isLockedProposal
+            ? setProposal((current) =>
+                current ? { ...current, sections } : current,
+              )
+            : undefined
         }
         onDesignSettingsChange={(branding) =>
-          setProposal((current) =>
-            current ? { ...current, branding } : current,
-          )
+          !isLockedProposal
+            ? setProposal((current) =>
+                current ? { ...current, branding } : current,
+              )
+            : undefined
         }
-        onSave={() => void saveProposal()}
+        onSave={() => {
+          if (!isLockedProposal) {
+            void saveProposal();
+          }
+        }}
         onBack={async () => {
           const isDirty =
             JSON.stringify(proposal) !== JSON.stringify(fetchedProposal);
@@ -431,37 +518,93 @@ export default function ProposalBuilderPage() {
           }
         }}
         isSaving={isSaving}
+        notice={
+          isLockedProposal ? (
+            <div className="mb-6 rounded-[2rem] border border-emerald-200 bg-emerald-50/80 p-5 shadow-sm sm:mb-8 sm:p-6">
+              <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+                <div className="space-y-2">
+                  <div className="inline-flex items-center gap-2 rounded-full bg-white px-3 py-1 text-[11px] font-black uppercase tracking-[0.22em] text-emerald-700">
+                    <Lock className="h-3.5 w-3.5" />
+                    Signerad och låst
+                  </div>
+                  <div className="space-y-1">
+                    <p className="text-lg font-black tracking-tight text-slate-950">
+                      Den här offerten går inte längre att ändra.
+                    </p>
+                    <p className="max-w-3xl text-sm leading-6 text-slate-600">
+                      För att göra justeringar enligt best practice skapar du en kopia, uppdaterar den och skickar en ny version. Den signerade originalofferten ligger kvar oförändrad i arkivet.
+                    </p>
+                  </div>
+                </div>
+
+                <Button
+                  className="h-11 rounded-2xl px-5 text-[11px] font-black uppercase tracking-[0.18em]"
+                  onClick={() => void duplicateProposal()}
+                  disabled={isDuplicating}
+                >
+                  {isDuplicating ? (
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  ) : (
+                    <Copy className="mr-2 h-4 w-4" />
+                  )}
+                  Skapa kopia
+                </Button>
+              </div>
+            </div>
+          ) : null
+        }
         clientName={proposal.clientName}
         parties={proposal.parties}
         onPartiesChange={(parties) =>
-          setProposal((current) =>
-            current
-              ? {
-                  ...current,
-                  parties,
-                  clientName: parties.recipient.companyName,
-                  clientEmail: parties.recipient.email || undefined,
-                }
-              : current,
-          )
+          !isLockedProposal
+            ? setProposal((current) =>
+                current
+                  ? {
+                      ...current,
+                      parties,
+                      clientName: parties.recipient.companyName,
+                      clientEmail: parties.recipient.email || undefined,
+                    }
+                  : current,
+              )
+            : undefined
         }
         attentionPrompt={null}
-        secondaryAction={{
-          label: "Spara som mall",
-          icon: <SquarePen className="mr-2 h-4 w-4" />,
-          onClick: () => setSaveTemplateModalOpen(true),
-        }}
-        primaryAction={{
-          label: "Skicka offert",
-          icon: <Send className="mr-2 h-4 w-4" />,
-          onClick: () => {
-            setSendEmail(
-              proposal.parties.recipient.email || proposal.clientEmail || "",
-            );
-            setSendMessage(proposal.personalMessage || "");
-            setSendModalOpen(true);
-          },
-        }}
+        secondaryAction={
+          canDownloadPdf
+            ? {
+                label: "Ladda ner PDF",
+                icon: <Download className="mr-2 h-4 w-4" />,
+                onClick: () => void downloadPdf(),
+                loading: isGeneratingPdf,
+              }
+            : {
+                label: "Spara som mall",
+                icon: <SquarePen className="mr-2 h-4 w-4" />,
+                onClick: () => setSaveTemplateModalOpen(true),
+              }
+        }
+        primaryAction={
+          isLockedProposal
+            ? {
+                label: "Skapa kopia",
+                icon: <Copy className="mr-2 h-4 w-4" />,
+                onClick: () => void duplicateProposal(),
+                loading: isDuplicating,
+              }
+            : {
+                label: "Skicka offert",
+                icon: <Send className="mr-2 h-4 w-4" />,
+                onClick: () => {
+                  setSendEmail(
+                    proposal.parties.recipient.email || proposal.clientEmail || "",
+                  );
+                  setSendMessage(proposal.personalMessage || "");
+                  setSendModalOpen(true);
+                },
+                loading: isSending,
+              }
+        }
         createdAt={proposal.createdAt}
       />
 

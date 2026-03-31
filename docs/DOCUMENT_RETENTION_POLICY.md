@@ -9,6 +9,7 @@ This policy covers proposals, signed revisions, audit events, signing tokens, an
 - Signing metadata: recipient email, signer name, signer email, initials, timestamp, Resend message id, and acceptance evidence.
 - Audit events for proposal creation, updates, sends, opens, signing, declines, confirmations, and tamper detection.
 - Signing token metadata required to prove delivery and use of the personal signing link.
+- PDF exports may be regenerated from canonical proposal data, but the evidence chain is anchored in revision snapshots and audit records rather than in a mutable uploaded file.
 
 ## Immutability Rules
 - A sent revision is treated as the canonical version that was presented for signing.
@@ -19,7 +20,7 @@ This policy covers proposals, signed revisions, audit events, signing tokens, an
 ## Retention
 - Signed and declined revisions should be retained for at least 7 years unless stricter customer or legal requirements apply.
 - Audit events tied to signed or declined revisions should be retained for the same period.
-- Expired signing tokens may be retained as delivery evidence for the same period when linked to a signed or declined revision.
+- Signing tokens may be retained as delivery evidence for the same period when linked to a signed or declined revision, even when they are no longer usable for response.
 - Draft-only data may be deleted earlier based on product policy, but never if it would break evidence for an executed agreement.
 
 ## Export
@@ -42,8 +43,13 @@ This policy covers proposals, signed revisions, audit events, signing tokens, an
 
 ## Access Control
 - Internal proposal and evidence data is workspace-scoped and protected by authentication plus row-level security.
-- Public proposal routes may expose only the active signing view required for the recipient flow.
+- Public proposal routes may expose only the recipient-facing proposal view and PDF required for the recipient flow.
 - Export of evidence packages is restricted to authenticated users in the owning workspace.
+
+## Signing Link Lifecycle
+- Recipient signing links are issued as personal, revision-bound links.
+- A link remains readable for the intended recipient until it is superseded by a newer signing flow or the proposal data is removed.
+- Response rights are single-use: once a recipient has accepted or declined, `used_at` closes the token for further response actions.
 
 ## Backups
 - Database backups must preserve proposal revisions, audit events, signing tokens, and company/workspace ownership mappings.

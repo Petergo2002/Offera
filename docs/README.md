@@ -8,22 +8,22 @@ Det här är den underhållna dokumentationen för Offera. Fokus ligger på curr
   Beskriver systemets huvuddelar, auth-/public-gränser, signeringsflöde och runtime-lägen.
 
 - [API.md](API.md)
-  Sammanfattar interna och publika API-endpoints, auth-krav och viktiga affärsflöden.
+  Sammanfattar interna och publika API-endpoints, auth-krav, PDF-export och signeringsflöden.
 
 - [CODEBASE.md](CODEBASE.md)
   Mappar repo-strukturen och pekar ut de viktigaste katalogerna och filerna.
 
 - [COMPONENTS.md](COMPONENTS.md)
-  Beskriver huvudsidor, providers och centrala UI-komponenter.
+  Beskriver huvudsidor, providers, quick view/bevis och centrala UI-komponenter.
 
 - [DATA_MODELS.md](DATA_MODELS.md)
-  Förklarar dokumentmodellen, kärntabellerna och evidence-kedjan.
+  Förklarar dokumentmodellen, kärntabellerna, tokenlivscykeln och evidence-kedjan.
 
 - [ENVIRONMENT.md](ENVIRONMENT.md)
   Referens för `.env`, frontend-/backendvariabler och lokala setup-exempel.
 
 - [INTEGRATIONS.md](INTEGRATIONS.md)
-  Beskriver Supabase, Resend, Drizzle, OpenAPI/Orval och andra externa/interna integrationer.
+  Beskriver Supabase, Resend, Playwright, Drizzle, OpenAPI/Orval och andra externa/interna integrationer.
 
 - [DOCUMENT_RETENTION_POLICY.md](DOCUMENT_RETENTION_POLICY.md)
   Policy för bevarande, export och hantering av signerade dokument och evidence data.

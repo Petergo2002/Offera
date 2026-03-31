@@ -65,7 +65,7 @@ function PreviewPricingBlock({ block }: { block: ContentBlock }) {
               </p>
             </div>
             <div className="text-sm text-on-surface-variant/70 md:text-right">
-              {row.quantity} {row.unit}
+              {row.quantity} {row.unit || "st"}
             </div>
             <div className="text-sm font-semibold text-on-surface md:text-right">
               {formatCurrency(row.total)}
@@ -98,7 +98,7 @@ function PreviewPricingBlock({ block }: { block: ContentBlock }) {
             {totals.totalLabel}
           </p>
           <p className="mt-2 text-lg font-black text-on-surface">
-            {formatCurrency(totals.hasRecurring ? totals.contractTotal : totals.total)}
+            {formatCurrency(totals.totalDisplayAmount)}
           </p>
           <p className="mt-1 text-xs text-on-surface-variant/55">
             {totals.totalSubtitle}

@@ -75,6 +75,10 @@ export const api = {
     ProposalEvidenceResponse.parse(
       await request<unknown>(`/api/proposals/${id}/evidence`),
     ),
+  getProposalPdf: async (id: number) =>
+    customFetch<Blob>(`/api/proposals/${id}/pdf`, {
+      responseType: "blob",
+    }),
   createProposal: async (data: CreateProposalRequest) =>
     GetProposalResponse.parse(
       await request<unknown>("/api/proposals", {
@@ -107,6 +111,15 @@ export const api = {
             : ""
         }`,
       ),
+    ),
+  getPublicProposalPdf: async (slug: string, token?: string) =>
+    customFetch<Blob>(
+      `/api/proposals/public/${slug}/pdf${
+        token ? `?token=${encodeURIComponent(token)}` : ""
+      }`,
+      {
+        responseType: "blob",
+      },
     ),
   respondToProposal: async (
     slug: string,

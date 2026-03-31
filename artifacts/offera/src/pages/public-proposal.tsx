@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import confetti from "canvas-confetti";
 import { format } from "date-fns";
 import { sv } from "date-fns/locale";
-import { Loader2, CheckCircle2, RotateCcw, XCircle, Plus, LockKeyhole } from "lucide-react";
+import { Loader2, CheckCircle2, RotateCcw, XCircle, Plus, LockKeyhole, Download } from "lucide-react";
 import SignatureCanvas from "react-signature-canvas";
 
 import { useQuery } from "@tanstack/react-query";
@@ -74,6 +74,7 @@ export default function PublicProposal() {
     queryFn: () => api.getPublicProposal(slug, accessToken || undefined),
   });
   const [isResponding, setIsResponding] = useState(false);
+  const [isDownloadingPdf, setIsDownloadingPdf] = useState(false);
 
   const [latestProposal, setLatestProposal] = useState<PublicProposalView | null>(null);
   const [signatureModalOpen, setSignatureModalOpen] = useState(false);
@@ -252,16 +253,11 @@ export default function PublicProposal() {
   const isAwaitingResponse =
     proposal.status === "sent" || proposal.status === "viewed";
   const canRespond = isAwaitingResponse && accessToken.length > 0;
-  const hasPreviewBanner = isAwaitingResponse;
-  const previewBadgeLabel = canRespond
-    ? "Signeringslänk aktiv"
-    : "Förhandsvisning";
-  const previewTitle = canRespond
-    ? "Den här personliga länken kan användas för att signera."
-    : "Du tittar på en läsbar förhandsvisning.";
-  const previewDescription = canRespond
-    ? "Du kan acceptera offerten direkt härifrån eller markera att något behöver ändras."
-    : "För att svara eller signera behöver mottagaren öppna sin personliga länk från e-posten.";
+  const hasPreviewBanner = isAwaitingResponse && !canRespond;
+  const previewBadgeLabel = "Förhandsvisning";
+  const previewTitle = "Du tittar på en läsbar förhandsvisning.";
+  const previewDescription =
+    "För att svara eller signera behöver mottagaren öppna sin personliga länk från e-posten.";
 
   const customStyles = {
     "--proposal-accent": branding?.accentColor || "#FF5C00",
@@ -399,6 +395,38 @@ export default function PublicProposal() {
       });
     } finally {
       setIsResponding(false);
+    }
+  };
+
+  const handleDownloadPdf = async () => {
+    setIsDownloadingPdf(true);
+
+    try {
+      const blob = await api.getPublicProposalPdf(slug, accessToken || undefined);
+      const objectUrl = window.URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      const normalizedTitle = proposal.title
+        .normalize("NFKD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .replace(/[^a-z0-9]+/gi, "-")
+        .replace(/^-+|-+$/g, "")
+        .toLowerCase();
+
+      link.href = objectUrl;
+      link.download = `offert-${normalizedTitle || "offera"}.pdf`;
+      document.body.append(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(objectUrl);
+    } catch (downloadError) {
+      toast({
+        variant: "destructive",
+        title: "Kunde inte ladda ner PDF",
+        description:
+          downloadError instanceof Error ? downloadError.message : "Försök igen.",
+      });
+    } finally {
+      setIsDownloadingPdf(false);
     }
   };
 
@@ -1079,11 +1107,7 @@ export default function PublicProposal() {
                                     className="font-black text-[2.65rem] sm:text-5xl md:text-6xl tracking-tighter tabular-nums leading-none block"
                                     style={{ color: "var(--proposal-accent)" }}
                                   >
-                                    {formatCurrency(
-                                      totals.hasRecurring
-                                        ? totals.contractTotal
-                                        : totals.total,
-                                    )}
+                                    {formatCurrency(totals.totalDisplayAmount)}
                                   </span>
                                 </div>
                               </div>
@@ -1158,10 +1182,40 @@ export default function PublicProposal() {
                 <p className="text-gray-500 text-lg">
                   Tack för förtroendet! Vi ser fram emot samarbetet.
                 </p>
+                <div className="mt-8 flex justify-center">
+                  <Button
+                    variant="outline"
+                    className="h-12 rounded-2xl px-6 font-bold"
+                    onClick={handleDownloadPdf}
+                    disabled={isDownloadingPdf}
+                  >
+                    {isDownloadingPdf ? (
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    ) : (
+                      <Download className="mr-2 h-4 w-4" />
+                    )}
+                    Ladda ner PDF
+                  </Button>
+                </div>
               </motion.div>
             ) : isDeclined ? (
               <div className="text-center py-8 text-gray-500">
-                Du har avvisat denna offert. Kontakta oss om du har frågor.
+                <p>Du har avvisat denna offert. Kontakta oss om du har frågor.</p>
+                <div className="mt-6 flex justify-center">
+                  <Button
+                    variant="outline"
+                    className="h-12 rounded-2xl px-6 font-bold"
+                    onClick={handleDownloadPdf}
+                    disabled={isDownloadingPdf}
+                  >
+                    {isDownloadingPdf ? (
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    ) : (
+                      <Download className="mr-2 h-4 w-4" />
+                    )}
+                    Ladda ner PDF
+                  </Button>
+                </div>
               </div>
             ) : canRespond ? (
               <motion.div
@@ -1199,6 +1253,21 @@ export default function PublicProposal() {
                       disabled={isResponding}
                     >
                       Behöver ändras
+                    </Button>
+                  </div>
+                  <div className="mt-6 flex justify-center">
+                    <Button
+                      variant="ghost"
+                      className="h-11 rounded-2xl px-5 font-bold text-muted-foreground"
+                      onClick={handleDownloadPdf}
+                      disabled={isDownloadingPdf}
+                    >
+                      {isDownloadingPdf ? (
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      ) : (
+                        <Download className="mr-2 h-4 w-4" />
+                      )}
+                      Ladda ner PDF
                     </Button>
                   </div>
                 </div>

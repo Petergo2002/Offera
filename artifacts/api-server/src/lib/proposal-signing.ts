@@ -1,6 +1,6 @@
 import { createHash, randomBytes } from "node:crypto";
 
-const DEFAULT_TOKEN_TTL_MINUTES = 30;
+const DEFAULT_TOKEN_TTL_YEARS = 50;
 
 export function normalizeEmail(value: string | undefined | null): string {
   return (value ?? "").trim().toLowerCase();
@@ -18,7 +18,9 @@ export function hashSigningToken(token: string) {
 }
 
 export function createSigningTokenExpiry(now = new Date()) {
-  return new Date(now.getTime() + DEFAULT_TOKEN_TTL_MINUTES * 60 * 1000);
+  const expiry = new Date(now);
+  expiry.setFullYear(expiry.getFullYear() + DEFAULT_TOKEN_TTL_YEARS);
+  return expiry;
 }
 
 export function requireAppOrigin() {

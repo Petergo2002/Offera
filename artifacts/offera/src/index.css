@@ -45,6 +45,8 @@
   --color-accent-foreground: hsl(0 0% 100%);
   --color-destructive: hsl(var(--error));
   --color-destructive-foreground: hsl(0 0% 100%);
+  --color-error: hsl(var(--error));
+  --color-error-foreground: hsl(0 0% 100%);
 
   /* Sidebar (Premium Light/Context Filtered) */
   --color-sidebar: hsl(var(--surface-container-low));

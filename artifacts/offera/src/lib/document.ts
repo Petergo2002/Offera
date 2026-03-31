@@ -110,7 +110,7 @@ export function createPricingRow(description = "Tjänst 1"): PricingRow {
     description,
     quantity: 1,
     unitPrice: 0,
-    unit: "st",
+    unit: "",
     type: "one_time",
     interval: "monthly",
     bindingPeriod: 0,
@@ -248,7 +248,7 @@ export function normalizePricingRow(row: PricingRow): PricingRow {
     ...row,
     quantity,
     unitPrice,
-    unit: row.unit?.trim() || "st",
+    unit: row.unit?.trim() || "",
     type,
     interval,
     bindingPeriod: type === "recurring" ? bindingPeriod : 0,
@@ -276,6 +276,7 @@ export function getPricingContractMonths(rows: PricingRow[]) {
 export function calculatePricingTotals(block: ContentBlock) {
   const rows = calculatePricingRows(block.rows ?? []);
   const subtotal = rows.reduce((sum, row) => sum + row.total, 0);
+  const discountRate = Math.max(block.discount ?? 0, 0);
 
   // Grouped totals
   const setupTotal = rows
@@ -290,29 +291,50 @@ export function calculatePricingTotals(block: ContentBlock) {
     .filter((r) => r.type === "recurring" && r.interval === "yearly")
     .reduce((sum, row) => sum + row.total, 0);
   const hasRecurring = recurringMonthly > 0 || recurringYearly > 0;
+  const hasBinding =
+    rows.some(
+      (row) => row.type === "recurring" && (row.bindingPeriod ?? 0) > 0,
+    ) && hasRecurring;
   const contractMonths = getPricingContractMonths(rows);
   const contractSubtotal =
     setupTotal +
     recurringMonthly * contractMonths +
     recurringYearly * (contractMonths / 12);
 
-  const discountAmount = subtotal * ((block.discount ?? 0) / 100);
+  const discountAmount = subtotal * (discountRate / 100);
   const taxBase = subtotal - discountAmount;
   const vat = block.vatEnabled === false ? 0 : taxBase * 0.25;
   const total = taxBase + vat;
-  const contractDiscountAmount = contractSubtotal * ((block.discount ?? 0) / 100);
+  const contractDiscountAmount = contractSubtotal * (discountRate / 100);
   const contractTaxBase = contractSubtotal - contractDiscountAmount;
   const contractVat = block.vatEnabled === false ? 0 : contractTaxBase * 0.25;
   const contractTotal = contractTaxBase + contractVat;
   const monthlyEquivalent = recurringMonthly + recurringYearly / 12;
-  const totalLabel = hasRecurring ? "Beräknat avtalsvärde" : "Totalt projektvärde";
-  const totalSubtitle = hasRecurring
-    ? contractMonths === 12
-      ? "Baserat på 12 mån prognos"
-      : `Baserat på ${contractMonths} mån bindning`
-    : block.vatEnabled === false
+  let totalLabel = "Totalt projektvärde";
+  let totalSubtitle =
+    block.vatEnabled === false
       ? "Engångsbelopp exkl. moms"
       : "Engångsbelopp inkl. moms";
+  let totalDisplayAmount = total;
+
+  if (hasRecurring && hasBinding) {
+    totalLabel = "Beräknat avtalsvärde";
+    totalSubtitle = `Baserat på ${contractMonths} mån bindning`;
+    totalDisplayAmount = contractTotal;
+  } else if (hasRecurring) {
+    if (recurringMonthly > 0) {
+      totalLabel = "Löpande månadskostnad";
+      totalSubtitle =
+        recurringYearly > 0
+          ? "Månadsvis, med årsavgifter omräknade"
+          : "Debiteras månadsvis utan bindning";
+      totalDisplayAmount = monthlyEquivalent;
+    } else {
+      totalLabel = "Årlig löpande kostnad";
+      totalSubtitle = "Debiteras årsvis utan bindning";
+      totalDisplayAmount = recurringYearly;
+    }
+  }
 
   return {
     rows,
@@ -322,8 +344,11 @@ export function calculatePricingTotals(block: ContentBlock) {
     recurringYearly,
     monthlyEquivalent,
     hasRecurring,
+    hasBinding,
     contractMonths,
     contractSubtotal,
+    hasDiscount: discountRate > 0,
+    discountRate,
     discountAmount,
     taxBase,
     vat,
@@ -332,6 +357,7 @@ export function calculatePricingTotals(block: ContentBlock) {
     contractTaxBase,
     contractVat,
     contractTotal,
+    totalDisplayAmount,
     totalLabel,
     totalSubtitle,
   };

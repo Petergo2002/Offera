@@ -76,6 +76,11 @@ Viktiga fält:
 - `personal_message`
 - signeringsfält på live-recorden för enkel åtkomst i UI
 
+Viktigt beteende:
+
+- live-offerten är redigerbar fram till att en signerbar revision skickas
+- accepterad offert behandlas som låst i UI/API och ska dupliceras för nya ändringar
+
 ### Statusvärden
 
 - `draft`
@@ -156,6 +161,14 @@ Typiska fält:
 - expires_at
 - used_at
 
+Operativt beteende:
+
+- token lagras hashad, inte i klartext
+- token knyts till proposal, revision och mottagarens e-post
+- `used_at` är primär spärr för om länken redan använts för svar
+- äldre tokens kan också bli ogiltiga när en ny signerbar revision skickas
+- publika läslänkar för signerade/avböjda offerter kan fortsatt fungera för samma mottagare även efter att token använts
+
 ## Mallar
 
 ### `templates`
@@ -218,6 +231,11 @@ Pricing-blocket har även:
 
 - `discount`
 - `vatEnabled`
+
+Nuvarande pricing-principer i UI:
+
+- rabatt är valfri och ska inte visas som `0`
+- löpande priser utan bindning visar inte beräknat avtalsvärde över 12 månader
 
 ## Viktig princip
 

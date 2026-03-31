@@ -775,6 +775,11 @@ export async function updateProposal(
   const proposal = store.proposals.find((entry) => entry.id === id);
 
   if (!proposal) return undefined;
+  if (proposal.status === "accepted") {
+    throw new Error(
+      "Den här offerten är signerad och låst. Skapa en kopia om du vill göra ändringar och skicka en ny version.",
+    );
+  }
 
   if (input.title !== undefined) proposal.title = input.title;
   if (input.sections !== undefined) proposal.sections = clone(input.sections);
@@ -821,6 +826,11 @@ export async function sendProposal(
   const store = await readStore();
   const proposal = store.proposals.find((entry) => entry.id === id);
   if (!proposal) return undefined;
+  if (proposal.status === "accepted") {
+    throw new Error(
+      "Den här offerten är signerad och låst. Skapa en kopia om du vill uppdatera och skicka en ny version.",
+    );
+  }
 
   const nextParties = buildProposalParties(proposal.parties, {
     clientEmail: input.clientEmail,

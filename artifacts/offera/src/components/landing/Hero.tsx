@@ -1,6 +1,7 @@
 import React from "react";
 import { Button } from "@/components/ui/button";
 import { useLocation } from "wouter";
+import { TrendingUp, ShieldCheck } from "lucide-react";
 
 export function Hero() {
   const [, setLocation] = useLocation();
@@ -39,53 +40,62 @@ export function Hero() {
               className="cta-gradient h-20 px-14 rounded-2xl text-2xl font-black shadow-2xl shadow-primary/30 hover:scale-[1.05] active:scale-95 transition-all"
               onClick={() => setLocation("/auth")}
             >
-              Börja bygga — Gratis
+              Börja bygga — Gratis för alltid
             </Button>
             <div className="flex flex-col items-center sm:items-start gap-1">
-              <div className="flex -space-x-2">
-                {[1, 2, 3, 4].map(i => (
-                  <div key={i} className="w-8 h-8 rounded-full border-2 border-white bg-on-surface/5" />
+              <div className="flex -space-x-3">
+                {[1, 2, 3, 4, 5].map(i => (
+                  <div key={i} className="w-10 h-10 rounded-full border-4 border-white bg-surface-container-high shadow-sm" />
                 ))}
-                <div className="w-8 h-8 rounded-full border-2 border-white bg-primary flex items-center justify-center text-[10px] text-white font-black">+49</div>
               </div>
-              <p className="text-[10px] font-black uppercase tracking-[0.2em] text-on-surface-variant opacity-50">Betrodd av 5,000+ frilansare</p>
+              <p className="text-[10px] font-black uppercase tracking-[0.2em] text-on-surface-variant opacity-50 px-1">Älskas av 5,000+ frilansare</p>
             </div>
           </div>
         </div>
 
         {/* Builder Preview - Elite Visual */}
-        <div className="relative max-w-6xl mx-auto group perspective-1000">
-          <div className="absolute -inset-10 bg-gradient-to-r from-primary/20 via-primary-dim/20 to-primary/20 blur-[100px] opacity-30 -z-10 group-hover:opacity-50 transition-opacity duration-1000" />
-          <div className="bg-white/40 backdrop-blur-md p-2 rounded-[3.5rem] border border-white/50 shadow-2xl transform rotate-x-2 group-hover:rotate-x-0 transition-transform duration-1000 shadow-primary/5">
-            <div className="bg-white rounded-[3rem] shadow-elevated border border-outline-variant/10 overflow-hidden relative">
-              {/* Browser Decorations */}
-              <div className="bg-surface-container-high px-8 py-5 flex items-center justify-between border-b border-outline-variant/10">
-                <div className="flex gap-2.5">
-                  <div className="w-3.5 h-3.5 rounded-full bg-error/40" />
-                  <div className="w-3.5 h-3.5 rounded-full bg-primary/20" />
-                  <div className="w-3.5 h-3.5 rounded-full bg-primary/40" />
+        <div className="relative max-w-6xl mx-auto group perspective-2000">
+          <div className="absolute -inset-20 bg-gradient-to-r from-primary/30 via-primary-dim/30 to-primary/30 blur-[120px] opacity-20 -z-10 group-hover:opacity-40 transition-opacity duration-1000" />
+          
+          <div className="relative bg-white/30 backdrop-blur-2xl p-3 rounded-[4rem] border border-white/40 shadow-3xl transform rotate-x-6 group-hover:rotate-x-0 transition-all duration-1000 ease-out shadow-primary/5">
+            <div className="bg-white rounded-[3.5rem] shadow-elevated border border-outline-variant/10 overflow-hidden relative">
+              {/* Browser Decorations - Minimalist */}
+              <div className="bg-surface-container-lowest px-10 py-6 flex items-center justify-between border-b border-outline-variant/5">
+                <div className="flex gap-3">
+                  <div className="w-3 h-3 rounded-full bg-error/20" />
+                  <div className="w-3 h-3 rounded-full bg-primary/10" />
+                  <div className="w-3 h-3 rounded-full bg-primary/20" />
                 </div>
-                <div className="bg-white px-8 py-2 rounded-xl text-[10px] text-on-surface-variant font-black tracking-widest uppercase opacity-40 border border-outline-variant/5 min-w-[300px] text-center italic">
-                  app.offera.se/builder/v2
+                <div className="px-10 py-2.5 rounded-2xl bg-surface-container-low/50 text-[10px] text-on-surface-variant font-black tracking-[0.2em] uppercase opacity-40 italic border border-outline-variant/5">
+                  preview.offera.se/proposal/mod-2026
                 </div>
-                <div className="w-10 h-1" />
+                <div className="w-12 h-1" />
               </div>
               
               <div className="aspect-[16/10] relative overflow-hidden bg-white">
                 <img 
-                  src="/assets/builder.png"
-                  alt="Offera Builder Professional UI"
-                  className="w-full h-full object-cover group-hover:scale-[1.02] transition-transform duration-2000"
+                  src="/assets/hero-proposal.png"
+                  alt="Offera Elite Proposal Interface"
+                  className="w-full h-full object-cover group-hover:scale-[1.03] transition-transform duration-3000 ease-out"
                 />
                 
-                {/* Floating Micro-UI */}
-                <div className="absolute top-12 right-12 w-48 p-5 bg-white/90 backdrop-blur-xl rounded-2xl shadow-elevated border border-primary/10 animate-pulse-slow">
-                  <div className="flex items-center gap-3 mb-3">
-                    <div className="w-3 h-3 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]" />
-                    <span className="text-[10px] font-black uppercase tracking-widest text-on-surface">Live Edit</span>
+                {/* Floating Micro-UI overlays */}
+                <div className="absolute bottom-12 left-12 p-6 bg-white/95 backdrop-blur-2xl rounded-[2rem] shadow-elevated border border-primary/10 animate-float">
+                  <div className="flex items-center gap-4 mb-4">
+                    <div className="w-12 h-12 rounded-2xl bg-primary/10 flex items-center justify-center text-primary">
+                      <TrendingUp size={24} />
+                    </div>
+                    <div>
+                      <p className="text-[10px] font-black uppercase tracking-widest text-on-surface-variant opacity-50">Konvertering</p>
+                      <p className="text-xl font-black text-on-surface">+34%</p>
+                    </div>
                   </div>
-                  <div className="h-1.5 w-full bg-on-surface/5 rounded-full overflow-hidden">
-                    <div className="h-full w-2/3 bg-emerald-500" />
+                </div>
+
+                <div className="absolute top-12 right-12 p-6 bg-primary shadow-2xl shadow-primary/40 rounded-[2rem] text-white animate-pulse-slow">
+                  <div className="flex items-center gap-3">
+                    <ShieldCheck size={20} />
+                    <span className="text-sm font-black uppercase tracking-widest">Verifierad Signatur</span>
                   </div>
                 </div>
               </div>

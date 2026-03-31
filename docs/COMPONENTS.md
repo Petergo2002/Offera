@@ -12,13 +12,13 @@
 
 | Sida | Fil | Roll |
 | --- | --- | --- |
-| Dashboard | `artifacts/offera/src/pages/dashboard.tsx` | listning, filter, överblick, post-send summary |
-| Offertbyggare | `artifacts/offera/src/pages/builder.tsx` | redigera offert, spara, skicka, spara som mall |
+| Dashboard | `artifacts/offera/src/pages/dashboard.tsx` | listning, filter, överblick, quick view och post-send summary |
+| Offertbyggare | `artifacts/offera/src/pages/builder.tsx` | redigera offert, spara, skicka, tracking, PDF och kopiera låsta offerter |
 | Mallbibliotek | `artifacts/offera/src/pages/templates.tsx` | built-ins, egna mallar, preview, skapa |
 | Mallbyggare | `artifacts/offera/src/pages/template-builder.tsx` | redigera mall |
-| Arkiv | `artifacts/offera/src/pages/archive.tsx` | historik, evidence, PDF, rapporter |
+| Arkiv | `artifacts/offera/src/pages/archive.tsx` | historik, quick view, bevis, PDF och permanenta borttagningar |
 | Inställningar | `artifacts/offera/src/pages/settings.tsx` | företagsprofil, logga och standardavsändare |
-| Publik offert | `artifacts/offera/src/pages/public-proposal.tsx` | kundvy, signering och accept/decline |
+| Publik offert | `artifacts/offera/src/pages/public-proposal.tsx` | kundvy, gate, signering, accept/decline och publik PDF |
 | Auth | `artifacts/offera/src/pages/auth.tsx` | login, signup, reset password |
 | Landing | `artifacts/offera/src/pages/landing.tsx` | publik marknadslandning för utloggade |
 
@@ -36,6 +36,19 @@ Ansvar:
 - cover-inställningar
 - part-dialog och part-sektion
 - mobil/tablet/desktop-preview
+- read-only-läge för signerade offerter
+- preview av kundens svarszon längst ner i offerten
+
+### `ProposalQuickView`
+
+Fil: `artifacts/offera/src/components/proposal-quick-view.tsx`
+
+Ansvar:
+
+- används från dashboard och arkiv
+- visar offertöversikt i sidepanel
+- växlar till `Bevis`-läge för audit trail, signatur och tokenhistorik
+- stödjer kopiering, permanent radering och öppning av bevisrapport
 
 ### `TemplateCard`
 

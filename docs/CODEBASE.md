@@ -22,6 +22,7 @@ Viktigast:
 - `src/components/auth-provider.tsx` Supabase-session och `/api/me`
 - `src/components/layout.tsx` shell för interna sidor
 - `src/components/document-builder.tsx` gemensam editor/preview för offert och mall
+- `src/components/proposal-quick-view.tsx` sidepanel för översikt, bevis och permanenta actions
 - `src/pages/dashboard.tsx`
 - `src/pages/builder.tsx`
 - `src/pages/templates.tsx`
@@ -46,6 +47,7 @@ Viktigast:
 - `src/lib/local-store.ts` lokal fallback
 - `src/lib/proposal-evidence.ts` snapshot/hash/evidence-logik
 - `src/lib/proposal-signing.ts` token/länkgenerering
+- `src/lib/pdf.ts` server-side PDF-rendering via Playwright
 - `src/lib/resend.ts` e-postutskick
 
 ### `artifacts/mockup-sandbox`

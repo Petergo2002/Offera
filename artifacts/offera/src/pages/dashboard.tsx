@@ -14,8 +14,10 @@ import {
   PieChart,
 } from "lucide-react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { motion, AnimatePresence } from "framer-motion";
 
 import { StatusBadge } from "@/components/status-badge";
+import { ProposalQuickView } from "@/components/proposal-quick-view";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -39,7 +41,6 @@ import { useAuth } from "@/components/auth-provider";
 import { cn } from "@/lib/utils";
 import { api } from "@/lib/api";
 import {
-  buildPublicProposalUrl,
   consumePostSendSummary,
   type PostSendSummaryPayload,
 } from "@/lib/post-send-summary";
@@ -129,6 +130,7 @@ export default function DashboardPage() {
   const [postSendSummary, setPostSendSummary] =
     React.useState<PostSendSummaryPayload | null>(null);
   const [postSendDialogOpen, setPostSendDialogOpen] = React.useState(false);
+  const [selectedProposalId, setSelectedProposalId] = React.useState<number | null>(null);
 
   const {
     data: proposals = [],
@@ -224,27 +226,6 @@ export default function DashboardPage() {
     }
   };
 
-  const publicProposalUrl = postSendSummary
-    ? buildPublicProposalUrl(postSendSummary.publicSlug)
-    : "";
-
-  const copyPublicLink = async () => {
-    if (!publicProposalUrl) {
-      return;
-    }
-
-    try {
-      await navigator.clipboard.writeText(publicProposalUrl);
-      toast({ title: "Offertlänk kopierad" });
-    } catch {
-      toast({
-        variant: "destructive",
-        title: "Kunde inte kopiera länken",
-        description: "Försök igen.",
-      });
-    }
-  };
-
   if (isAuthLoading) {
     return (
       <div className="flex min-h-[60vh] items-center justify-center">
@@ -330,20 +311,19 @@ export default function DashboardPage() {
 
           <DialogFooter className="gap-2 sm:justify-between">
             <div className="flex flex-col-reverse gap-2 sm:flex-row">
-              <Button variant="outline" onClick={() => void copyPublicLink()}>
-                Kopiera länk
-              </Button>
               <Button
                 variant="outline"
                 onClick={() => {
-                  if (!publicProposalUrl) {
+                  if (!postSendSummary) {
                     return;
                   }
 
-                  window.open(publicProposalUrl, "_blank", "noopener,noreferrer");
+                  setPostSendDialogOpen(false);
+                  setSelectedProposalId(postSendSummary.proposalId);
                 }}
               >
-                Öppna offentlig offert
+                <Eye className="mr-2 h-4 w-4" />
+                Visa detaljer
               </Button>
             </div>
             <Button onClick={() => setPostSendDialogOpen(false)}>
@@ -352,6 +332,11 @@ export default function DashboardPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <ProposalQuickView 
+        proposalId={selectedProposalId} 
+        onClose={() => setSelectedProposalId(null)} 
+      />
 
       <div className="mx-auto max-w-6xl space-y-8 md:space-y-10">
         <header className="mb-8 animate-in fade-in slide-in-from-left-4 duration-500">
@@ -607,37 +592,16 @@ export default function DashboardPage() {
                       </div>
                     </div>
 
-                    <div className="mt-4 grid grid-cols-2 gap-2">
-                      <Button
-                        variant="outline"
-                        className="h-11 rounded-2xl border-outline-variant/10 bg-white font-black"
-                        onClick={() => setLocation(`/proposal/${proposal.id}`)}
-                      >
-                        <FileText className="mr-2 h-4 w-4" />
-                        Öppna
-                      </Button>
-                      <Button
-                        variant="outline"
-                        className="h-11 rounded-2xl border-outline-variant/10 bg-white font-black"
-                        onClick={() =>
-                          window.open(
-                            `${import.meta.env.BASE_URL}p/${proposal.publicSlug}`,
-                            "_blank",
-                          )
-                        }
-                      >
-                        <Eye className="mr-2 h-4 w-4" />
-                        Webbvy
-                      </Button>
+                    <div className="mt-4">
+                        <Button
+                          variant="outline"
+                          className="h-12 w-full rounded-2xl border-none bg-surface-container-low font-black hover:bg-primary/5 hover:text-primary transition-all"
+                          onClick={() => setSelectedProposalId(proposal.id)}
+                        >
+                          <Eye className="mr-2 h-4 w-4" />
+                          Detaljer
+                        </Button>
                     </div>
-                    <Button
-                      variant="ghost"
-                      className="mt-2 h-11 w-full rounded-2xl font-black text-error hover:bg-error/10 hover:text-error"
-                      onClick={() => deleteProposal(proposal.id)}
-                    >
-                      <Trash2 className="mr-2 h-4 w-4" />
-                      Radera permanent
-                    </Button>
                   </section>
                 ))}
               </div>
@@ -656,10 +620,14 @@ export default function DashboardPage() {
                   </thead>
                   <tbody className="divide-y divide-outline-variant/5">
                     {filteredProposals.map((proposal) => (
-                      <tr
+                      <motion.tr
                         key={proposal.id}
-                        className="group hover:bg-primary/[0.03] transition-all duration-500 cursor-pointer"
-                        onClick={() => setLocation(`/proposal/${proposal.id}`)}
+                        layoutId={`proposal-${proposal.id}`}
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        whileHover={{ backgroundColor: "rgba(var(--primary), 0.03)" }}
+                        className="group transition-all duration-500 cursor-pointer"
+                        onClick={() => setSelectedProposalId(proposal.id)}
                       >
                         <td className="px-10 py-8">
                           <div
@@ -668,23 +636,23 @@ export default function DashboardPage() {
                             <div className="font-black text-on-surface text-lg tracking-tight transition-colors group-hover:text-primary leading-tight">
                               {proposal.title}
                             </div>
-                            <div className="mt-1.5 text-xs font-bold text-on-surface-variant/50 uppercase tracking-widest">
+                            <div className="mt-1.5 text-xs font-bold text-on-surface-variant/50 uppercase tracking-widest text-ellipsis overflow-hidden whitespace-nowrap">
                               {proposal.clientName || "Namnlös kund"}
                             </div>
                           </div>
                         </td>
                         <td className="px-10 py-8">
-                          <div className="flex justify-center transition-all duration-500 group-hover:scale-110">
+                          <div className="flex justify-center transition-all duration-500 group-hover:scale-105">
                             <StatusBadge status={proposal.status} />
                           </div>
                         </td>
                         <td className="px-10 py-8">
-                          <div className="text-base font-black text-on-surface tracking-tight">
+                          <div className="text-base font-black text-on-surface tracking-tight group-hover:text-primary transition-colors">
                             {formatCurrency(proposal.totalValue)}
                           </div>
                         </td>
                         <td className="px-10 py-8">
-                          <div className="text-[11px] font-black text-on-surface-variant/40 uppercase tracking-widest">
+                          <div className="text-[11px] font-black text-on-surface-variant/40 uppercase tracking-widest whitespace-nowrap">
                             {formatDate(proposal.updatedAt)}
                           </div>
                         </td>
@@ -705,26 +673,18 @@ export default function DashboardPage() {
                             >
                               <DropdownMenuItem
                                 className="rounded-xl py-4 px-4 font-black transition-colors"
-                                onClick={() =>
-                                  setLocation(`/proposal/${proposal.id}`)
-                                }
+                                onClick={() => setSelectedProposalId(proposal.id)}
                               >
-                                <FileText className="mr-3 h-5 w-5 text-on-surface-variant" />
-                                Redigera offert
+                                <Eye className="mr-3 h-5 w-5 text-on-surface-variant" />
+                                Visa detaljer
                               </DropdownMenuItem>
                               <DropdownMenuItem
                                 className="rounded-xl py-4 px-4 font-black transition-colors"
-                                onClick={() =>
-                                  window.open(
-                                    `${import.meta.env.BASE_URL}p/${proposal.publicSlug}`,
-                                    "_blank",
-                                  )
-                                }
+                                onClick={() => setLocation(`/proposal/${proposal.id}`)}
                               >
-                                <Eye className="mr-3 h-5 w-5 text-on-surface-variant" />
-                                Visa publik vy
+                                <FileText className="mr-3 h-5 w-5 text-on-surface-variant" />
+                                Redigera
                               </DropdownMenuItem>
-                              <div className="my-2 h-[1px] bg-outline-variant/10" />
                               <DropdownMenuItem
                                 className="text-error focus:text-error bg-error/[0.03] focus:bg-error/[0.08] rounded-xl py-4 px-4 font-black"
                                 onClick={() => deleteProposal(proposal.id)}
@@ -735,7 +695,7 @@ export default function DashboardPage() {
                             </DropdownMenuContent>
                           </DropdownMenu>
                         </td>
-                      </tr>
+                      </motion.tr>
                     ))}
                   </tbody>
                 </table>

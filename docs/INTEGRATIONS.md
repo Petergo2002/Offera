@@ -47,6 +47,17 @@ Relevanta filer:
 - `artifacts/api-server/src/lib/proposal-signing.ts`
 - `artifacts/api-server/src/routes/proposals.ts`
 
+### Playwright
+
+Används för:
+
+- server-side PDF-export av interna och publika offerter
+
+Relevanta filer:
+
+- `artifacts/api-server/src/lib/pdf.ts`
+- `artifacts/api-server/src/routes/proposals.ts`
+
 ### OpenAPI + Orval + Zod
 
 Används för:

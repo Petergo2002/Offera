@@ -24,17 +24,21 @@ Offera är uppdelat i tre lager:
 
 - mottagaren öppnar `/p/:slug`
 - frontend hämtar offert via `/api/proposals/public/:slug`
-- läsåtkomst kräver personlig `signing_token` eller att användaren redan är inloggad i rätt workspace
-- om offerten skickades via Resend används `signing_token` för att låsa mottagaren till rätt revision
+- läsåtkomst kräver personlig `token` eller att användaren redan är inloggad i rätt workspace
+- utan giltig token returnerar API:t en gatad vy i stället för full offert
+- om offerten skickades via Resend används `token` för att låsa mottagaren till rätt revision
 - accept/avböj sker via `/api/proposals/public/:slug/respond`
+- PDF kan hämtas via `/api/proposals/public/:slug/pdf`
 
 ### Signering och beviskedja
 
 - när en offert skickas skapas en låst signerbar revision
 - exakt snapshot hash:as och kopplas till revisionen
+- en personlig signeringslänk skapas för revisionen
 - audit events loggas längs vägen
 - signeringsbevis sparas mot revisionen
 - evidence-export och läsbar bevisrapport kan hämtas i arkivet
+- signerade offerter är immutable i normalflödet; vill man ändra skapas en kopia och en ny offert skickas
 
 ## Tekniska byggblock
 
@@ -71,6 +75,7 @@ Offera är uppdelat i tre lager:
 - `/api/healthz`
 - `/api/proposals/public/:slug` kräver personlig länk eller workspace-auth
 - `/api/proposals/public/:slug/respond`
+- `/api/proposals/public/:slug/pdf`
 - frontend-routen `/p/:slug` laddar via samma accessregel
 
 ## Viktiga designbeslut
@@ -78,6 +83,7 @@ Offera är uppdelat i tre lager:
 - contract-first: OpenAPI-specen är källan till API-kontraktet
 - workspace-scope: interna records ägs av ett workspace
 - evidence-first signering: signerad version är en separat revision, inte bara ett statusfält
+- signed-is-read-only: accepterade offerter låses för redigering och dupliceras i stället för att muteras
 - graceful fallback: API:t kan lokalt köra utan Postgres för enklare dev
 
 ## Runtime-lägen

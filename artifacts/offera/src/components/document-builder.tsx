@@ -26,6 +26,10 @@ import {
   Tablet,
   Type,
   Upload,
+  XCircle,
+  SquareMenu,
+  Send,
+  Copy,
 } from "lucide-react";
 import type {
   ContentBlock,
@@ -60,6 +64,14 @@ import { Switch } from "@/components/ui/switch";
 import { StatusBadge } from "@/components/status-badge";
 import { cn } from "@/lib/utils";
 import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet";
+import { useIsMobile } from "@/hooks/use-mobile";
+import {
   Select,
   SelectContent,
   SelectItem,
@@ -78,6 +90,7 @@ import {
 
 type DocumentBuilderProps = {
   mode: "proposal" | "template";
+  readOnly?: boolean;
   title: string;
   status?: Parameters<typeof StatusBadge>[0]["status"];
   sections: ProposalSection[];
@@ -970,7 +983,7 @@ function PackageAndPricingEditor({
                       />
                       <div className="flex items-center gap-2">
                         <Input
-                          value={row.unit ?? "st"}
+                          value={row.unit ?? ""}
                           onChange={(e) =>
                             updateRow(row.id, { unit: e.target.value })
                           }
@@ -1053,10 +1066,16 @@ function PackageAndPricingEditor({
                   ) : (
                     <Input
                       type="number"
-                      value={row.quantity}
+                      inputMode="numeric"
+                      min="0"
+                      step="1"
+                      value={row.quantity === 0 ? "" : String(row.quantity)}
                       onChange={(event) =>
                         updateRow(row.id, {
-                          quantity: Number(event.target.value) || 0,
+                          quantity:
+                            event.target.value === ""
+                              ? 0
+                              : Number(event.target.value) || 0,
                         })
                       }
                       className="border-none bg-transparent text-right shadow-none focus-visible:ring-0 font-bold text-lg p-0 h-auto tabular-nums"
@@ -1079,10 +1098,16 @@ function PackageAndPricingEditor({
                     <div className="flex flex-col items-end gap-2">
                       <Input
                         type="number"
-                        value={row.unitPrice}
+                        inputMode="decimal"
+                        min="0"
+                        step="0.01"
+                        value={row.unitPrice === 0 ? "" : String(row.unitPrice)}
                         onChange={(event) =>
                           updateRow(row.id, {
-                            unitPrice: Number(event.target.value) || 0,
+                            unitPrice:
+                              event.target.value === ""
+                                ? 0
+                                : Number(event.target.value) || 0,
                           })
                         }
                         className="border-none bg-transparent text-right shadow-none focus-visible:ring-0 font-bold text-lg p-0 h-auto tabular-nums"
@@ -1158,11 +1183,21 @@ function PackageAndPricingEditor({
                 </span>
                 <Input
                   type="number"
-                  value={block.discount ?? 0}
+                  inputMode="decimal"
+                  min="0"
+                  max="100"
+                  step="0.1"
+                  value={totals.hasDiscount ? String(block.discount ?? "") : ""}
                   onChange={(event) =>
-                    onChange({ discount: Number(event.target.value) || 0 })
+                    onChange({
+                      discount:
+                        event.target.value === ""
+                          ? 0
+                          : Number(event.target.value) || 0,
+                    })
                   }
-                  className="h-7 w-12 text-right border-none bg-transparent shadow-none focus-visible:ring-0 p-0 font-bold text-sm"
+                  className="h-7 w-14 text-right border-none bg-transparent shadow-none focus-visible:ring-0 p-0 font-bold text-sm"
+                  placeholder="Valfri"
                 />
               </div>
             </div>
@@ -1239,14 +1274,16 @@ function PackageAndPricingEditor({
               </span>
             </div>
 
-            <div className="flex items-center justify-between">
-              <span className="uppercase tracking-widest text-[11px] font-black text-on-surface-variant/40">
-                Total Rabatt
-              </span>
-              <span className="font-bold text-lg tabular-nums text-error/60">
-                -{formatCurrency(totals.discountAmount)}
-              </span>
-            </div>
+            {totals.hasDiscount && (
+              <div className="flex items-center justify-between">
+                <span className="uppercase tracking-widest text-[11px] font-black text-on-surface-variant/40">
+                  Total rabatt
+                </span>
+                <span className="font-bold text-lg tabular-nums text-error/60">
+                  -{formatCurrency(totals.discountAmount)}
+                </span>
+              </div>
+            )}
 
             <div className={cn(
               "pt-6 mt-4 border-t-2 border-dashed border-outline-variant/20",
@@ -1275,9 +1312,7 @@ function PackageAndPricingEditor({
                   )}
                   style={isPreview && !designSettings.gradientEnabled ? { color: "var(--proposal-accent)" } : {}}
                 >
-                  {formatCurrency(
-                    totals.hasRecurring ? totals.contractTotal : totals.total,
-                  )}
+                  {formatCurrency(totals.totalDisplayAmount)}
                 </span>
               </div>
             </div>
@@ -1817,6 +1852,7 @@ export function DocumentBuilderSkeleton() {
 
 export function DocumentBuilder({
   mode,
+  readOnly = false,
   title,
   status,
   sections,
@@ -1836,7 +1872,11 @@ export function DocumentBuilder({
   onPartiesChange,
   createdAt,
 }: DocumentBuilderProps) {
+  const isMobile = useIsMobile();
   const [previewDevice, setPreviewDevice] = React.useState<PreviewDevice>(
+    "desktop",
+  );
+  const [activeSectionId, setActiveSectionId] = React.useState<string | null>(
     "desktop",
   );
 
@@ -1866,6 +1906,10 @@ export function DocumentBuilder({
   );
   const isCompactPreview = isPreview && previewDevice === "mobile";
   const isTabletPreview = isPreview && previewDevice === "tablet";
+  const isProposalPreview = isPreview && mode === "proposal";
+  const isAcceptedProposal = status === "accepted";
+  const isDeclinedProposal = status === "declined";
+  const isAwaitingProposalResponse = status === "sent" || status === "viewed";
   const placeholderContext = React.useMemo(
     () => ({
       clientName: clientName || parties?.recipient.companyName || "",
@@ -2950,82 +2994,336 @@ export function DocumentBuilder({
                     </div>
                   ))}
                 </div>
+
+                {isProposalPreview ? (
+                  <div
+                    className={cn(
+                      "border-t border-outline-variant/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.98),rgba(248,250,252,0.94))]",
+                      isCompactPreview
+                        ? "px-5 py-8"
+                        : isTabletPreview
+                          ? "px-10 py-10"
+                          : "px-6 py-12 md:px-14 md:py-14",
+                    )}
+                  >
+                    <div className="mx-auto max-w-3xl">
+                      <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-outline-variant/10 bg-white px-3 py-1 text-[10px] font-black uppercase tracking-[0.22em] text-on-surface-variant shadow-subtle">
+                        <Eye className="h-3.5 w-3.5" />
+                        Kundvy i preview
+                      </div>
+
+                      {isAcceptedProposal ? (
+                        <div
+                          className={cn(
+                            "rounded-[2.5rem] border border-emerald-200 bg-emerald-50/70 text-center",
+                            isCompactPreview ? "p-6" : "p-8",
+                          )}
+                        >
+                          <div
+                            className={cn(
+                              "mx-auto mb-4 flex items-center justify-center rounded-full bg-emerald-100 text-emerald-700",
+                              isCompactPreview ? "h-12 w-12" : "h-14 w-14",
+                            )}
+                          >
+                            <CheckCircle2 className={cn(isCompactPreview ? "h-6 w-6" : "h-7 w-7")} />
+                          </div>
+                          <h3
+                            className={cn(
+                              "font-black tracking-tight text-emerald-950",
+                              isCompactPreview ? "text-2xl" : "text-3xl",
+                            )}
+                          >
+                            Offerten är signerad
+                          </h3>
+                          <p
+                            className={cn(
+                              "mx-auto mt-3 max-w-2xl text-emerald-900/75",
+                              isCompactPreview ? "text-sm leading-6" : "text-base leading-7",
+                            )}
+                          >
+                            Så här ser slutläget ut för kunden efter att offerten har accepterats och signerats.
+                          </p>
+                        </div>
+                      ) : isDeclinedProposal ? (
+                        <div
+                          className={cn(
+                            "rounded-[2.5rem] border border-rose-200 bg-rose-50/70 text-center",
+                            isCompactPreview ? "p-6" : "p-8",
+                          )}
+                        >
+                          <div
+                            className={cn(
+                              "mx-auto mb-4 flex items-center justify-center rounded-full bg-rose-100 text-rose-700",
+                              isCompactPreview ? "h-12 w-12" : "h-14 w-14",
+                            )}
+                          >
+                            <XCircle className={cn(isCompactPreview ? "h-6 w-6" : "h-7 w-7")} />
+                          </div>
+                          <h3
+                            className={cn(
+                              "font-black tracking-tight text-rose-950",
+                              isCompactPreview ? "text-2xl" : "text-3xl",
+                            )}
+                          >
+                            Offerten är avböjd
+                          </h3>
+                          <p
+                            className={cn(
+                              "mx-auto mt-3 max-w-2xl text-rose-900/70",
+                              isCompactPreview ? "text-sm leading-6" : "text-base leading-7",
+                            )}
+                          >
+                            Kunden ser här att offerten inte längre väntar på svar och att dialogen behöver tas vidare utanför signeringsflödet.
+                          </p>
+                        </div>
+                      ) : isAwaitingProposalResponse ? (
+                        <div
+                          className={cn(
+                            "rounded-[2.5rem] border border-primary/15 bg-white text-center shadow-[0_20px_50px_-18px_rgba(0,0,0,0.12)]",
+                            isCompactPreview ? "p-5" : "p-8",
+                          )}
+                        >
+                          <h3
+                            className={cn(
+                              "font-black tracking-tight text-on-surface",
+                              isCompactPreview ? "text-[2rem] leading-[1.02]" : "text-3xl",
+                            )}
+                          >
+                            Redo att gå vidare?
+                          </h3>
+                          <p
+                            className={cn(
+                              "mx-auto mt-4 max-w-2xl text-on-surface-variant/75",
+                              isCompactPreview ? "text-sm leading-6" : "text-base leading-7",
+                            )}
+                          >
+                            Här ser avsändaren exakt hur kundens svarszon landar längst ner i offerten. Kunden kan signera direkt eller markera att något behöver ändras.
+                          </p>
+                          <div
+                            className={cn(
+                              "mt-8 flex justify-center gap-3",
+                              isCompactPreview
+                                ? "flex-col items-stretch"
+                                : "flex-col items-center gap-4 sm:flex-row",
+                            )}
+                          >
+                            <button
+                              type="button"
+                              disabled
+                              className={cn(
+                                "inline-flex items-center justify-center rounded-2xl bg-primary font-black uppercase text-white shadow-elevated-primary opacity-100",
+                                isCompactPreview
+                                  ? "h-14 w-full px-5 text-base tracking-[0.12em]"
+                                  : "h-16 px-10 text-lg tracking-[0.16em]",
+                              )}
+                            >
+                              <Send className={cn("mr-3", isCompactPreview ? "h-4 w-4" : "h-5 w-5")} />
+                              Signera & Acceptera
+                            </button>
+                            <button
+                              type="button"
+                              disabled
+                              className={cn(
+                                "inline-flex items-center justify-center rounded-2xl font-black uppercase text-on-surface-variant/50",
+                                isCompactPreview
+                                  ? "h-12 w-full border border-outline-variant/10 bg-surface-container-low/40 px-4 text-[11px] tracking-[0.14em]"
+                                  : "h-16 px-8 text-sm tracking-[0.16em]",
+                              )}
+                            >
+                              <XCircle className={cn("mr-3", isCompactPreview ? "h-3.5 w-3.5" : "h-4 w-4")} />
+                              Behöver ändras
+                            </button>
+                          </div>
+                        </div>
+                      ) : (
+                        <div
+                          className={cn(
+                            "rounded-[2.5rem] border border-outline-variant/10 bg-surface-container-low/40 text-center",
+                            isCompactPreview ? "p-6" : "p-8",
+                          )}
+                        >
+                          <h3
+                            className={cn(
+                              "font-black tracking-tight text-on-surface",
+                              isCompactPreview ? "text-xl" : "text-2xl",
+                            )}
+                          >
+                            Kundens svarsyta visas här efter utskick
+                          </h3>
+                          <p
+                            className={cn(
+                              "mx-auto mt-3 max-w-2xl text-on-surface-variant/70",
+                              isCompactPreview ? "text-sm leading-6" : "text-base leading-7",
+                            )}
+                          >
+                            När offerten skickas visas signeringsknapp, status och svarszon i previewn på samma plats längst ner i dokumentet.
+                          </p>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                ) : null}
               </div>
-          </div>
-        </main>
-
-        {/* Floating Glassmorphic Toolbar */}
-        <div
-          className={cn(
-            "absolute bottom-10 left-1/2 -translate-x-1/2 z-50 animate-in slide-in-from-bottom-10 fade-in duration-700 transition-all",
-            isPreview && "opacity-0 translate-y-10 pointer-events-none",
-          )}
-        >
-          <div className="flex items-center gap-3 bg-white/70 backdrop-blur-2xl px-6 py-4 rounded-[2.5rem] border border-white/20 shadow-elevated ring-1 ring-black/5">
-            {secondaryAction && (
-              <Button
-                variant="ghost"
-                onClick={() => void secondaryAction.onClick()}
-                disabled={secondaryAction.loading}
-                className="h-14 px-8 rounded-2xl text-[11px] font-black uppercase tracking-widest text-on-surface-variant/60 hover:text-on-surface hover:bg-white"
-              >
-                {secondaryAction.loading ? (
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                ) : (
-                  <div className="flex items-center gap-3">
-                    {secondaryAction.icon}
-                    {secondaryAction.label}
-                  </div>
-                )}
-              </Button>
-            )}
-
-            <Button
-              variant="outline"
-              onClick={() => void onSave()}
-              disabled={isSaving}
-              className="h-14 px-8 rounded-2xl bg-white border-outline-variant/10 shadow-sm text-[11px] font-black uppercase tracking-widest hover:bg-surface-container-low"
-            >
-              {isSaving ? (
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              ) : (
-                <div className="flex items-center gap-3">
-                  <Save className="h-4 w-4" />
-                  {mode === "template" ? "Spara Mall" : "Spara Utkast"}
-                </div>
-              )}
-            </Button>
-
-            {primaryAction && (
-              <Button
-                onClick={() => void primaryAction.onClick()}
-                disabled={primaryAction.loading}
-                className="h-14 px-10 rounded-2xl bg-primary text-white shadow-elevated-primary text-[11px] font-black uppercase tracking-widest hover:bg-primary/90 transition-all hover:scale-[1.02] active:scale-95"
-              >
-                {primaryAction.loading ? (
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                ) : (
-                  <div className="flex items-center gap-3">
-                    {primaryAction.icon || <Save className="h-4 w-4" />}
-                    {primaryAction.label}
-                  </div>
-                )}
-              </Button>
-            )}
-
-            <div className="h-10 w-[1px] bg-outline-variant/10 mx-2" />
-
-            <div className="px-6 py-2 rounded-2xl bg-surface-container-lowest/50 border border-outline-variant/5">
-              <p className="text-[10px] font-black uppercase tracking-widest opacity-40 leading-none mb-1">
-                Totalvärde
-              </p>
-              <p className="text-xl font-black text-on-surface leading-none">
-                {formatCurrency(totalValue)}
-              </p>
             </div>
-          </div>
+          </main>
+
+          {/* Floating Action Bar / Mobile Sidepanel */}
+          {!isMobile ? (
+            <div
+              className={cn(
+                "absolute bottom-10 left-1/2 -translate-x-1/2 z-50 animate-in slide-in-from-bottom-10 fade-in duration-700 transition-all",
+                isPreview && "opacity-0 translate-y-10 pointer-events-none",
+              )}
+            >
+              <div className="flex items-center gap-3 bg-white/70 backdrop-blur-2xl px-6 py-4 rounded-[2.5rem] border border-white/20 shadow-elevated ring-1 ring-black/5">
+                {secondaryAction && (
+                  <Button
+                    variant="ghost"
+                    onClick={() => void secondaryAction.onClick()}
+                    disabled={secondaryAction.loading}
+                    className="h-14 px-8 rounded-2xl text-[11px] font-black uppercase tracking-widest text-on-surface-variant/60 hover:text-on-surface hover:bg-white"
+                  >
+                    {secondaryAction.loading ? (
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    ) : (
+                      <div className="flex items-center gap-3">
+                        {secondaryAction.icon}
+                        {secondaryAction.label}
+                      </div>
+                    )}
+                  </Button>
+                )}
+
+                {!readOnly ? (
+                  <Button
+                    variant="outline"
+                    onClick={() => void onSave()}
+                    disabled={isSaving}
+                    className="h-14 px-8 rounded-2xl bg-white border-outline-variant/10 shadow-sm text-[11px] font-black uppercase tracking-widest hover:bg-surface-container-low"
+                  >
+                    {isSaving ? (
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    ) : (
+                      <div className="flex items-center gap-3">
+                        <Save className="h-4 w-4" />
+                        {mode === "template" ? "Spara Mall" : "Spara Utkast"}
+                      </div>
+                    )}
+                  </Button>
+                ) : null}
+
+                {primaryAction && (
+                  <Button
+                    onClick={() => void primaryAction.onClick()}
+                    disabled={primaryAction.loading}
+                    className="h-14 px-10 rounded-2xl bg-primary text-white shadow-elevated-primary text-[11px] font-black uppercase tracking-widest hover:bg-primary/90 transition-all hover:scale-[1.02] active:scale-95"
+                  >
+                    {primaryAction.loading ? (
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    ) : (
+                      <div className="flex items-center gap-3">
+                        {primaryAction.icon || <Save className="h-4 w-4" />}
+                        {primaryAction.label}
+                      </div>
+                    )}
+                  </Button>
+                )}
+
+                <div className="h-10 w-[1px] bg-outline-variant/10 mx-2" />
+
+                <div className="px-6 py-2 rounded-2xl bg-surface-container-lowest/50 border border-outline-variant/5">
+                  <p className="text-[10px] font-black uppercase tracking-widest opacity-40 leading-none mb-1">
+                    Totalvärde
+                  </p>
+                  <p className="text-xl font-black text-on-surface leading-none">
+                    {formatCurrency(totalValue)}
+                  </p>
+                </div>
+              </div>
+            </div>
+          ) : (
+            <Sheet>
+              <SheetTrigger asChild>
+                <Button
+                  className={cn(
+                    "fixed right-6 top-1/2 -translate-y-1/2 z-50 h-16 w-16 rounded-full bg-primary text-white shadow-elevated-primary transition-all duration-500 hover:scale-105 active:scale-95",
+                    isPreview && "opacity-0 translate-x-20 pointer-events-none",
+                  )}
+                >
+                  <SquareMenu className="h-6 w-6" />
+                </Button>
+              </SheetTrigger>
+              <SheetContent side="right" className="w-[300px] border-l-outline-variant/10 bg-surface p-0 sm:w-[400px]">
+                <SheetHeader className="border-b border-outline-variant/10 px-6 py-8 text-left">
+                  <SheetTitle className="text-2xl font-black tracking-tight text-on-surface">
+                    Åtgärder
+                  </SheetTitle>
+                  <div className="mt-6 rounded-2xl bg-surface-container-low p-5 border border-outline-variant/5">
+                    <p className="text-[10px] font-black uppercase tracking-[0.2em] text-on-surface-variant/40 mb-2">
+                      Totalvärde för offerten
+                    </p>
+                    <p className="text-3xl font-black text-primary">
+                      {formatCurrency(totalValue)}
+                    </p>
+                  </div>
+                </SheetHeader>
+
+                <div className="flex flex-col gap-4 p-6">
+                  {secondaryAction && (
+                    <Button
+                      variant="outline"
+                      onClick={() => void secondaryAction.onClick()}
+                      disabled={secondaryAction.loading}
+                      className="h-16 w-full justify-start rounded-2xl bg-white border-outline-variant/10 px-6 text-[11px] font-black uppercase tracking-widest text-on-surface hover:bg-surface-container-low"
+                    >
+                      {secondaryAction.loading ? (
+                        <Loader2 className="mr-3 h-5 w-5 animate-spin" />
+                      ) : (
+                        <div className="mr-3 text-on-surface-variant/40">
+                          {secondaryAction.icon}
+                        </div>
+                      )}
+                      {secondaryAction.label}
+                    </Button>
+                  )}
+
+                  {!readOnly ? (
+                    <Button
+                      variant="outline"
+                      onClick={() => void onSave()}
+                      disabled={isSaving}
+                      className="h-16 w-full justify-start rounded-2xl bg-white border-outline-variant/10 px-6 text-[11px] font-black uppercase tracking-widest text-on-surface hover:bg-surface-container-low"
+                    >
+                      {isSaving ? (
+                        <Loader2 className="mr-3 h-5 w-5 animate-spin" />
+                      ) : (
+                        <Save className="mr-3 h-5 w-5 text-on-surface-variant/40" />
+                      )}
+                      {mode === "template" ? "Spara Mall" : "Spara Utkast"}
+                    </Button>
+                  ) : null}
+
+                  {primaryAction && (
+                    <Button
+                      onClick={() => void primaryAction.onClick()}
+                      disabled={primaryAction.loading}
+                      className="h-16 w-full justify-start rounded-2xl bg-primary px-6 text-[11px] font-black uppercase tracking-widest text-white shadow-elevated-primary hover:bg-primary/90"
+                    >
+                      {primaryAction.loading ? (
+                        <Loader2 className="mr-3 h-5 w-5 animate-spin" />
+                      ) : (
+                        <div className="mr-3">
+                          {primaryAction.icon || <Save className="h-5 w-5" />}
+                        </div>
+                      )}
+                      {primaryAction.label}
+                    </Button>
+                  )}
+                </div>
+              </SheetContent>
+            </Sheet>
+          )}
         </div>
       </div>
-    </div>
-  );
+    );
 }

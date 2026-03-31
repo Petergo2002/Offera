@@ -1,8 +1,9 @@
 import { randomBytes } from "crypto";
 import { Router, type IRouter, type Request } from "express";
-import { and, eq, gt, inArray, isNull, ne, or } from "drizzle-orm";
+import { and, eq, inArray, isNull, ne, or } from "drizzle-orm";
 import {
   CreateProposalBody,
+  GetProposalResponse,
   ProposalEvidenceResponse,
   SendProposalBody,
   RespondToProposalBody,
@@ -43,6 +44,7 @@ import {
 import { requireResendFromEmail, sendEmail } from "../lib/resend.js";
 import { requireAuth, resolveAuthContextFromToken } from "../lib/auth.js";
 import { normalizeProposalSections } from "../lib/legacy-content.js";
+import { generateProposalPdf } from "../lib/pdf.js";
 
 const router: IRouter = Router();
 const hasDatabase = Boolean(process.env.DATABASE_URL);
@@ -195,6 +197,10 @@ function isWorkspaceProposalViewer(
   );
 }
 
+function isLockedProposalStatus(status: string | null | undefined) {
+  return status === "accepted";
+}
+
 function toPublicProposalView<
   T extends {
     id: number;
@@ -273,6 +279,27 @@ function buildTokenRequiredProposalView(
     personalMessage: undefined,
     tokenRequired: true,
   });
+}
+
+function canReadProposalWithSigningToken(
+  signingToken: ProposalSigningTokenRecord | undefined,
+  activeRevision: ProposalRevisionRecord,
+) {
+  if (
+    !signingToken ||
+    normalizeEmail(signingToken.recipientEmail) !==
+      normalizeEmail(activeRevision.signingRecipientEmail)
+  ) {
+    return false;
+  }
+
+  const isAwaitingResponse =
+    activeRevision.status === "sent" || activeRevision.status === "viewed";
+  const isFinalized =
+    activeRevision.status === "accepted" || activeRevision.status === "declined";
+  const isUsed = Boolean(signingToken.usedAt);
+
+  return isFinalized || (isAwaitingResponse && !isUsed);
 }
 
 async function findPublicViewSigningToken(
@@ -549,6 +576,17 @@ function getProposalAccentColor(proposal: { branding: unknown }) {
   return /^#[0-9a-f]{6}$/i.test(accentColor) ? accentColor : "#111827";
 }
 
+function buildProposalPdfFilename(title: string) {
+  const normalizedTitle = title
+    .normalize("NFKD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-z0-9]+/gi, "-")
+    .replace(/^-+|-+$/g, "")
+    .toLowerCase();
+
+  return `offert-${normalizedTitle || "offera"}.pdf`;
+}
+
 function getProposalLogoUrl(proposal: { branding: unknown }) {
   const branding = proposal.branding as Record<string, unknown> | null | undefined;
   return typeof branding?.logoUrl === "string" ? branding.logoUrl : undefined;
@@ -614,61 +652,93 @@ function buildSigningEmail({
 
   const html = `
     <!DOCTYPE html>
-    <html>
+    <html lang="sv">
     <head>
       <meta charset="utf-8">
       <meta name="viewport" content="width=device-width, initial-scale=1.0">
       <title>${escapedTitle}</title>
+      <style>
+        @media only screen and (max-width: 620px) {
+          .wrapper { padding: 20px 10px !important; }
+          .content { padding: 40px 20px !important; }
+          .title { font-size: 28px !important; }
+          .message { font-size: 16px !important; }
+        }
+      </style>
     </head>
-    <body style="margin: 0; padding: 0; background-color: #F1F5F9; font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; -webkit-font-smoothing: antialiased;">
-      <table width="100%" border="0" cellspacing="0" cellpadding="0" style="background-color: #F1F5F9;">
+    <body style="margin: 0; padding: 0; background-color: #ffffff; font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; -webkit-font-smoothing: antialiased;">
+      <table width="100%" border="0" cellspacing="0" cellpadding="0" style="background-color: #ffffff;">
         <tr>
-          <td align="center" style="padding: 40px 16px;">
-            <table width="100%" border="0" cellspacing="0" cellpadding="0" style="max-width: 600px; background-color: #ffffff; border-radius: 24px; overflow: hidden; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -2px rgba(0,0,0,0.05); border: 1px solid #E2E8F0;">
+          <td align="center" class="wrapper" style="padding: 60px 20px;">
+            <table width="100%" border="0" cellspacing="0" cellpadding="0" style="max-width: 600px; text-align: center;">
+              <!-- Logo Section -->
               ${logoHtml}
+              
+              <!-- Badge -->
               <tr>
-                <td style="padding: 10px 32px 10px; text-align: center;">
-                  <div style="display: inline-block; background: ${escapedAccentColor}15; color: ${escapedAccentColor}; font-size: 12px; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; padding: 6px 12px; border-radius: 100px;">
+                <td style="padding: 32px 0 16px;">
+                  <div style="display: inline-block; background: ${escapedAccentColor}10; color: ${escapedAccentColor}; font-size: 11px; font-weight: 800; letter-spacing: 0.15em; text-transform: uppercase; padding: 6px 14px; border-radius: 100px;">
                     Offert för signering
                   </div>
                 </td>
               </tr>
+
+              <!-- Heading -->
               <tr>
-                <td style="padding: 24px 32px 32px; text-align: center;">
-                  <h1 style="margin: 0 0 16px; font-size: 32px; font-weight: 800; color: #0F172A; text-align: center; line-height: 1.2;">${escapedTitle}</h1>
-                  <p style="margin: 0 auto; max-width: 440px; font-size: 18px; line-height: 1.6; color: #475569; text-align: center;">
-                    Hej ${escapedRecipient}, ${escapedSender} har skickat en offert till dig. Klicka på knappen nedan för att granska och signera digitalt.
+                <td style="padding: 0 0 24px;">
+                  <h1 class="title" style="margin: 0; font-size: 40px; font-weight: 900; color: #0F172A; letter-spacing: -0.03em; line-height: 1.1;">${escapedTitle}</h1>
+                </td>
+              </tr>
+
+              <!-- Body -->
+              <tr>
+                <td style="padding: 0 40px 40px;">
+                  <p class="message" style="margin: 0 auto; max-width: 480px; font-size: 18px; line-height: 1.6; color: #475569; letter-spacing: -0.01em;">
+                    Hej ${escapedRecipient},<br>
+                    <strong>${escapedSender}</strong> har skickat en offert till dig. Granska detaljerna och signera digitalt för att komma igång.
                   </p>
                 </td>
               </tr>
+
+              <!-- Optional Message -->
               ${messageHtml}
+
+              <!-- Action Button -->
               <tr>
-                <td align="center" style="padding: 0 32px 40px;">
-                  <a href="${escapedSigningLink}" style="display: inline-block; background-color: ${escapedAccentColor}; color: #ffffff; font-size: 16px; font-weight: 600; text-decoration: none; padding: 18px 36px; border-radius: 14px; box-shadow: 0 4px 6px -1px ${escapedAccentColor}40;">
-                    Granska och signera
+                <td align="center" style="padding: 0 0 56px;">
+                  <a href="${escapedSigningLink}" style="display: inline-block; background-color: ${escapedAccentColor}; color: #ffffff; font-size: 16px; font-weight: 700; text-decoration: none; padding: 22px 48px; border-radius: 18px; text-transform: uppercase; letter-spacing: 0.1em; transition: all 0.2s ease;">
+                    Öppna och signera
                   </a>
                 </td>
               </tr>
+
+              <!-- Footer Details -->
               <tr>
-                <td style="padding: 32px; background-color: #F8FAFC; border-top: 1px solid #E2E8F0;">
-                  <div style="font-size: 14px; line-height: 1.6; color: #64748B; text-align: center;">
-                    <p style="margin: 0 0 12px;">Länken är personlig och gäller i 30 minuter.</p>
+                <td style="padding-top: 48px; border-top: 1px solid #F1F5F9;">
+                  <div style="font-size: 14px; line-height: 1.6; color: #64748B;">
+                    <p style="margin: 0 0 8px; font-weight: 500;">Länken är personlig och gäller i 30 minuter.</p>
                     <p style="margin: 0;">${replyLine}</p>
-                  </div>
-                  <div style="margin-top: 24px; padding-top: 24px; border-top: 1px dashed #CBD5E1; text-align: center;">
-                    <p style="margin: 0 0 10px; font-size: 12px; color: #94A3B8; text-transform: uppercase; letter-spacing: 0.05em;">Fungerar inte knappen?</p>
-                    <div style="background: #ffffff; border: 1px solid #E2E8F0; border-radius: 12px; padding: 12px; font-size: 12px; color: #475569; word-break: break-all;">
-                      ${escapedSigningLink}
-                    </div>
                   </div>
                 </td>
               </tr>
-            </table>
-            <table width="100%" border="0" cellspacing="0" cellpadding="0" style="max-width: 600px; margin-top: 24px;">
+
+              <!-- Alternative Link (Subtle) -->
               <tr>
-                <td align="center" style="color: #94A3B8; font-size: 12px;">
-                  &copy; ${new Date().getFullYear()} ${escapedSender}. Alla rättigheter förbehållna.<br>
-                  Säker digital signering drivs av <a href="https://offera.se" style="color: #64748B; text-decoration: underline; font-weight: 500;">Offera</a>
+                <td align="center" style="padding-top: 40px;">
+                  <div style="font-size: 11px; color: #94A3B8; text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 12px;">Hjälp med länken?</div>
+                  <div style="display: block; font-size: 12px; color: #64748B; word-break: break-all; opacity: 0.6; max-width: 400px; margin: 0 auto;">
+                    ${escapedSigningLink}
+                  </div>
+                </td>
+              </tr>
+
+              <!-- Platform Footer -->
+              <tr>
+                <td align="center" style="padding-top: 80px;">
+                  <div style="color: #94A3B8; font-size: 12px; line-height: 1.6;">
+                    &copy; ${new Date().getFullYear()} ${escapedSender} genom 
+                    <a href="https://offera.se" style="color: #64748B; text-decoration: none; font-weight: 700;">Offera</a>
+                  </div>
                 </td>
               </tr>
             </table>
@@ -745,79 +815,96 @@ function buildSignedConfirmationEmail({
 
   const html = `
     <!DOCTYPE html>
-    <html>
+    <html lang="sv">
     <head>
       <meta charset="utf-8">
       <meta name="viewport" content="width=device-width, initial-scale=1.0">
       <title>${escapedTitle} Signerad</title>
+      <style>
+        @media only screen and (max-width: 620px) {
+          .wrapper { padding: 20px 10px !important; }
+          .title { font-size: 28px !important; }
+        }
+      </style>
     </head>
-    <body style="margin: 0; padding: 0; background-color: #F1F5F9; font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;">
-      <table width="100%" border="0" cellspacing="0" cellpadding="0" style="background-color: #F1F5F9;">
+    <body style="margin: 0; padding: 0; background-color: #ffffff; font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; -webkit-font-smoothing: antialiased;">
+      <table width="100%" border="0" cellspacing="0" cellpadding="0" style="background-color: #ffffff;">
         <tr>
-          <td align="center" style="padding: 40px 16px;">
-            <table width="100%" border="0" cellspacing="0" cellpadding="0" style="max-width: 600px; background-color: #ffffff; border-radius: 24px; overflow: hidden; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -2px rgba(0,0,0,0.05); border: 1px solid #E2E8F0;">
+          <td align="center" class="wrapper" style="padding: 60px 20px;">
+            <table width="100%" border="0" cellspacing="0" cellpadding="0" style="max-width: 600px; text-align: center;">
+              <!-- Logo Section -->
               ${logoHtml}
+
+              <!-- Progress Badge -->
               <tr>
-                <td style="padding: 10px 32px 10px; text-align: center;">
-                  <div style="display: inline-block; background: #22C55E15; color: #16A34A; font-size: 12px; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; padding: 6px 12px; border-radius: 100px;">
+                <td style="padding: 32px 0 16px;">
+                  <div style="display: inline-block; background: #22C55E10; color: #16A34A; font-size: 11px; font-weight: 800; letter-spacing: 0.15em; text-transform: uppercase; padding: 6px 14px; border-radius: 100px;">
                     Signerad och Klar
                   </div>
                 </td>
               </tr>
+
+              <!-- Heading -->
               <tr>
-                <td style="padding: 24px 32px 16px; text-align: center;">
-                  <h1 style="margin: 0 0 16px; font-size: 32px; font-weight: 800; color: #0F172A; text-align: center; line-height: 1.2;">${escapedTitle}</h1>
-                  <p style="margin: 0 auto; max-width: 440px; font-size: 18px; line-height: 1.6; color: #475569; text-align: center;">
-                    Offerten har signerats digitalt och är nu juridiskt bindande. En kopia finns tillgänglig för båda parter.
+                <td style="padding: 0 0 24px;">
+                  <h1 class="title" style="margin: 0; font-size: 40px; font-weight: 900; color: #0F172A; letter-spacing: -0.03em; line-height: 1.1;">${escapedTitle}</h1>
+                </td>
+              </tr>
+
+              <!-- Body -->
+              <tr>
+                <td style="padding: 0 40px 48px;">
+                  <p style="margin: 0 auto; max-width: 480px; font-size: 18px; line-height: 1.6; color: #475569; letter-spacing: -0.01em;">
+                    Offerten har signerats digitalt och är nu juridiskt bindande. En officiell kopia finns nu tillgänglig för din dokumentation.
                   </p>
                 </td>
               </tr>
+
+              <!-- Details Grid (Minimalist) -->
               <tr>
-                <td style="padding: 0 32px 32px;">
-                  <div style="background: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 20px; padding: 24px;">
-                    <table width="100%" border="0" cellspacing="0" cellpadding="0">
-                      <tr>
-                        <td style="padding-bottom: 16px;">
-                          <div style="font-size: 11px; font-weight: 700; color: #94A3B8; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 4px;">Signerad den</div>
-                          <div style="font-size: 15px; color: #0F172A; font-weight: 500;">${escapeHtml(signedAt.toLocaleString("sv-SE"))}</div>
-                        </td>
-                      </tr>
-                      <tr>
-                        <td style="padding-bottom: 16px; border-top: 1px solid #E2E8F0; padding-top: 16px;">
-                          <div style="font-size: 11px; font-weight: 700; color: #94A3B8; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 4px;">Signerad av</div>
-                          <div style="font-size: 15px; color: #0F172A; font-weight: 500;">${escapedRecipient}</div>
-                        </td>
-                      </tr>
-                      <tr>
-                        <td style="border-top: 1px solid #E2E8F0; padding-top: 16px;">
-                          <div style="font-size: 11px; font-weight: 700; color: #94A3B8; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 4px;">Fingeravtryck (SHA-256)</div>
-                          <div style="font-size: 12px; color: #64748B; font-family: monospace; word-break: break-all; background: #F1F5F9; padding: 8px; border-radius: 8px;">${escapedSnapshotHash}</div>
-                        </td>
-                      </tr>
-                    </table>
-                  </div>
+                <td style="padding: 0 0 48px;">
+                  <table width="100%" border="0" cellspacing="0" cellpadding="0" style="border-collapse: separate; border-spacing: 0 12px; text-align: center;">
+                    <tr>
+                      <td>
+                        <div style="font-size: 11px; font-weight: 700; color: #94A3B8; text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 2px;">Signerad den</div>
+                        <div style="font-size: 16px; color: #0F172A; font-weight: 600;">${escapeHtml(signedAt.toLocaleString("sv-SE"))}</div>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <div style="font-size: 11px; font-weight: 700; color: #94A3B8; text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 2px;">Signerad av</div>
+                        <div style="font-size: 16px; color: #0F172A; font-weight: 600;">${escapedRecipient}</div>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td style="padding-top: 12px;">
+                        <div style="font-size: 11px; font-weight: 700; color: #94A3B8; text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 6px;">Verifiering</div>
+                        <div style="display: inline-block; font-size: 10px; color: #64748B; font-family: monospace; background: #F8FAFC; padding: 6px 12px; border-radius: 6px;">
+                          ${escapedSnapshotHash}
+                        </div>
+                      </td>
+                    </tr>
+                  </table>
                 </td>
               </tr>
+
+              <!-- Action -->
               <tr>
-                <td align="center" style="padding: 0 32px 40px;">
-                  <a href="${escapedDocumentLink}" style="display: inline-block; background-color: #111827; color: #ffffff; font-size: 16px; font-weight: 600; text-decoration: none; padding: 18px 36px; border-radius: 14px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);">
-                    Visa det signerade dokumentet
+                <td align="center" style="padding: 0 0 56px;">
+                  <a href="${escapedDocumentLink}" style="display: inline-block; background-color: #111827; color: #ffffff; font-size: 16px; font-weight: 700; text-decoration: none; padding: 20px 48px; border-radius: 18px; text-transform: uppercase; letter-spacing: 0.1em;">
+                    Hämta Dokument
                   </a>
                 </td>
               </tr>
+
+              <!-- Platform Footer -->
               <tr>
-                <td style="padding: 32px; background-color: #F8FAFC; border-top: 1px solid #E2E8F0; text-align: center;">
-                  <div style="font-size: 14px; line-height: 1.6; color: #64748B;">
-                    Det här är en automatisk bekräftelse. Behåll det här mejlet som ett kvitto på din signering.
+                <td align="center" style="padding: 40px 0 0; border-top: 1px solid #F1F5F9;">
+                  <div style="color: #94A3B8; font-size: 12px; line-height: 1.6;">
+                    &copy; ${new Date().getFullYear()} ${escapedSender} genom 
+                    <a href="https://offera.se" style="color: #64748B; text-decoration: none; font-weight: 700;">Offera</a><br>
+                    Säker digital signering drivs av Offera.
                   </div>
-                </td>
-              </tr>
-            </table>
-            <table width="100%" border="0" cellspacing="0" cellpadding="0" style="max-width: 600px; margin-top: 24px;">
-              <tr>
-                <td align="center" style="color: #94A3B8; font-size: 12px;">
-                  &copy; ${new Date().getFullYear()} ${escapedSender}. Alla rättigheter förbehållna.<br>
-                  Säker digital signering via <a href="https://offera.se" style="color: #64748B; text-decoration: underline; font-weight: 500;">Offera</a>
                 </td>
               </tr>
             </table>
@@ -1291,21 +1378,10 @@ router.get("/public/:slug", async (req, res) => {
         activeRevision.id,
         signingTokenParam,
       );
-      const isAwaitingResponse =
-        activeRevision.status === "sent" || activeRevision.status === "viewed";
-      const isFinalized =
-        activeRevision.status === "accepted" || activeRevision.status === "declined";
-
-      if (
-        signingToken &&
-        normalizeEmail(signingToken.recipientEmail) ===
-          normalizeEmail(activeRevision.signingRecipientEmail)
-      ) {
-        const isExpired = signingToken.expiresAt.getTime() <= Date.now();
-        const isUsed = Boolean(signingToken.usedAt);
-
-        hasValidToken = isFinalized || (!isExpired && !isUsed);
-      }
+      hasValidToken = canReadProposalWithSigningToken(
+        signingToken,
+        activeRevision,
+      );
     }
 
     const integrity = verifyRevisionIntegrity(activeRevision);
@@ -1485,14 +1561,13 @@ router.post("/public/:slug/respond", async (req, res) => {
           eq(dbModule.proposalSigningTokensTable.proposalId, proposal.id),
           eq(dbModule.proposalSigningTokensTable.tokenHash, tokenHash),
           isNull(dbModule.proposalSigningTokensTable.usedAt),
-          gt(dbModule.proposalSigningTokensTable.expiresAt, new Date()),
         ),
       );
 
     if (!signingToken) {
       res.status(403).json({
         error:
-          "Signeringslänken är ogiltig eller har gått ut. Skicka offerten igen för att få en ny länk.",
+          "Signeringslänken är ogiltig eller redan använd. Skicka offerten igen för att få en ny länk.",
       });
       return;
     }
@@ -1710,6 +1785,129 @@ router.post("/public/:slug/respond", async (req, res) => {
   }
 });
 
+router.get("/public/:slug/pdf", async (req, res) => {
+  try {
+    const { slug } = req.params;
+    const signingTokenParam = getPublicAccessToken(req);
+
+    let proposalForPdf;
+
+    if (!hasDatabase) {
+      const proposal = await getLocalPublicProposal(slug);
+      if (!proposal) {
+        res.status(404).json({ error: "Proposal not found" });
+        return;
+      }
+
+      proposalForPdf = GetProposalResponse.parse(serializeProposal(proposal));
+    } else {
+      const dbModule = await getDbModule();
+      const [proposal] = await dbModule.db
+        .select()
+        .from(dbModule.proposalsTable)
+        .where(eq(dbModule.proposalsTable.publicSlug, slug));
+
+      if (!proposal) {
+        res.status(404).json({ error: "Proposal not found" });
+        return;
+      }
+
+      await attachOptionalAuth(req);
+      const internalViewer = isWorkspaceProposalViewer(req, proposal as ProposalRecord);
+      const activeRevision = await ensureActiveRevisionForProposal(
+        proposal as ProposalRecord,
+        dbModule,
+      );
+
+      if (!activeRevision) {
+        if (!internalViewer) {
+          res.status(403).json({
+            error:
+              "Den här offerten kräver den personliga länken från e-posten som skickades till motparten.",
+          });
+          return;
+        }
+
+        proposalForPdf = GetProposalResponse.parse(
+          serializeProposal(proposal as ProposalRecord),
+        );
+      } else {
+        let hasValidToken = false;
+        if (!internalViewer && signingTokenParam) {
+          const signingToken = await findPublicViewSigningToken(
+            dbModule,
+            proposal.id,
+            activeRevision.id,
+            signingTokenParam,
+          );
+          hasValidToken = canReadProposalWithSigningToken(
+            signingToken,
+            activeRevision,
+          );
+        }
+
+        const integrity = verifyRevisionIntegrity(activeRevision);
+        if (!integrity.isValid) {
+          await dbModule.db
+            .update(dbModule.proposalRevisionsTable)
+            .set({ tamperedAt: new Date() })
+            .where(eq(dbModule.proposalRevisionsTable.id, activeRevision.id));
+          await logProposalAuditEvent(dbModule.db, dbModule.proposalAuditEventsTable, {
+            workspaceId: (proposal as ProposalRecord).workspaceId ?? null,
+            proposalId: proposal.id,
+            revisionId: activeRevision.id,
+            eventType: "tamper_detected",
+            actorType: "system",
+            ipAddress: getRequestMetadata(req).ipAddress,
+            userAgent: getRequestMetadata(req).userAgent,
+            metadata: {
+              expectedHash: activeRevision.snapshotHash,
+              calculatedHash: integrity.calculatedHash,
+            },
+          });
+          res.status(409).json({
+            error:
+              "Offerten kunde inte verifieras eftersom dokumentintegriteten inte längre stämmer.",
+          });
+          return;
+        }
+
+        if (!internalViewer && !hasValidToken) {
+          res.status(403).json({
+            error:
+              "Den här offerten kräver den personliga länken från e-posten som skickades till motparten.",
+          });
+          return;
+        }
+
+        proposalForPdf = GetProposalResponse.parse(
+          buildPublicProposalFromRevision(
+            integrity.snapshot,
+            activeRevision,
+          ),
+        );
+      }
+    }
+
+    try {
+      const pdfBuffer = await generateProposalPdf(proposalForPdf);
+
+      res.setHeader("Content-Type", "application/pdf");
+      res.setHeader(
+        "Content-Disposition",
+        `attachment; filename="${buildProposalPdfFilename(proposalForPdf.title)}"`,
+      );
+      res.send(pdfBuffer);
+    } catch (error) {
+      req.log.error({ err: error, proposalSlug: slug }, "Failed to generate public proposal PDF");
+      res.status(500).json({ error: "PDF generation failed" });
+    }
+  } catch (err) {
+    req.log.error({ err }, "Failed to get public proposal PDF");
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
 router.get("/:id/evidence", async (req, res) => {
   try {
     const id = parseInt(req.params.id);
@@ -1852,7 +2050,18 @@ router.put("/:id", async (req, res) => {
     const body = UpdateProposalBody.parse(req.body);
 
     if (!hasDatabase) {
-      const updated = await updateLocalProposal(id, body);
+      let updated;
+      try {
+        updated = await updateLocalProposal(id, body);
+      } catch (error) {
+        res.status(409).json({
+          error:
+            error instanceof Error
+              ? error.message
+              : "Den här offerten är låst och kan inte längre ändras.",
+        });
+        return;
+      }
       if (!updated) {
         res.status(404).json({ error: "Proposal not found" });
         return;
@@ -1875,6 +2084,14 @@ router.put("/:id", async (req, res) => {
 
     if (!existing) {
       res.status(404).json({ error: "Proposal not found" });
+      return;
+    }
+
+    if (isLockedProposalStatus((existing as ProposalRecord).status)) {
+      res.status(409).json({
+        error:
+          "Den här offerten är signerad och låst. Skapa en kopia om du vill göra ändringar och skicka en ny version.",
+      });
       return;
     }
 
@@ -2010,7 +2227,18 @@ router.post("/:id/send", async (req, res) => {
     const body = SendProposalBody.parse(req.body);
 
     if (!hasDatabase) {
-      const updated = await sendLocalProposal(id, body);
+      let updated;
+      try {
+        updated = await sendLocalProposal(id, body);
+      } catch (error) {
+        res.status(409).json({
+          error:
+            error instanceof Error
+              ? error.message
+              : "Den här offerten är låst och kan inte längre uppdateras.",
+        });
+        return;
+      }
       if (!updated) {
         res.status(404).json({ error: "Proposal not found" });
         return;
@@ -2033,6 +2261,14 @@ router.post("/:id/send", async (req, res) => {
 
     if (!existing) {
       res.status(404).json({ error: "Proposal not found" });
+      return;
+    }
+
+    if (isLockedProposalStatus((existing as ProposalRecord).status)) {
+      res.status(409).json({
+        error:
+          "Den här offerten är signerad och låst. Skapa en kopia om du vill uppdatera och skicka en ny version.",
+      });
       return;
     }
 
@@ -2272,6 +2508,75 @@ router.post("/:id/send", async (req, res) => {
     res.status(500).json({
       error: err instanceof Error ? err.message : "Internal server error",
     });
+  }
+});
+
+router.get("/:id/pdf", async (req, res) => {
+  try {
+    const id = parseInt(req.params.id);
+    if (isNaN(id)) {
+      res.status(400).json({ error: "Invalid ID" });
+      return;
+    }
+
+    let proposalForPdf;
+
+    if (!hasDatabase) {
+      const proposal = await getLocalProposalById(id);
+      if (!proposal) {
+        res.status(404).json({ error: "Proposal not found" });
+        return;
+      }
+
+      proposalForPdf = GetProposalResponse.parse(serializeProposal(proposal));
+    } else {
+      const workspaceId = req.auth!.workspaceId;
+      const dbModule = await getDbModule();
+      const [proposal] = await dbModule.db
+        .select()
+        .from(dbModule.proposalsTable)
+        .where(
+          and(
+            eq(dbModule.proposalsTable.id, id),
+            eq(dbModule.proposalsTable.workspaceId, workspaceId),
+          ),
+        );
+
+      if (!proposal) {
+        res.status(404).json({ error: "Proposal not found" });
+        return;
+      }
+
+      const activeRevision = await ensureActiveRevisionForProposal(
+        proposal as ProposalRecord,
+        dbModule,
+      );
+      const serializedProposal = activeRevision
+        ? buildPublicProposalFromRevision(
+            getRevisionSnapshot(activeRevision),
+            activeRevision,
+          )
+        : serializeProposal(proposal as ProposalRecord);
+
+      proposalForPdf = GetProposalResponse.parse(serializedProposal);
+    }
+
+    try {
+      const pdfBuffer = await generateProposalPdf(proposalForPdf);
+
+      res.setHeader("Content-Type", "application/pdf");
+      res.setHeader(
+        "Content-Disposition",
+        `attachment; filename="${buildProposalPdfFilename(proposalForPdf.title)}"`,
+      );
+      res.send(pdfBuffer);
+    } catch (error) {
+      req.log.error({ err: error, proposalId: id }, "Failed to generate proposal PDF");
+      res.status(500).json({ error: "PDF generation failed" });
+    }
+  } catch (err) {
+    req.log.error({ err }, "Failed to get proposal PDF");
+    res.status(500).json({ error: "Internal server error" });
   }
 });
 

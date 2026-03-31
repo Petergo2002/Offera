@@ -88,7 +88,7 @@ export const ConfirmationProvider: React.FC<{ children: React.ReactNode }> = ({ 
               className={cn(
                 "h-12 px-8 rounded-2xl font-black text-sm shadow-soft transition-all active:scale-95",
                 options?.variant === "destructive"
-                  ? "bg-error text-white hover:bg-error/90"
+                  ? "bg-destructive text-white hover:bg-destructive/90"
                   : "bg-primary-gradient text-white"
               )}
             >
