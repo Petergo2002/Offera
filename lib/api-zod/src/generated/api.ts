@@ -26,6 +26,7 @@ export const ListProposalsResponseItem = zod.object({
   status: zod.enum(["draft", "sent", "viewed", "accepted", "declined"]),
   totalValue: zod.number(),
   publicSlug: zod.string(),
+  templateId: zod.number().optional(),
   sections: zod.array(
     zod.object({
       id: zod.string(),
@@ -35,6 +36,8 @@ export const ListProposalsResponseItem = zod.object({
           id: zod.string(),
           type: zod.enum(["heading", "text", "image", "pricing", "divider"]),
           content: zod.string().optional(),
+          description: zod.string().optional(),
+          features: zod.array(zod.string()).optional(),
           rows: zod
             .array(
               zod.object({
@@ -42,6 +45,10 @@ export const ListProposalsResponseItem = zod.object({
                 description: zod.string(),
                 quantity: zod.number(),
                 unitPrice: zod.number(),
+                unit: zod.string().optional(),
+                type: zod.enum(["one_time", "recurring"]),
+                interval: zod.enum(["monthly", "yearly"]).optional(),
+                bindingPeriod: zod.number().optional(),
                 total: zod.number(),
               }),
             )
@@ -57,12 +64,64 @@ export const ListProposalsResponseItem = zod.object({
   branding: zod.object({
     logoUrl: zod.string().optional(),
     accentColor: zod.string(),
-    font: zod.enum(["inter", "playfair", "dm-sans"]),
+    font: zod.enum(["inter", "playfair", "dm-sans"]).optional(),
+    fontPairing: zod.enum(["modern", "klassisk", "editorial"]).optional(),
+    coverEnabled: zod.boolean().optional(),
+    coverBackground: zod.string().optional(),
+    coverHeadline: zod.string().optional(),
+    coverSubheadline: zod.string().optional(),
+    logoPosition: zod.enum(["left", "center", "right"]).optional(),
+    dividerStyle: zod.enum(["line", "space", "decorative"]).optional(),
+  }),
+  parties: zod.object({
+    sender: zod.object({
+      companyName: zod.string(),
+      orgNumber: zod.string(),
+      contactName: zod.string(),
+      email: zod.string(),
+      phone: zod.string(),
+      address: zod.string(),
+      postalCode: zod.string(),
+      city: zod.string(),
+    }),
+    recipient: zod
+      .object({
+        companyName: zod.string(),
+        orgNumber: zod.string(),
+        contactName: zod.string(),
+        email: zod.string(),
+        phone: zod.string(),
+        address: zod.string(),
+        postalCode: zod.string(),
+        city: zod.string(),
+      })
+      .and(
+        zod.object({
+          kind: zod.enum(["company", "person"]),
+        }),
+      ),
   }),
   personalMessage: zod.string().optional(),
+  signedByName: zod.string().optional(),
+  signatureInitials: zod.string().optional(),
+  signatureDataUrl: zod.string().optional(),
+  signedAt: zod.coerce.date().optional(),
   createdAt: zod.coerce.date(),
   updatedAt: zod.coerce.date(),
   lastActivityAt: zod.coerce.date().optional(),
+  revisionId: zod.number().optional(),
+  snapshotHash: zod.string().optional(),
+  sentAt: zod.coerce.date().optional(),
+  viewedAt: zod.coerce.date().optional(),
+  signingRecipientEmail: zod.string().optional(),
+  resendEmailId: zod.string().optional(),
+  auditSummary: zod
+    .object({
+      eventCount: zod.number(),
+      lastEventAt: zod.coerce.date().optional(),
+      lastEventType: zod.string().optional(),
+    })
+    .optional(),
 });
 export const ListProposalsResponse = zod.array(ListProposalsResponseItem);
 
@@ -70,9 +129,10 @@ export const ListProposalsResponse = zod.array(ListProposalsResponseItem);
  * @summary Create a new proposal
  */
 export const CreateProposalBody = zod.object({
-  title: zod.string(),
-  clientName: zod.string(),
+  title: zod.string().optional(),
+  clientName: zod.string().optional(),
   clientEmail: zod.string().optional(),
+  templateId: zod.number().optional(),
 });
 
 /**
@@ -90,6 +150,7 @@ export const GetProposalResponse = zod.object({
   status: zod.enum(["draft", "sent", "viewed", "accepted", "declined"]),
   totalValue: zod.number(),
   publicSlug: zod.string(),
+  templateId: zod.number().optional(),
   sections: zod.array(
     zod.object({
       id: zod.string(),
@@ -99,6 +160,8 @@ export const GetProposalResponse = zod.object({
           id: zod.string(),
           type: zod.enum(["heading", "text", "image", "pricing", "divider"]),
           content: zod.string().optional(),
+          description: zod.string().optional(),
+          features: zod.array(zod.string()).optional(),
           rows: zod
             .array(
               zod.object({
@@ -106,6 +169,10 @@ export const GetProposalResponse = zod.object({
                 description: zod.string(),
                 quantity: zod.number(),
                 unitPrice: zod.number(),
+                unit: zod.string().optional(),
+                type: zod.enum(["one_time", "recurring"]),
+                interval: zod.enum(["monthly", "yearly"]).optional(),
+                bindingPeriod: zod.number().optional(),
                 total: zod.number(),
               }),
             )
@@ -121,12 +188,64 @@ export const GetProposalResponse = zod.object({
   branding: zod.object({
     logoUrl: zod.string().optional(),
     accentColor: zod.string(),
-    font: zod.enum(["inter", "playfair", "dm-sans"]),
+    font: zod.enum(["inter", "playfair", "dm-sans"]).optional(),
+    fontPairing: zod.enum(["modern", "klassisk", "editorial"]).optional(),
+    coverEnabled: zod.boolean().optional(),
+    coverBackground: zod.string().optional(),
+    coverHeadline: zod.string().optional(),
+    coverSubheadline: zod.string().optional(),
+    logoPosition: zod.enum(["left", "center", "right"]).optional(),
+    dividerStyle: zod.enum(["line", "space", "decorative"]).optional(),
+  }),
+  parties: zod.object({
+    sender: zod.object({
+      companyName: zod.string(),
+      orgNumber: zod.string(),
+      contactName: zod.string(),
+      email: zod.string(),
+      phone: zod.string(),
+      address: zod.string(),
+      postalCode: zod.string(),
+      city: zod.string(),
+    }),
+    recipient: zod
+      .object({
+        companyName: zod.string(),
+        orgNumber: zod.string(),
+        contactName: zod.string(),
+        email: zod.string(),
+        phone: zod.string(),
+        address: zod.string(),
+        postalCode: zod.string(),
+        city: zod.string(),
+      })
+      .and(
+        zod.object({
+          kind: zod.enum(["company", "person"]),
+        }),
+      ),
   }),
   personalMessage: zod.string().optional(),
+  signedByName: zod.string().optional(),
+  signatureInitials: zod.string().optional(),
+  signatureDataUrl: zod.string().optional(),
+  signedAt: zod.coerce.date().optional(),
   createdAt: zod.coerce.date(),
   updatedAt: zod.coerce.date(),
   lastActivityAt: zod.coerce.date().optional(),
+  revisionId: zod.number().optional(),
+  snapshotHash: zod.string().optional(),
+  sentAt: zod.coerce.date().optional(),
+  viewedAt: zod.coerce.date().optional(),
+  signingRecipientEmail: zod.string().optional(),
+  resendEmailId: zod.string().optional(),
+  auditSummary: zod
+    .object({
+      eventCount: zod.number(),
+      lastEventAt: zod.coerce.date().optional(),
+      lastEventType: zod.string().optional(),
+    })
+    .optional(),
 });
 
 /**
@@ -150,6 +269,8 @@ export const UpdateProposalBody = zod.object({
             id: zod.string(),
             type: zod.enum(["heading", "text", "image", "pricing", "divider"]),
             content: zod.string().optional(),
+            description: zod.string().optional(),
+            features: zod.array(zod.string()).optional(),
             rows: zod
               .array(
                 zod.object({
@@ -157,6 +278,10 @@ export const UpdateProposalBody = zod.object({
                   description: zod.string(),
                   quantity: zod.number(),
                   unitPrice: zod.number(),
+                  unit: zod.string().optional(),
+                  type: zod.enum(["one_time", "recurring"]),
+                  interval: zod.enum(["monthly", "yearly"]).optional(),
+                  bindingPeriod: zod.number().optional(),
                   total: zod.number(),
                 }),
               )
@@ -174,7 +299,44 @@ export const UpdateProposalBody = zod.object({
     .object({
       logoUrl: zod.string().optional(),
       accentColor: zod.string(),
-      font: zod.enum(["inter", "playfair", "dm-sans"]),
+      font: zod.enum(["inter", "playfair", "dm-sans"]).optional(),
+      fontPairing: zod.enum(["modern", "klassisk", "editorial"]).optional(),
+      coverEnabled: zod.boolean().optional(),
+      coverBackground: zod.string().optional(),
+      coverHeadline: zod.string().optional(),
+      coverSubheadline: zod.string().optional(),
+      logoPosition: zod.enum(["left", "center", "right"]).optional(),
+      dividerStyle: zod.enum(["line", "space", "decorative"]).optional(),
+    })
+    .optional(),
+  parties: zod
+    .object({
+      sender: zod.object({
+        companyName: zod.string(),
+        orgNumber: zod.string(),
+        contactName: zod.string(),
+        email: zod.string(),
+        phone: zod.string(),
+        address: zod.string(),
+        postalCode: zod.string(),
+        city: zod.string(),
+      }),
+      recipient: zod
+        .object({
+          companyName: zod.string(),
+          orgNumber: zod.string(),
+          contactName: zod.string(),
+          email: zod.string(),
+          phone: zod.string(),
+          address: zod.string(),
+          postalCode: zod.string(),
+          city: zod.string(),
+        })
+        .and(
+          zod.object({
+            kind: zod.enum(["company", "person"]),
+          }),
+        ),
     })
     .optional(),
   totalValue: zod.number().optional(),
@@ -188,6 +350,7 @@ export const UpdateProposalResponse = zod.object({
   status: zod.enum(["draft", "sent", "viewed", "accepted", "declined"]),
   totalValue: zod.number(),
   publicSlug: zod.string(),
+  templateId: zod.number().optional(),
   sections: zod.array(
     zod.object({
       id: zod.string(),
@@ -197,6 +360,8 @@ export const UpdateProposalResponse = zod.object({
           id: zod.string(),
           type: zod.enum(["heading", "text", "image", "pricing", "divider"]),
           content: zod.string().optional(),
+          description: zod.string().optional(),
+          features: zod.array(zod.string()).optional(),
           rows: zod
             .array(
               zod.object({
@@ -204,6 +369,10 @@ export const UpdateProposalResponse = zod.object({
                 description: zod.string(),
                 quantity: zod.number(),
                 unitPrice: zod.number(),
+                unit: zod.string().optional(),
+                type: zod.enum(["one_time", "recurring"]),
+                interval: zod.enum(["monthly", "yearly"]).optional(),
+                bindingPeriod: zod.number().optional(),
                 total: zod.number(),
               }),
             )
@@ -219,12 +388,64 @@ export const UpdateProposalResponse = zod.object({
   branding: zod.object({
     logoUrl: zod.string().optional(),
     accentColor: zod.string(),
-    font: zod.enum(["inter", "playfair", "dm-sans"]),
+    font: zod.enum(["inter", "playfair", "dm-sans"]).optional(),
+    fontPairing: zod.enum(["modern", "klassisk", "editorial"]).optional(),
+    coverEnabled: zod.boolean().optional(),
+    coverBackground: zod.string().optional(),
+    coverHeadline: zod.string().optional(),
+    coverSubheadline: zod.string().optional(),
+    logoPosition: zod.enum(["left", "center", "right"]).optional(),
+    dividerStyle: zod.enum(["line", "space", "decorative"]).optional(),
+  }),
+  parties: zod.object({
+    sender: zod.object({
+      companyName: zod.string(),
+      orgNumber: zod.string(),
+      contactName: zod.string(),
+      email: zod.string(),
+      phone: zod.string(),
+      address: zod.string(),
+      postalCode: zod.string(),
+      city: zod.string(),
+    }),
+    recipient: zod
+      .object({
+        companyName: zod.string(),
+        orgNumber: zod.string(),
+        contactName: zod.string(),
+        email: zod.string(),
+        phone: zod.string(),
+        address: zod.string(),
+        postalCode: zod.string(),
+        city: zod.string(),
+      })
+      .and(
+        zod.object({
+          kind: zod.enum(["company", "person"]),
+        }),
+      ),
   }),
   personalMessage: zod.string().optional(),
+  signedByName: zod.string().optional(),
+  signatureInitials: zod.string().optional(),
+  signatureDataUrl: zod.string().optional(),
+  signedAt: zod.coerce.date().optional(),
   createdAt: zod.coerce.date(),
   updatedAt: zod.coerce.date(),
   lastActivityAt: zod.coerce.date().optional(),
+  revisionId: zod.number().optional(),
+  snapshotHash: zod.string().optional(),
+  sentAt: zod.coerce.date().optional(),
+  viewedAt: zod.coerce.date().optional(),
+  signingRecipientEmail: zod.string().optional(),
+  resendEmailId: zod.string().optional(),
+  auditSummary: zod
+    .object({
+      eventCount: zod.number(),
+      lastEventAt: zod.coerce.date().optional(),
+      lastEventType: zod.string().optional(),
+    })
+    .optional(),
 });
 
 /**
@@ -254,6 +475,7 @@ export const SendProposalResponse = zod.object({
   status: zod.enum(["draft", "sent", "viewed", "accepted", "declined"]),
   totalValue: zod.number(),
   publicSlug: zod.string(),
+  templateId: zod.number().optional(),
   sections: zod.array(
     zod.object({
       id: zod.string(),
@@ -263,6 +485,8 @@ export const SendProposalResponse = zod.object({
           id: zod.string(),
           type: zod.enum(["heading", "text", "image", "pricing", "divider"]),
           content: zod.string().optional(),
+          description: zod.string().optional(),
+          features: zod.array(zod.string()).optional(),
           rows: zod
             .array(
               zod.object({
@@ -270,6 +494,10 @@ export const SendProposalResponse = zod.object({
                 description: zod.string(),
                 quantity: zod.number(),
                 unitPrice: zod.number(),
+                unit: zod.string().optional(),
+                type: zod.enum(["one_time", "recurring"]),
+                interval: zod.enum(["monthly", "yearly"]).optional(),
+                bindingPeriod: zod.number().optional(),
                 total: zod.number(),
               }),
             )
@@ -285,12 +513,64 @@ export const SendProposalResponse = zod.object({
   branding: zod.object({
     logoUrl: zod.string().optional(),
     accentColor: zod.string(),
-    font: zod.enum(["inter", "playfair", "dm-sans"]),
+    font: zod.enum(["inter", "playfair", "dm-sans"]).optional(),
+    fontPairing: zod.enum(["modern", "klassisk", "editorial"]).optional(),
+    coverEnabled: zod.boolean().optional(),
+    coverBackground: zod.string().optional(),
+    coverHeadline: zod.string().optional(),
+    coverSubheadline: zod.string().optional(),
+    logoPosition: zod.enum(["left", "center", "right"]).optional(),
+    dividerStyle: zod.enum(["line", "space", "decorative"]).optional(),
+  }),
+  parties: zod.object({
+    sender: zod.object({
+      companyName: zod.string(),
+      orgNumber: zod.string(),
+      contactName: zod.string(),
+      email: zod.string(),
+      phone: zod.string(),
+      address: zod.string(),
+      postalCode: zod.string(),
+      city: zod.string(),
+    }),
+    recipient: zod
+      .object({
+        companyName: zod.string(),
+        orgNumber: zod.string(),
+        contactName: zod.string(),
+        email: zod.string(),
+        phone: zod.string(),
+        address: zod.string(),
+        postalCode: zod.string(),
+        city: zod.string(),
+      })
+      .and(
+        zod.object({
+          kind: zod.enum(["company", "person"]),
+        }),
+      ),
   }),
   personalMessage: zod.string().optional(),
+  signedByName: zod.string().optional(),
+  signatureInitials: zod.string().optional(),
+  signatureDataUrl: zod.string().optional(),
+  signedAt: zod.coerce.date().optional(),
   createdAt: zod.coerce.date(),
   updatedAt: zod.coerce.date(),
   lastActivityAt: zod.coerce.date().optional(),
+  revisionId: zod.number().optional(),
+  snapshotHash: zod.string().optional(),
+  sentAt: zod.coerce.date().optional(),
+  viewedAt: zod.coerce.date().optional(),
+  signingRecipientEmail: zod.string().optional(),
+  resendEmailId: zod.string().optional(),
+  auditSummary: zod
+    .object({
+      eventCount: zod.number(),
+      lastEventAt: zod.coerce.date().optional(),
+      lastEventType: zod.string().optional(),
+    })
+    .optional(),
 });
 
 /**
@@ -308,6 +588,7 @@ export const GetPublicProposalResponse = zod.object({
   status: zod.enum(["draft", "sent", "viewed", "accepted", "declined"]),
   totalValue: zod.number(),
   publicSlug: zod.string(),
+  templateId: zod.number().optional(),
   sections: zod.array(
     zod.object({
       id: zod.string(),
@@ -317,6 +598,8 @@ export const GetPublicProposalResponse = zod.object({
           id: zod.string(),
           type: zod.enum(["heading", "text", "image", "pricing", "divider"]),
           content: zod.string().optional(),
+          description: zod.string().optional(),
+          features: zod.array(zod.string()).optional(),
           rows: zod
             .array(
               zod.object({
@@ -324,6 +607,10 @@ export const GetPublicProposalResponse = zod.object({
                 description: zod.string(),
                 quantity: zod.number(),
                 unitPrice: zod.number(),
+                unit: zod.string().optional(),
+                type: zod.enum(["one_time", "recurring"]),
+                interval: zod.enum(["monthly", "yearly"]).optional(),
+                bindingPeriod: zod.number().optional(),
                 total: zod.number(),
               }),
             )
@@ -339,12 +626,64 @@ export const GetPublicProposalResponse = zod.object({
   branding: zod.object({
     logoUrl: zod.string().optional(),
     accentColor: zod.string(),
-    font: zod.enum(["inter", "playfair", "dm-sans"]),
+    font: zod.enum(["inter", "playfair", "dm-sans"]).optional(),
+    fontPairing: zod.enum(["modern", "klassisk", "editorial"]).optional(),
+    coverEnabled: zod.boolean().optional(),
+    coverBackground: zod.string().optional(),
+    coverHeadline: zod.string().optional(),
+    coverSubheadline: zod.string().optional(),
+    logoPosition: zod.enum(["left", "center", "right"]).optional(),
+    dividerStyle: zod.enum(["line", "space", "decorative"]).optional(),
+  }),
+  parties: zod.object({
+    sender: zod.object({
+      companyName: zod.string(),
+      orgNumber: zod.string(),
+      contactName: zod.string(),
+      email: zod.string(),
+      phone: zod.string(),
+      address: zod.string(),
+      postalCode: zod.string(),
+      city: zod.string(),
+    }),
+    recipient: zod
+      .object({
+        companyName: zod.string(),
+        orgNumber: zod.string(),
+        contactName: zod.string(),
+        email: zod.string(),
+        phone: zod.string(),
+        address: zod.string(),
+        postalCode: zod.string(),
+        city: zod.string(),
+      })
+      .and(
+        zod.object({
+          kind: zod.enum(["company", "person"]),
+        }),
+      ),
   }),
   personalMessage: zod.string().optional(),
+  signedByName: zod.string().optional(),
+  signatureInitials: zod.string().optional(),
+  signatureDataUrl: zod.string().optional(),
+  signedAt: zod.coerce.date().optional(),
   createdAt: zod.coerce.date(),
   updatedAt: zod.coerce.date(),
   lastActivityAt: zod.coerce.date().optional(),
+  revisionId: zod.number().optional(),
+  snapshotHash: zod.string().optional(),
+  sentAt: zod.coerce.date().optional(),
+  viewedAt: zod.coerce.date().optional(),
+  signingRecipientEmail: zod.string().optional(),
+  resendEmailId: zod.string().optional(),
+  auditSummary: zod
+    .object({
+      eventCount: zod.number(),
+      lastEventAt: zod.coerce.date().optional(),
+      lastEventType: zod.string().optional(),
+    })
+    .optional(),
 });
 
 /**
@@ -354,8 +693,48 @@ export const RespondToProposalParams = zod.object({
   slug: zod.coerce.string(),
 });
 
+export const respondToProposalBodySignerEmailMax = 320;
+
+export const respondToProposalBodySigningTokenMax = 256;
+
+export const respondToProposalBodySignerNameMax = 160;
+
+export const respondToProposalBodyInitialsMax = 5;
+
+export const respondToProposalBodySignatureDataUrlMax = 500000;
+
+export const respondToProposalBodySignatureDataUrlRegExp = new RegExp(
+  "^data:image\/png;base64,",
+);
+
 export const RespondToProposalBody = zod.object({
   action: zod.enum(["accept", "decline"]),
+  signerEmail: zod
+    .string()
+    .email()
+    .max(respondToProposalBodySignerEmailMax)
+    .optional(),
+  signingToken: zod
+    .string()
+    .min(1)
+    .max(respondToProposalBodySigningTokenMax)
+    .optional(),
+  signerName: zod
+    .string()
+    .min(1)
+    .max(respondToProposalBodySignerNameMax)
+    .optional(),
+  initials: zod
+    .string()
+    .min(1)
+    .max(respondToProposalBodyInitialsMax)
+    .optional(),
+  signatureDataUrl: zod
+    .string()
+    .max(respondToProposalBodySignatureDataUrlMax)
+    .regex(respondToProposalBodySignatureDataUrlRegExp)
+    .optional(),
+  termsAccepted: zod.boolean().optional(),
 });
 
 export const RespondToProposalResponse = zod.object({
@@ -366,6 +745,7 @@ export const RespondToProposalResponse = zod.object({
   status: zod.enum(["draft", "sent", "viewed", "accepted", "declined"]),
   totalValue: zod.number(),
   publicSlug: zod.string(),
+  templateId: zod.number().optional(),
   sections: zod.array(
     zod.object({
       id: zod.string(),
@@ -375,6 +755,8 @@ export const RespondToProposalResponse = zod.object({
           id: zod.string(),
           type: zod.enum(["heading", "text", "image", "pricing", "divider"]),
           content: zod.string().optional(),
+          description: zod.string().optional(),
+          features: zod.array(zod.string()).optional(),
           rows: zod
             .array(
               zod.object({
@@ -382,6 +764,10 @@ export const RespondToProposalResponse = zod.object({
                 description: zod.string(),
                 quantity: zod.number(),
                 unitPrice: zod.number(),
+                unit: zod.string().optional(),
+                type: zod.enum(["one_time", "recurring"]),
+                interval: zod.enum(["monthly", "yearly"]).optional(),
+                bindingPeriod: zod.number().optional(),
                 total: zod.number(),
               }),
             )
@@ -397,10 +783,382 @@ export const RespondToProposalResponse = zod.object({
   branding: zod.object({
     logoUrl: zod.string().optional(),
     accentColor: zod.string(),
-    font: zod.enum(["inter", "playfair", "dm-sans"]),
+    font: zod.enum(["inter", "playfair", "dm-sans"]).optional(),
+    fontPairing: zod.enum(["modern", "klassisk", "editorial"]).optional(),
+    coverEnabled: zod.boolean().optional(),
+    coverBackground: zod.string().optional(),
+    coverHeadline: zod.string().optional(),
+    coverSubheadline: zod.string().optional(),
+    logoPosition: zod.enum(["left", "center", "right"]).optional(),
+    dividerStyle: zod.enum(["line", "space", "decorative"]).optional(),
+  }),
+  parties: zod.object({
+    sender: zod.object({
+      companyName: zod.string(),
+      orgNumber: zod.string(),
+      contactName: zod.string(),
+      email: zod.string(),
+      phone: zod.string(),
+      address: zod.string(),
+      postalCode: zod.string(),
+      city: zod.string(),
+    }),
+    recipient: zod
+      .object({
+        companyName: zod.string(),
+        orgNumber: zod.string(),
+        contactName: zod.string(),
+        email: zod.string(),
+        phone: zod.string(),
+        address: zod.string(),
+        postalCode: zod.string(),
+        city: zod.string(),
+      })
+      .and(
+        zod.object({
+          kind: zod.enum(["company", "person"]),
+        }),
+      ),
   }),
   personalMessage: zod.string().optional(),
+  signedByName: zod.string().optional(),
+  signatureInitials: zod.string().optional(),
+  signatureDataUrl: zod.string().optional(),
+  signedAt: zod.coerce.date().optional(),
   createdAt: zod.coerce.date(),
   updatedAt: zod.coerce.date(),
   lastActivityAt: zod.coerce.date().optional(),
+  revisionId: zod.number().optional(),
+  snapshotHash: zod.string().optional(),
+  sentAt: zod.coerce.date().optional(),
+  viewedAt: zod.coerce.date().optional(),
+  signingRecipientEmail: zod.string().optional(),
+  resendEmailId: zod.string().optional(),
+  auditSummary: zod
+    .object({
+      eventCount: zod.number(),
+      lastEventAt: zod.coerce.date().optional(),
+      lastEventType: zod.string().optional(),
+    })
+    .optional(),
+});
+
+/**
+ * @summary List all templates
+ */
+export const ListTemplatesResponseItem = zod.object({
+  id: zod.number(),
+  name: zod.string(),
+  description: zod.string().optional(),
+  category: zod.enum(["webb", "ai-agent", "konsult", "ovrigt"]),
+  designSettings: zod.object({
+    logoUrl: zod.string().optional(),
+    accentColor: zod.string(),
+    fontPairing: zod.enum(["modern", "klassisk", "editorial"]),
+    coverEnabled: zod.boolean(),
+    coverBackground: zod.string(),
+    coverHeadline: zod.string().optional(),
+    coverSubheadline: zod.string().optional(),
+    logoPosition: zod.enum(["left", "center", "right"]),
+    dividerStyle: zod.enum(["line", "space", "decorative"]),
+  }),
+  isBuiltIn: zod.boolean(),
+  usageCount: zod.number(),
+  sections: zod.array(
+    zod.object({
+      id: zod.string(),
+      title: zod.string(),
+      blocks: zod.array(
+        zod.object({
+          id: zod.string(),
+          type: zod.enum(["heading", "text", "image", "pricing", "divider"]),
+          content: zod.string().optional(),
+          description: zod.string().optional(),
+          features: zod.array(zod.string()).optional(),
+          rows: zod
+            .array(
+              zod.object({
+                id: zod.string(),
+                description: zod.string(),
+                quantity: zod.number(),
+                unitPrice: zod.number(),
+                unit: zod.string().optional(),
+                type: zod.enum(["one_time", "recurring"]),
+                interval: zod.enum(["monthly", "yearly"]).optional(),
+                bindingPeriod: zod.number().optional(),
+                total: zod.number(),
+              }),
+            )
+            .optional(),
+          discount: zod.number().optional(),
+          vatEnabled: zod.boolean().optional(),
+          imageUrl: zod.string().optional(),
+          level: zod.number().optional(),
+        }),
+      ),
+    }),
+  ),
+  createdAt: zod.coerce.date(),
+  updatedAt: zod.coerce.date(),
+});
+export const ListTemplatesResponse = zod.array(ListTemplatesResponseItem);
+
+/**
+ * @summary Create a new template
+ */
+export const CreateTemplateBody = zod.object({
+  name: zod.string(),
+  description: zod.string().optional(),
+  category: zod.enum(["webb", "ai-agent", "konsult", "ovrigt"]),
+  sections: zod
+    .array(
+      zod.object({
+        id: zod.string(),
+        title: zod.string(),
+        blocks: zod.array(
+          zod.object({
+            id: zod.string(),
+            type: zod.enum(["heading", "text", "image", "pricing", "divider"]),
+            content: zod.string().optional(),
+            description: zod.string().optional(),
+            features: zod.array(zod.string()).optional(),
+            rows: zod
+              .array(
+                zod.object({
+                  id: zod.string(),
+                  description: zod.string(),
+                  quantity: zod.number(),
+                  unitPrice: zod.number(),
+                  unit: zod.string().optional(),
+                  type: zod.enum(["one_time", "recurring"]),
+                  interval: zod.enum(["monthly", "yearly"]).optional(),
+                  bindingPeriod: zod.number().optional(),
+                  total: zod.number(),
+                }),
+              )
+              .optional(),
+            discount: zod.number().optional(),
+            vatEnabled: zod.boolean().optional(),
+            imageUrl: zod.string().optional(),
+            level: zod.number().optional(),
+          }),
+        ),
+      }),
+    )
+    .optional(),
+  designSettings: zod
+    .object({
+      logoUrl: zod.string().optional(),
+      accentColor: zod.string(),
+      fontPairing: zod.enum(["modern", "klassisk", "editorial"]),
+      coverEnabled: zod.boolean(),
+      coverBackground: zod.string(),
+      coverHeadline: zod.string().optional(),
+      coverSubheadline: zod.string().optional(),
+      logoPosition: zod.enum(["left", "center", "right"]),
+      dividerStyle: zod.enum(["line", "space", "decorative"]),
+    })
+    .optional(),
+  sourceProposalId: zod.number().optional(),
+});
+
+/**
+ * @summary Get a template by ID
+ */
+export const GetTemplateParams = zod.object({
+  id: zod.coerce.number(),
+});
+
+export const GetTemplateResponse = zod.object({
+  id: zod.number(),
+  name: zod.string(),
+  description: zod.string().optional(),
+  category: zod.enum(["webb", "ai-agent", "konsult", "ovrigt"]),
+  designSettings: zod.object({
+    logoUrl: zod.string().optional(),
+    accentColor: zod.string(),
+    fontPairing: zod.enum(["modern", "klassisk", "editorial"]),
+    coverEnabled: zod.boolean(),
+    coverBackground: zod.string(),
+    coverHeadline: zod.string().optional(),
+    coverSubheadline: zod.string().optional(),
+    logoPosition: zod.enum(["left", "center", "right"]),
+    dividerStyle: zod.enum(["line", "space", "decorative"]),
+  }),
+  isBuiltIn: zod.boolean(),
+  usageCount: zod.number(),
+  sections: zod.array(
+    zod.object({
+      id: zod.string(),
+      title: zod.string(),
+      blocks: zod.array(
+        zod.object({
+          id: zod.string(),
+          type: zod.enum(["heading", "text", "image", "pricing", "divider"]),
+          content: zod.string().optional(),
+          description: zod.string().optional(),
+          features: zod.array(zod.string()).optional(),
+          rows: zod
+            .array(
+              zod.object({
+                id: zod.string(),
+                description: zod.string(),
+                quantity: zod.number(),
+                unitPrice: zod.number(),
+                unit: zod.string().optional(),
+                type: zod.enum(["one_time", "recurring"]),
+                interval: zod.enum(["monthly", "yearly"]).optional(),
+                bindingPeriod: zod.number().optional(),
+                total: zod.number(),
+              }),
+            )
+            .optional(),
+          discount: zod.number().optional(),
+          vatEnabled: zod.boolean().optional(),
+          imageUrl: zod.string().optional(),
+          level: zod.number().optional(),
+        }),
+      ),
+    }),
+  ),
+  createdAt: zod.coerce.date(),
+  updatedAt: zod.coerce.date(),
+});
+
+/**
+ * @summary Update a template
+ */
+export const UpdateTemplateParams = zod.object({
+  id: zod.coerce.number(),
+});
+
+export const UpdateTemplateBody = zod.object({
+  name: zod.string().optional(),
+  description: zod.string().optional(),
+  category: zod.enum(["webb", "ai-agent", "konsult", "ovrigt"]).optional(),
+  sections: zod
+    .array(
+      zod.object({
+        id: zod.string(),
+        title: zod.string(),
+        blocks: zod.array(
+          zod.object({
+            id: zod.string(),
+            type: zod.enum(["heading", "text", "image", "pricing", "divider"]),
+            content: zod.string().optional(),
+            description: zod.string().optional(),
+            features: zod.array(zod.string()).optional(),
+            rows: zod
+              .array(
+                zod.object({
+                  id: zod.string(),
+                  description: zod.string(),
+                  quantity: zod.number(),
+                  unitPrice: zod.number(),
+                  unit: zod.string().optional(),
+                  type: zod.enum(["one_time", "recurring"]),
+                  interval: zod.enum(["monthly", "yearly"]).optional(),
+                  bindingPeriod: zod.number().optional(),
+                  total: zod.number(),
+                }),
+              )
+              .optional(),
+            discount: zod.number().optional(),
+            vatEnabled: zod.boolean().optional(),
+            imageUrl: zod.string().optional(),
+            level: zod.number().optional(),
+          }),
+        ),
+      }),
+    )
+    .optional(),
+  designSettings: zod
+    .object({
+      logoUrl: zod.string().optional(),
+      accentColor: zod.string(),
+      fontPairing: zod.enum(["modern", "klassisk", "editorial"]),
+      coverEnabled: zod.boolean(),
+      coverBackground: zod.string(),
+      coverHeadline: zod.string().optional(),
+      coverSubheadline: zod.string().optional(),
+      logoPosition: zod.enum(["left", "center", "right"]),
+      dividerStyle: zod.enum(["line", "space", "decorative"]),
+    })
+    .optional(),
+});
+
+export const UpdateTemplateResponse = zod.object({
+  id: zod.number(),
+  name: zod.string(),
+  description: zod.string().optional(),
+  category: zod.enum(["webb", "ai-agent", "konsult", "ovrigt"]),
+  designSettings: zod.object({
+    logoUrl: zod.string().optional(),
+    accentColor: zod.string(),
+    fontPairing: zod.enum(["modern", "klassisk", "editorial"]),
+    coverEnabled: zod.boolean(),
+    coverBackground: zod.string(),
+    coverHeadline: zod.string().optional(),
+    coverSubheadline: zod.string().optional(),
+    logoPosition: zod.enum(["left", "center", "right"]),
+    dividerStyle: zod.enum(["line", "space", "decorative"]),
+  }),
+  isBuiltIn: zod.boolean(),
+  usageCount: zod.number(),
+  sections: zod.array(
+    zod.object({
+      id: zod.string(),
+      title: zod.string(),
+      blocks: zod.array(
+        zod.object({
+          id: zod.string(),
+          type: zod.enum(["heading", "text", "image", "pricing", "divider"]),
+          content: zod.string().optional(),
+          description: zod.string().optional(),
+          features: zod.array(zod.string()).optional(),
+          rows: zod
+            .array(
+              zod.object({
+                id: zod.string(),
+                description: zod.string(),
+                quantity: zod.number(),
+                unitPrice: zod.number(),
+                unit: zod.string().optional(),
+                type: zod.enum(["one_time", "recurring"]),
+                interval: zod.enum(["monthly", "yearly"]).optional(),
+                bindingPeriod: zod.number().optional(),
+                total: zod.number(),
+              }),
+            )
+            .optional(),
+          discount: zod.number().optional(),
+          vatEnabled: zod.boolean().optional(),
+          imageUrl: zod.string().optional(),
+          level: zod.number().optional(),
+        }),
+      ),
+    }),
+  ),
+  createdAt: zod.coerce.date(),
+  updatedAt: zod.coerce.date(),
+});
+
+/**
+ * @summary Delete a template
+ */
+export const DeleteTemplateParams = zod.object({
+  id: zod.coerce.number(),
+});
+
+/**
+ * @summary Copy a template
+ */
+export const CopyTemplateParams = zod.object({
+  id: zod.coerce.number(),
+});
+
+export const CopyTemplateBody = zod.object({
+  name: zod.string().optional(),
+  description: zod.string().optional(),
+  category: zod.enum(["webb", "ai-agent", "konsult", "ovrigt"]).optional(),
 });

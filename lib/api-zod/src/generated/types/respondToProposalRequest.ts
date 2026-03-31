@@ -9,4 +9,27 @@ import type { RespondToProposalRequestAction } from "./respondToProposalRequestA
 
 export interface RespondToProposalRequest {
   action: RespondToProposalRequestAction;
+  /** @maxLength 320 */
+  signerEmail?: string;
+  /**
+   * @minLength 1
+   * @maxLength 256
+   */
+  signingToken?: string;
+  /**
+   * @minLength 1
+   * @maxLength 160
+   */
+  signerName?: string;
+  /**
+   * @minLength 1
+   * @maxLength 5
+   */
+  initials?: string;
+  /**
+   * @maxLength 500000
+   * @pattern ^data:image/png;base64,
+   */
+  signatureDataUrl?: string;
+  termsAccepted?: boolean;
 }

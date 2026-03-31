@@ -17,13 +17,17 @@ import type {
 } from "@tanstack/react-query";
 
 import type {
+  CopyTemplateRequest,
   CreateProposalRequest,
+  CreateTemplateRequest,
   ErrorResponse,
   HealthStatus,
   Proposal,
   RespondToProposalRequest,
   SendProposalRequest,
+  Template,
   UpdateProposalRequest,
+  UpdateTemplateRequest,
 } from "./api.schemas";
 
 import { customFetch } from "../custom-fetch";
@@ -789,4 +793,510 @@ export const useRespondToProposal = <
   TContext
 > => {
   return useMutation(getRespondToProposalMutationOptions(options));
+};
+
+/**
+ * @summary List all templates
+ */
+export const getListTemplatesUrl = () => {
+  return `/api/templates`;
+};
+
+export const listTemplates = async (
+  options?: RequestInit,
+): Promise<Template[]> => {
+  return customFetch<Template[]>(getListTemplatesUrl(), {
+    ...options,
+    method: "GET",
+  });
+};
+
+export const getListTemplatesQueryKey = () => {
+  return [`/api/templates`] as const;
+};
+
+export const getListTemplatesQueryOptions = <
+  TData = Awaited<ReturnType<typeof listTemplates>>,
+  TError = ErrorType<unknown>,
+>(options?: {
+  query?: UseQueryOptions<
+    Awaited<ReturnType<typeof listTemplates>>,
+    TError,
+    TData
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey = queryOptions?.queryKey ?? getListTemplatesQueryKey();
+
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof listTemplates>>> = ({
+    signal,
+  }) => listTemplates({ signal, ...requestOptions });
+
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof listTemplates>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey };
+};
+
+export type ListTemplatesQueryResult = NonNullable<
+  Awaited<ReturnType<typeof listTemplates>>
+>;
+export type ListTemplatesQueryError = ErrorType<unknown>;
+
+/**
+ * @summary List all templates
+ */
+
+export function useListTemplates<
+  TData = Awaited<ReturnType<typeof listTemplates>>,
+  TError = ErrorType<unknown>,
+>(options?: {
+  query?: UseQueryOptions<
+    Awaited<ReturnType<typeof listTemplates>>,
+    TError,
+    TData
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getListTemplatesQueryOptions(options);
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
+    queryKey: QueryKey;
+  };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+/**
+ * @summary Create a new template
+ */
+export const getCreateTemplateUrl = () => {
+  return `/api/templates`;
+};
+
+export const createTemplate = async (
+  createTemplateRequest: CreateTemplateRequest,
+  options?: RequestInit,
+): Promise<Template> => {
+  return customFetch<Template>(getCreateTemplateUrl(), {
+    ...options,
+    method: "POST",
+    headers: { "Content-Type": "application/json", ...options?.headers },
+    body: JSON.stringify(createTemplateRequest),
+  });
+};
+
+export const getCreateTemplateMutationOptions = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof createTemplate>>,
+    TError,
+    { data: BodyType<CreateTemplateRequest> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof createTemplate>>,
+  TError,
+  { data: BodyType<CreateTemplateRequest> },
+  TContext
+> => {
+  const mutationKey = ["createTemplate"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof createTemplate>>,
+    { data: BodyType<CreateTemplateRequest> }
+  > = (props) => {
+    const { data } = props ?? {};
+
+    return createTemplate(data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type CreateTemplateMutationResult = NonNullable<
+  Awaited<ReturnType<typeof createTemplate>>
+>;
+export type CreateTemplateMutationBody = BodyType<CreateTemplateRequest>;
+export type CreateTemplateMutationError = ErrorType<unknown>;
+
+/**
+ * @summary Create a new template
+ */
+export const useCreateTemplate = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof createTemplate>>,
+    TError,
+    { data: BodyType<CreateTemplateRequest> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof createTemplate>>,
+  TError,
+  { data: BodyType<CreateTemplateRequest> },
+  TContext
+> => {
+  return useMutation(getCreateTemplateMutationOptions(options));
+};
+
+/**
+ * @summary Get a template by ID
+ */
+export const getGetTemplateUrl = (id: number) => {
+  return `/api/templates/${id}`;
+};
+
+export const getTemplate = async (
+  id: number,
+  options?: RequestInit,
+): Promise<Template> => {
+  return customFetch<Template>(getGetTemplateUrl(id), {
+    ...options,
+    method: "GET",
+  });
+};
+
+export const getGetTemplateQueryKey = (id: number) => {
+  return [`/api/templates/${id}`] as const;
+};
+
+export const getGetTemplateQueryOptions = <
+  TData = Awaited<ReturnType<typeof getTemplate>>,
+  TError = ErrorType<ErrorResponse>,
+>(
+  id: number,
+  options?: {
+    query?: UseQueryOptions<
+      Awaited<ReturnType<typeof getTemplate>>,
+      TError,
+      TData
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey = queryOptions?.queryKey ?? getGetTemplateQueryKey(id);
+
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof getTemplate>>> = ({
+    signal,
+  }) => getTemplate(id, { signal, ...requestOptions });
+
+  return {
+    queryKey,
+    queryFn,
+    enabled: !!id,
+    ...queryOptions,
+  } as UseQueryOptions<
+    Awaited<ReturnType<typeof getTemplate>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey };
+};
+
+export type GetTemplateQueryResult = NonNullable<
+  Awaited<ReturnType<typeof getTemplate>>
+>;
+export type GetTemplateQueryError = ErrorType<ErrorResponse>;
+
+/**
+ * @summary Get a template by ID
+ */
+
+export function useGetTemplate<
+  TData = Awaited<ReturnType<typeof getTemplate>>,
+  TError = ErrorType<ErrorResponse>,
+>(
+  id: number,
+  options?: {
+    query?: UseQueryOptions<
+      Awaited<ReturnType<typeof getTemplate>>,
+      TError,
+      TData
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getGetTemplateQueryOptions(id, options);
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
+    queryKey: QueryKey;
+  };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+/**
+ * @summary Update a template
+ */
+export const getUpdateTemplateUrl = (id: number) => {
+  return `/api/templates/${id}`;
+};
+
+export const updateTemplate = async (
+  id: number,
+  updateTemplateRequest: UpdateTemplateRequest,
+  options?: RequestInit,
+): Promise<Template> => {
+  return customFetch<Template>(getUpdateTemplateUrl(id), {
+    ...options,
+    method: "PUT",
+    headers: { "Content-Type": "application/json", ...options?.headers },
+    body: JSON.stringify(updateTemplateRequest),
+  });
+};
+
+export const getUpdateTemplateMutationOptions = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof updateTemplate>>,
+    TError,
+    { id: number; data: BodyType<UpdateTemplateRequest> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof updateTemplate>>,
+  TError,
+  { id: number; data: BodyType<UpdateTemplateRequest> },
+  TContext
+> => {
+  const mutationKey = ["updateTemplate"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof updateTemplate>>,
+    { id: number; data: BodyType<UpdateTemplateRequest> }
+  > = (props) => {
+    const { id, data } = props ?? {};
+
+    return updateTemplate(id, data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type UpdateTemplateMutationResult = NonNullable<
+  Awaited<ReturnType<typeof updateTemplate>>
+>;
+export type UpdateTemplateMutationBody = BodyType<UpdateTemplateRequest>;
+export type UpdateTemplateMutationError = ErrorType<unknown>;
+
+/**
+ * @summary Update a template
+ */
+export const useUpdateTemplate = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof updateTemplate>>,
+    TError,
+    { id: number; data: BodyType<UpdateTemplateRequest> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof updateTemplate>>,
+  TError,
+  { id: number; data: BodyType<UpdateTemplateRequest> },
+  TContext
+> => {
+  return useMutation(getUpdateTemplateMutationOptions(options));
+};
+
+/**
+ * @summary Delete a template
+ */
+export const getDeleteTemplateUrl = (id: number) => {
+  return `/api/templates/${id}`;
+};
+
+export const deleteTemplate = async (
+  id: number,
+  options?: RequestInit,
+): Promise<void> => {
+  return customFetch<void>(getDeleteTemplateUrl(id), {
+    ...options,
+    method: "DELETE",
+  });
+};
+
+export const getDeleteTemplateMutationOptions = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof deleteTemplate>>,
+    TError,
+    { id: number },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof deleteTemplate>>,
+  TError,
+  { id: number },
+  TContext
+> => {
+  const mutationKey = ["deleteTemplate"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof deleteTemplate>>,
+    { id: number }
+  > = (props) => {
+    const { id } = props ?? {};
+
+    return deleteTemplate(id, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type DeleteTemplateMutationResult = NonNullable<
+  Awaited<ReturnType<typeof deleteTemplate>>
+>;
+
+export type DeleteTemplateMutationError = ErrorType<unknown>;
+
+/**
+ * @summary Delete a template
+ */
+export const useDeleteTemplate = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof deleteTemplate>>,
+    TError,
+    { id: number },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof deleteTemplate>>,
+  TError,
+  { id: number },
+  TContext
+> => {
+  return useMutation(getDeleteTemplateMutationOptions(options));
+};
+
+/**
+ * @summary Copy a template
+ */
+export const getCopyTemplateUrl = (id: number) => {
+  return `/api/templates/${id}/copy`;
+};
+
+export const copyTemplate = async (
+  id: number,
+  copyTemplateRequest?: CopyTemplateRequest,
+  options?: RequestInit,
+): Promise<Template> => {
+  return customFetch<Template>(getCopyTemplateUrl(id), {
+    ...options,
+    method: "POST",
+    headers: { "Content-Type": "application/json", ...options?.headers },
+    body: JSON.stringify(copyTemplateRequest),
+  });
+};
+
+export const getCopyTemplateMutationOptions = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof copyTemplate>>,
+    TError,
+    { id: number; data: BodyType<CopyTemplateRequest> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof copyTemplate>>,
+  TError,
+  { id: number; data: BodyType<CopyTemplateRequest> },
+  TContext
+> => {
+  const mutationKey = ["copyTemplate"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof copyTemplate>>,
+    { id: number; data: BodyType<CopyTemplateRequest> }
+  > = (props) => {
+    const { id, data } = props ?? {};
+
+    return copyTemplate(id, data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type CopyTemplateMutationResult = NonNullable<
+  Awaited<ReturnType<typeof copyTemplate>>
+>;
+export type CopyTemplateMutationBody = BodyType<CopyTemplateRequest>;
+export type CopyTemplateMutationError = ErrorType<unknown>;
+
+/**
+ * @summary Copy a template
+ */
+export const useCopyTemplate = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof copyTemplate>>,
+    TError,
+    { id: number; data: BodyType<CopyTemplateRequest> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof copyTemplate>>,
+  TError,
+  { id: number; data: BodyType<CopyTemplateRequest> },
+  TContext
+> => {
+  return useMutation(getCopyTemplateMutationOptions(options));
 };

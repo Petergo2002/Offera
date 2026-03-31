@@ -1,5 +1,5 @@
 import React from "react";
-import { ProposalStatus } from "@workspace/api-client-react";
+import { ProposalStatus } from "@workspace/api-zod";
 import { Badge } from "@/components/ui/badge";
 
 const statusMap: Record<ProposalStatus, { label: string; className: string }> = {

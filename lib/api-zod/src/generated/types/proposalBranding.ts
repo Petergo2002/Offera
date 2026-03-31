@@ -5,10 +5,20 @@
  * Offera Proposal Builder API
  * OpenAPI spec version: 0.1.0
  */
+import type { ProposalBrandingDividerStyle } from "./proposalBrandingDividerStyle";
 import type { ProposalBrandingFont } from "./proposalBrandingFont";
+import type { ProposalBrandingFontPairing } from "./proposalBrandingFontPairing";
+import type { ProposalBrandingLogoPosition } from "./proposalBrandingLogoPosition";
 
 export interface ProposalBranding {
   logoUrl?: string;
   accentColor: string;
-  font: ProposalBrandingFont;
+  font?: ProposalBrandingFont;
+  fontPairing?: ProposalBrandingFontPairing;
+  coverEnabled?: boolean;
+  coverBackground?: string;
+  coverHeadline?: string;
+  coverSubheadline?: string;
+  logoPosition?: ProposalBrandingLogoPosition;
+  dividerStyle?: ProposalBrandingDividerStyle;
 }

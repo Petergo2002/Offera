@@ -5,7 +5,9 @@
  * Offera Proposal Builder API
  * OpenAPI spec version: 0.1.0
  */
+import type { ProposalAuditSummary } from "./proposalAuditSummary";
 import type { ProposalBranding } from "./proposalBranding";
+import type { ProposalParties } from "./proposalParties";
 import type { ProposalSection } from "./proposalSection";
 import type { ProposalStatus } from "./proposalStatus";
 
@@ -17,10 +19,23 @@ export interface Proposal {
   status: ProposalStatus;
   totalValue: number;
   publicSlug: string;
+  templateId?: number;
   sections: ProposalSection[];
   branding: ProposalBranding;
+  parties: ProposalParties;
   personalMessage?: string;
+  signedByName?: string;
+  signatureInitials?: string;
+  signatureDataUrl?: string;
+  signedAt?: Date;
   createdAt: Date;
   updatedAt: Date;
   lastActivityAt?: Date;
+  revisionId?: number;
+  snapshotHash?: string;
+  sentAt?: Date;
+  viewedAt?: Date;
+  signingRecipientEmail?: string;
+  resendEmailId?: string;
+  auditSummary?: ProposalAuditSummary;
 }

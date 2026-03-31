@@ -7,7 +7,8 @@
  */
 
 export interface CreateProposalRequest {
-  title: string;
-  clientName: string;
+  title?: string;
+  clientName?: string;
   clientEmail?: string;
+  templateId?: number;
 }

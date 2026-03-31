@@ -10,7 +10,28 @@ if (!process.env.DATABASE_URL) {
   );
 }
 
-export const pool = new Pool({ connectionString: process.env.DATABASE_URL });
+export const pool = new Pool({
+  connectionString: process.env.DATABASE_URL,
+  application_name: "quote-builder-pro-api",
+});
 export const db = drizzle(pool, { schema });
 
+export {
+  companyProfilesTable,
+  createDefaultProposalParties,
+  createEmptyProposalParty,
+  normalizeProposalParties,
+  proposalAuditEventsTable,
+  proposalRevisionsTable,
+  type ProposalParties,
+  type ProposalParty,
+  type ProposalRecipient,
+  type ProposalRecipientKind,
+  proposalSigningTokensTable,
+  profilesTable,
+  proposalsTable,
+  templatesTable,
+  type ProposalAcceptanceEvidence,
+  workspacesTable,
+} from "./schema";
 export * from "./schema";

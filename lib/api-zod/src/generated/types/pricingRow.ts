@@ -5,11 +5,17 @@
  * Offera Proposal Builder API
  * OpenAPI spec version: 0.1.0
  */
+import type { PricingRowInterval } from "./pricingRowInterval";
+import type { PricingRowType } from "./pricingRowType";
 
 export interface PricingRow {
   id: string;
   description: string;
   quantity: number;
   unitPrice: number;
+  unit?: string;
+  type: PricingRowType;
+  interval?: PricingRowInterval;
+  bindingPeriod?: number;
   total: number;
 }

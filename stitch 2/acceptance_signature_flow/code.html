@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Accept Proposal &amp; Finalize | Offera</title>
+<!-- Google Fonts: Manrope & Inter -->
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;family=Manrope:wght@600;700;800&amp;display=swap" rel="stylesheet"/>
+<!-- Material Symbols -->
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "tertiary": "#755478",
+              "surface-dim": "#d4dbdf",
+              "surface": "#f7f9fb",
+              "primary-fixed-dim": "#5a52f0",
+              "error-dim": "#6b0221",
+              "on-primary-fixed": "#ffffff",
+              "on-secondary-fixed": "#373f54",
+              "error": "#a8364b",
+              "secondary-fixed": "#dae2fd",
+              "surface-container-high": "#e3e9ed",
+              "primary-fixed": "#6760fd",
+              "primary-container": "#6760fd",
+              "on-primary-fixed-variant": "#edeaff",
+              "surface-container-highest": "#dce4e8",
+              "inverse-primary": "#8582ff",
+              "surface-bright": "#f7f9fb",
+              "secondary": "#575f75",
+              "tertiary-fixed": "#fdd2fd",
+              "primary": "#4e45e4",
+              "on-surface": "#2c3437",
+              "surface-variant": "#dce4e8",
+              "on-secondary-container": "#4a5167",
+              "on-background": "#2c3437",
+              "on-primary-container": "#000000",
+              "on-error": "#fff7f7",
+              "on-surface-variant": "#596064",
+              "on-primary": "#fbf7ff",
+              "surface-container": "#eaeff2",
+              "tertiary-container": "#fdd2fd",
+              "secondary-fixed-dim": "#ccd4ee",
+              "on-tertiary-fixed": "#513254",
+              "on-tertiary-container": "#654568",
+              "on-secondary": "#f9f8ff",
+              "tertiary-fixed-dim": "#eec4ef",
+              "error-container": "#f97386",
+              "secondary-dim": "#4b5369",
+              "surface-tint": "#4e45e4",
+              "on-tertiary-fixed-variant": "#704e72",
+              "on-secondary-fixed-variant": "#535b71",
+              "secondary-container": "#dae2fd",
+              "inverse-surface": "#0b0f10",
+              "on-tertiary": "#fff7fa",
+              "background": "#f7f9fb",
+              "surface-container-lowest": "#ffffff",
+              "inverse-on-surface": "#9a9d9f",
+              "outline": "#747c80",
+              "primary-dim": "#4135d8",
+              "tertiary-dim": "#68486b",
+              "on-error-container": "#6e0523",
+              "surface-container-low": "#f0f4f7",
+              "outline-variant": "#acb3b7"
+            },
+            fontFamily: {
+              "headline": ["Manrope"],
+              "body": ["Inter"],
+              "label": ["Inter"]
+            },
+            borderRadius: {"DEFAULT": "0.125rem", "lg": "0.25rem", "xl": "0.5rem", "full": "0.75rem"},
+          },
+        },
+      }
+    </script>
+<style>
+      .material-symbols-outlined {
+        font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+      }
+      .glass-modal {
+        background: rgba(255, 255, 255, 0.85);
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+      }
+      .signature-font {
+        font-family: 'Dancing Script', cursive; /* Fallback for mock signature UI */
+      }
+    </style>
+<link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@500&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+</head>
+<body class="bg-surface font-body text-on-surface antialiased overflow-hidden h-screen w-screen flex items-center justify-center">
+<!-- Background Canvas Overlay (Simulating the Public Proposal Page underneath) -->
+<div class="fixed inset-0 z-0 bg-surface-container-low">
+<div class="max-w-5xl mx-auto p-12 opacity-30 grayscale pointer-events-none select-none">
+<div class="flex justify-between items-end mb-16">
+<div class="space-y-4">
+<div class="h-10 w-32 bg-slate-300 rounded-lg"></div>
+<div class="h-12 w-96 bg-slate-300 rounded-lg"></div>
+</div>
+<div class="h-24 w-24 bg-slate-300 rounded-full"></div>
+</div>
+<div class="grid grid-cols-3 gap-8">
+<div class="col-span-2 space-y-6">
+<div class="h-64 bg-slate-300 rounded-2xl"></div>
+<div class="h-32 bg-slate-300 rounded-2xl"></div>
+</div>
+<div class="space-y-6">
+<div class="h-48 bg-slate-300 rounded-2xl"></div>
+<div class="h-48 bg-slate-300 rounded-2xl"></div>
+</div>
+</div>
+</div>
+</div>
+<!-- Backdrop Blur Dimmer -->
+<div class="fixed inset-0 z-10 bg-on-surface/5 backdrop-blur-sm"></div>
+<!-- Main Acceptance Modal Container -->
+<main class="relative z-20 w-full max-w-2xl px-6">
+<div class="glass-modal shadow-[0_40px_100px_rgba(44,52,55,0.08)] rounded-[2rem] overflow-hidden flex flex-col border border-white/50">
+<!-- Modal Header -->
+<div class="p-8 pb-4 flex justify-between items-start">
+<div class="space-y-1">
+<h1 class="font-headline text-3xl font-extrabold tracking-tight text-on-surface">Accept Proposal &amp; Finalize</h1>
+<p class="text-on-surface-variant font-medium">Review the final terms and sign to activate the partnership.</p>
+</div>
+<button class="p-2 hover:bg-surface-container rounded-full transition-colors">
+<span class="material-symbols-outlined text-outline">close</span>
+</button>
+</div>
+<!-- Modal Content Body -->
+<div class="px-8 pb-8 space-y-8">
+<!-- Financial Summary Card -->
+<div class="bg-surface-container-lowest p-6 rounded-2xl border border-outline-variant/10 flex items-center justify-between">
+<div class="flex items-center gap-4">
+<div class="h-12 w-12 rounded-xl bg-primary/10 flex items-center justify-center">
+<span class="material-symbols-outlined text-primary" data-icon="payments">payments</span>
+</div>
+<div>
+<p class="text-xs uppercase tracking-widest font-bold text-on-surface-variant mb-0.5">Total Agreed Value</p>
+<p class="text-2xl font-headline font-extrabold text-on-surface">$12,500<span class="text-on-surface-variant font-medium text-lg italic">.00</span></p>
+</div>
+</div>
+<div class="text-right hidden sm:block">
+<p class="text-sm font-semibold text-primary">Fixed Price Project</p>
+<p class="text-xs text-on-surface-variant">Includes all deliverables listed in Proposal #882</p>
+</div>
+</div>
+<!-- Terms & Fine Print -->
+<div class="space-y-3">
+<label class="text-sm font-bold text-on-surface px-1">Agreement Terms</label>
+<div class="bg-surface-container-low p-5 rounded-xl text-sm text-on-surface-variant leading-relaxed h-32 overflow-y-auto border border-outline-variant/15">
+<p class="mb-4">By clicking "Confirm &amp; Sign", you acknowledge that you have read, understood, and agree to be bound by the <span class="text-primary font-medium underline decoration-primary/30">Master Service Agreement</span> and the specific Scope of Work outlined in this proposal.</p>
+<p class="mb-4">This digital signature is legally binding under the Electronic Signatures in Global and National Commerce Act (ESIGN) and the Uniform Electronic Transactions Act (UETA). Both parties agree that this electronic record shall be treated as an original document for all purposes.</p>
+<p>Payment terms remain Net 15 from invoice issuance unless otherwise specified in the 'Custom Terms' section of the proposal document.</p>
+</div>
+<label class="flex items-center gap-3 px-1 cursor-pointer group">
+<div class="w-5 h-5 rounded border-2 border-outline group-hover:border-primary transition-colors flex items-center justify-center bg-white">
+<span class="material-symbols-outlined text-[16px] text-primary scale-0 transition-transform group-active:scale-100" data-icon="check">check</span>
+</div>
+<span class="text-sm font-medium text-on-surface">I agree to the terms and conditions stated above.</span>
+</label>
+</div>
+<!-- Signature Section -->
+<div class="space-y-3">
+<div class="flex justify-between items-end px-1">
+<label class="text-sm font-bold text-on-surface">E-Signature</label>
+<div class="flex gap-4 text-xs font-semibold text-primary">
+<button class="hover:underline">Type Signature</button>
+<button class="hover:underline">Draw Signature</button>
+</div>
+</div>
+<div class="relative group">
+<div class="absolute inset-0 bg-primary/5 rounded-xl blur-md opacity-0 group-focus-within:opacity-100 transition-opacity"></div>
+<div class="relative bg-surface-container-lowest border border-outline-variant/20 h-28 rounded-xl flex items-center justify-center overflow-hidden">
+<!-- Placeholder for digital signature rendering -->
+<div class="absolute inset-0 flex items-center justify-center pointer-events-none">
+<span class="signature-font text-4xl text-on-surface-variant/30 select-none">Sign Here</span>
+</div>
+<!-- Mock signature line -->
+<div class="absolute bottom-6 left-10 right-10 h-px bg-outline-variant/40"></div>
+<!-- Illustration of a handwritten signature for visual state -->
+<svg class="w-64 h-20 text-on-surface opacity-90" fill="none" viewbox="0 0 200 60" xmlns="http://www.w3.org/2000/svg">
+<path d="M20 45C35 40 50 20 65 25C80 30 75 45 90 40C105 35 120 15 135 20C150 25 145 40 160 35C175 30 190 20 195 15" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"></path>
+</svg>
+</div>
+</div>
+<p class="text-[11px] text-center text-on-surface-variant italic">Authorized signatory for Global Brands Inc.</p>
+</div>
+<!-- Footer Actions -->
+<div class="flex flex-col sm:flex-row gap-3 pt-4">
+<button class="flex-1 order-2 sm:order-1 px-8 py-4 rounded-xl text-on-surface-variant font-bold hover:bg-surface-container transition-colors active:scale-95 duration-200">
+                        Cancel
+                    </button>
+<button class="flex-[2] order-1 sm:order-2 bg-gradient-to-br from-primary to-primary-dim px-8 py-4 rounded-xl text-on-primary font-bold shadow-lg shadow-primary/20 hover:shadow-xl hover:shadow-primary/30 transition-all active:scale-95 duration-200 flex items-center justify-center gap-3">
+<span class="material-symbols-outlined text-[20px]" data-icon="verified" data-weight="fill">verified</span>
+                        Confirm &amp; Sign
+                    </button>
+</div>
+</div>
+<!-- Secure Badge -->
+<div class="bg-surface-container px-8 py-3 flex items-center justify-center gap-2">
+<span class="material-symbols-outlined text-outline text-[16px]" data-icon="lock">lock</span>
+<span class="text-[11px] font-bold text-outline uppercase tracking-widest">Secure 256-bit Encrypted Transaction</span>
+</div>
+</div>
+<!-- Success Toast (Hidden by default, shown for context) -->
+<div class="absolute -bottom-24 left-1/2 -translate-x-1/2 w-full max-w-sm flex items-center gap-4 bg-surface-container-lowest p-4 rounded-2xl shadow-xl border border-primary/20 opacity-0 transform translate-y-4">
+<div class="h-10 w-10 bg-primary/10 rounded-full flex items-center justify-center text-primary shrink-0">
+<span class="material-symbols-outlined text-[20px]" data-icon="check_circle" data-weight="fill">check_circle</span>
+</div>
+<div class="flex-1">
+<p class="text-sm font-bold text-on-surface">Success! You're all set.</p>
+<p class="text-xs text-on-surface-variant">The signed agreement has been sent to all parties.</p>
+</div>
+</div>
+</main>
+<!-- Contextual HUD (Shared Component Signature) -->
+<nav class="fixed bottom-8 left-1/2 -translate-x-1/2 z-50 flex items-center justify-around gap-4 p-2 bg-white/90 dark:bg-slate-900/90 backdrop-blur-2xl rounded-full border border-slate-200 shadow-2xl shadow-indigo-500/10 min-w-[320px]">
+<button class="flex flex-col items-center gap-1 text-slate-500 px-6 py-2 hover:text-indigo-500 transition-all">
+<span class="material-symbols-outlined text-[20px]" data-icon="save">save</span>
+<span class="font-manrope text-[10px] uppercase tracking-widest font-bold">Save</span>
+</button>
+<button class="flex flex-col items-center gap-1 text-slate-500 px-6 py-2 hover:text-indigo-500 transition-all">
+<span class="material-symbols-outlined text-[20px]" data-icon="visibility">visibility</span>
+<span class="font-manrope text-[10px] uppercase tracking-widest font-bold">Preview</span>
+</button>
+<button class="flex flex-col items-center gap-1 text-indigo-600 bg-indigo-50 rounded-full px-6 py-2 scale-105 transition-all">
+<span class="material-symbols-outlined text-[20px]" data-icon="send">send</span>
+<span class="font-manrope text-[10px] uppercase tracking-widest font-bold">Send</span>
+</button>
+</nav>
+<!-- Decorative Corner Element -->
+<div class="fixed top-0 right-0 w-96 h-96 -mr-48 -mt-48 bg-primary/5 rounded-full blur-[120px] pointer-events-none"></div>
+<div class="fixed bottom-0 left-0 w-96 h-96 -ml-48 -mb-48 bg-tertiary/5 rounded-full blur-[120px] pointer-events-none"></div>
+</body></html>

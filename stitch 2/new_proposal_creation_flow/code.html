@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@200;300;400;500;600;700;800&amp;family=Inter:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "tertiary": "#755478",
+              "surface-dim": "#d4dbdf",
+              "surface": "#f7f9fb",
+              "primary-fixed-dim": "#5a52f0",
+              "error-dim": "#6b0221",
+              "on-primary-fixed": "#ffffff",
+              "on-secondary-fixed": "#373f54",
+              "error": "#a8364b",
+              "secondary-fixed": "#dae2fd",
+              "surface-container-high": "#e3e9ed",
+              "primary-fixed": "#6760fd",
+              "primary-container": "#6760fd",
+              "on-primary-fixed-variant": "#edeaff",
+              "surface-container-highest": "#dce4e8",
+              "inverse-primary": "#8582ff",
+              "surface-bright": "#f7f9fb",
+              "secondary": "#575f75",
+              "tertiary-fixed": "#fdd2fd",
+              "primary": "#4e45e4",
+              "on-surface": "#2c3437",
+              "surface-variant": "#dce4e8",
+              "on-secondary-container": "#4a5167",
+              "on-background": "#2c3437",
+              "on-primary-container": "#000000",
+              "on-error": "#fff7f7",
+              "on-surface-variant": "#596064",
+              "on-primary": "#fbf7ff",
+              "surface-container": "#eaeff2",
+              "tertiary-container": "#fdd2fd",
+              "secondary-fixed-dim": "#ccd4ee",
+              "on-tertiary-fixed": "#513254",
+              "on-tertiary-container": "#654568",
+              "on-secondary": "#f9f8ff",
+              "tertiary-fixed-dim": "#eec4ef",
+              "error-container": "#f97386",
+              "secondary-dim": "#4b5369",
+              "surface-tint": "#4e45e4",
+              "on-tertiary-fixed-variant": "#704e72",
+              "on-secondary-fixed-variant": "#535b71",
+              "secondary-container": "#dae2fd",
+              "inverse-surface": "#0b0f10",
+              "on-tertiary": "#fff7fa",
+              "background": "#f7f9fb",
+              "surface-container-lowest": "#ffffff",
+              "inverse-on-surface": "#9a9d9f",
+              "outline": "#747c80",
+              "primary-dim": "#4135d8",
+              "tertiary-dim": "#68486b",
+              "on-error-container": "#6e0523",
+              "surface-container-low": "#f0f4f7",
+              "outline-variant": "#acb3b7"
+            },
+            fontFamily: {
+              "headline": ["Manrope"],
+              "body": ["Inter"],
+              "label": ["Inter"]
+            },
+            borderRadius: {"DEFAULT": "0.125rem", "lg": "0.25rem", "xl": "0.5rem", "full": "0.75rem"},
+          },
+        },
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+        }
+        .primary-gradient {
+            background: linear-gradient(145deg, #4e45e4 0%, #4135d8 100%);
+        }
+        .staircase-heading {
+            margin-left: 0.5rem; /* spacing-2 */
+        }
+    </style>
+</head>
+<body class="bg-surface font-body text-on-surface antialiased">
+<!-- Top Navigation (Shell Implementation) -->
+<!-- Prohibited Shell Visibility Check: This is a task-focused sub-page. Standard TopNavBar and SideNav are suppressed to prioritize focus. -->
+<nav class="fixed top-0 w-full z-50 bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl border-b border-slate-100 dark:border-slate-800 flex justify-between items-center h-16 px-6 md:px-12 mx-auto">
+<div class="flex items-center gap-8">
+<span class="text-2xl font-bold tracking-tighter text-slate-900 dark:text-white font-headline">Offera</span>
+</div>
+<div class="flex items-center gap-4">
+<button class="flex items-center justify-center p-2 rounded-lg hover:bg-slate-50 transition-colors">
+<span class="material-symbols-outlined text-slate-500" data-icon="close">close</span>
+</button>
+</div>
+</nav>
+<main class="min-h-screen pt-24 pb-32 flex flex-col items-center justify-center px-6">
+<div class="w-full max-w-5xl space-y-12">
+<!-- Step 1: Choose Starting Point -->
+<section class="space-y-8">
+<div class="space-y-2">
+<span class="text-primary font-bold tracking-widest text-[10px] uppercase">Step 1 of 2</span>
+<h1 class="text-4xl md:text-5xl font-headline font-extrabold tracking-tight text-on-surface staircase-heading">Choose your starting point</h1>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+<!-- Option A: Start from Scratch -->
+<div class="md:col-span-1 group cursor-pointer bg-surface-container-lowest border border-transparent hover:border-primary/20 hover:shadow-2xl hover:shadow-primary/5 transition-all duration-300 rounded-xl p-8 flex flex-col items-center justify-center text-center space-y-6">
+<div class="w-16 h-16 rounded-full bg-surface-container flex items-center justify-center group-hover:bg-primary/10 transition-colors">
+<span class="material-symbols-outlined text-3xl text-slate-400 group-hover:text-primary transition-colors" data-icon="description">description</span>
+</div>
+<div class="space-y-2">
+<h3 class="font-headline font-bold text-lg text-on-surface">Start from Scratch</h3>
+<p class="text-sm text-on-surface-variant leading-relaxed">Begin with a clean canvas for complete creative control.</p>
+</div>
+</div>
+<!-- Option B: Select a Template (Grid) -->
+<div class="md:col-span-3 grid grid-cols-1 sm:grid-cols-3 gap-6 bg-surface-container-low rounded-xl p-6">
+<!-- Template 1 -->
+<div class="group cursor-pointer bg-surface-container-lowest rounded-lg overflow-hidden shadow-sm hover:translate-y-[-4px] transition-all duration-300">
+<div class="h-40 bg-surface-container-highest relative overflow-hidden">
+<img class="w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-opacity" data-alt="Modern clean data analytics dashboard interface with blue and white minimalist aesthetic" src="https://lh3.googleusercontent.com/aida-public/AB6AXuB1xy4j5M9Ys0SE8cHlkLKBFyMcMO8gd9iMbahANCpiBjGueR7NPY4Mz5O4xHrlKoY2QoToNq1aQtZyOKpZGyZqtD0E17VhIXWDa06a-aDJde-QFjk_d9-EgKPEWEVqpTfD5bF0qOrWM52ITnZthOF8hlMXT9HGlNxIOcGpXf9dUPAs3MIkGyNC-2HQFSA4z1U6JWMT2R-QmQ6GUoAdyxlGTR6DCFdalfOqyUMvfuMnENyXqlDz8plKQhyAlg_g9KIiTayl7JC4k6A-"/>
+<div class="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent"></div>
+</div>
+<div class="p-4 space-y-1">
+<h4 class="font-headline font-bold text-sm">Strategic SEO Audit</h4>
+<p class="text-xs text-on-surface-variant">Marketing • 12 Pages</p>
+</div>
+</div>
+<!-- Template 2 -->
+<div class="group cursor-pointer bg-surface-container-lowest rounded-lg overflow-hidden shadow-sm hover:translate-y-[-4px] transition-all duration-300">
+<div class="h-40 bg-surface-container-highest relative overflow-hidden">
+<img class="w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-opacity" data-alt="Interior of architectural studio with large windows and bright natural light casting shadows" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAou0MCiPm_WBrEE9JTWp7MPabKgInuy228lIl9dxvtofMTJlFJXugXfKo3gQboaQxptDEOy-UrlZFuT35I_UAUknWbaWAHpxpPhr5U-HgAREesyM-b2l4Nasdl6L1jz8y8D9oVdSMiKMs01cGX50itxpl1cYhF7Y2FRlUWIX2P_jxzo2EV32fp6chHARGNyyYmRbHUptL1hREWWX-eJ3LAVVpJTzDJeAYtFCJhMWbB9c1vF3wtgG-8iiVdhXAFBLSTQDy6rHysCbMa"/>
+<div class="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent"></div>
+</div>
+<div class="p-4 space-y-1">
+<h4 class="font-headline font-bold text-sm">Design System Pitch</h4>
+<p class="text-xs text-on-surface-variant">Creative • 8 Pages</p>
+</div>
+</div>
+<!-- Template 3 -->
+<div class="group cursor-pointer bg-surface-container-lowest rounded-lg overflow-hidden shadow-sm hover:translate-y-[-4px] transition-all duration-300">
+<div class="h-40 bg-surface-container-highest relative overflow-hidden">
+<img class="w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-opacity" data-alt="Abstract colorful light streaks across a dark digital background representing high speed connectivity" src="https://lh3.googleusercontent.com/aida-public/AB6AXuC5H9RCNpu_cvxyiqw8NPAQLxOhEsVGNKOYcboBnVV9RWDVp5v3E1zhMlMCeL_LscmP51Jv73IljjDIyrp-rfb1a-2ZjikSbaJmyoJGgSV02K6lpV0VLcFUpiZUco_OsH9WArdqyZarD73_vcD9IiTOJ43Mro0wuogccSBUyLTFFbBeqHoULCDJz6LQuTSafp2-0OZZMm8diLX7aJ49E5WoiStQxJLJNv00HesEVkEqJriQ650igiMobhPkwEXgMEwc_ybsDIRp1j9z"/>
+<div class="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent"></div>
+</div>
+<div class="p-4 space-y-1">
+<h4 class="font-headline font-bold text-sm">SaaS Master Agreement</h4>
+<p class="text-xs text-on-surface-variant">Legal • 15 Pages</p>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- Step 2: Basic Information -->
+<section class="space-y-8 bg-surface-container-lowest p-8 md:p-12 rounded-3xl shadow-sm border border-slate-100/50">
+<div class="space-y-2">
+<span class="text-primary font-bold tracking-widest text-[10px] uppercase">Step 2 of 2</span>
+<h2 class="text-3xl font-headline font-extrabold tracking-tight text-on-surface staircase-heading">Basic Information</h2>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-10">
+<div class="space-y-4">
+<label class="block text-sm font-semibold text-on-surface-variant px-2">Proposal Title</label>
+<div class="relative">
+<input class="w-full bg-surface-container-low border-none rounded-xl py-4 px-6 focus:ring-2 focus:ring-primary/20 transition-all font-body text-on-surface placeholder:text-outline-variant/60" placeholder="e.g., SEO Project - Q3" type="text"/>
+<div class="absolute right-4 top-1/2 -translate-y-1/2">
+<span class="material-symbols-outlined text-outline-variant/50" data-icon="edit">edit</span>
+</div>
+</div>
+</div>
+<div class="space-y-4">
+<label class="block text-sm font-semibold text-on-surface-variant px-2">Client</label>
+<div class="relative group">
+<div class="flex items-center bg-surface-container-low rounded-xl py-4 px-6 focus-within:ring-2 focus-within:ring-primary/20 transition-all">
+<span class="material-symbols-outlined text-outline-variant/60 mr-3" data-icon="search">search</span>
+<input class="w-full bg-transparent border-none p-0 focus:ring-0 font-body text-on-surface placeholder:text-outline-variant/60" placeholder="Search or add client..." type="text"/>
+<button class="ml-2 text-primary text-xs font-bold uppercase tracking-wider hover:text-primary-dim whitespace-nowrap">Add New</button>
+</div>
+</div>
+</div>
+</div>
+</section>
+</div>
+</main>
+<!-- Contextual HUD / Bottom Bar -->
+<!-- The "Destination" Rule: Suppressing standard BottomNavBar as this is a focused flow. 
+         Replacing with the "Signature Contextual HUD" for the primary action. -->
+<div class="fixed bottom-8 left-1/2 -translate-x-1/2 z-50 flex items-center glass-panel shadow-2xl shadow-indigo-500/10 rounded-full px-4 py-3 gap-8 min-w-[320px] md:min-w-[450px] border-t-2 border-primary">
+<div class="flex items-center gap-4 px-4">
+<div class="w-2 h-2 rounded-full bg-primary animate-pulse"></div>
+<div class="flex flex-col">
+<span class="text-[10px] uppercase tracking-widest font-black text-on-surface-variant">Status</span>
+<span class="text-xs font-bold text-on-surface">Ready to build</span>
+</div>
+</div>
+<button class="flex-1 primary-gradient text-on-primary py-3 px-8 rounded-full font-headline font-extrabold text-sm tracking-tight flex items-center justify-center gap-2 active:scale-95 transition-transform duration-200 group">
+            Next: Open Builder
+            <span class="material-symbols-outlined text-sm group-hover:translate-x-1 transition-transform" data-icon="arrow_forward">arrow_forward</span>
+</button>
+</div>
+</body></html>

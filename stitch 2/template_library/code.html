@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Offera | Template Library</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@200;300;400;500;600;700;800&amp;family=Inter:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "tertiary": "#755478",
+                        "surface-dim": "#d4dbdf",
+                        "surface": "#f7f9fb",
+                        "primary-fixed-dim": "#5a52f0",
+                        "error-dim": "#6b0221",
+                        "on-primary-fixed": "#ffffff",
+                        "on-secondary-fixed": "#373f54",
+                        "error": "#a8364b",
+                        "secondary-fixed": "#dae2fd",
+                        "surface-container-high": "#e3e9ed",
+                        "primary-fixed": "#6760fd",
+                        "primary-container": "#6760fd",
+                        "on-primary-fixed-variant": "#edeaff",
+                        "surface-container-highest": "#dce4e8",
+                        "inverse-primary": "#8582ff",
+                        "surface-bright": "#f7f9fb",
+                        "secondary": "#575f75",
+                        "tertiary-fixed": "#fdd2fd",
+                        "primary": "#4e45e4",
+                        "on-surface": "#2c3437",
+                        "surface-variant": "#dce4e8",
+                        "on-secondary-container": "#4a5167",
+                        "on-background": "#2c3437",
+                        "on-primary-container": "#000000",
+                        "on-error": "#fff7f7",
+                        "on-surface-variant": "#596064",
+                        "on-primary": "#fbf7ff",
+                        "surface-container": "#eaeff2",
+                        "tertiary-container": "#fdd2fd",
+                        "secondary-fixed-dim": "#ccd4ee",
+                        "on-tertiary-fixed": "#513254",
+                        "on-tertiary-container": "#654568",
+                        "on-secondary": "#f9f8ff",
+                        "tertiary-fixed-dim": "#eec4ef",
+                        "error-container": "#f97386",
+                        "secondary-dim": "#4b5369",
+                        "surface-tint": "#4e45e4",
+                        "on-tertiary-fixed-variant": "#704e72",
+                        "on-secondary-fixed-variant": "#535b71",
+                        "secondary-container": "#dae2fd",
+                        "inverse-surface": "#0b0f10",
+                        "on-tertiary": "#fff7fa",
+                        "background": "#f7f9fb",
+                        "surface-container-lowest": "#ffffff",
+                        "inverse-on-surface": "#9a9d9f",
+                        "outline": "#747c80",
+                        "primary-dim": "#4135d8",
+                        "tertiary-dim": "#68486b",
+                        "on-error-container": "#6e0523",
+                        "surface-container-low": "#f0f4f7",
+                        "outline-variant": "#acb3b7"
+                    },
+                    fontFamily: {
+                        "headline": ["Manrope"],
+                        "body": ["Inter"],
+                        "label": ["Inter"]
+                    },
+                    borderRadius: {"DEFAULT": "0.125rem", "lg": "0.25rem", "xl": "0.5rem", "full": "0.75rem"},
+                },
+            },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            vertical-align: middle;
+        }
+        .custom-scrollbar::-webkit-scrollbar { width: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #acb3b7; border-radius: 10px; }
+        .asymmetric-gap { margin-left: clamp(2rem, 5vw, 4rem); }
+        .template-card:hover .hover-actions { opacity: 1; transform: translateY(0); }
+    </style>
+</head>
+<body class="bg-surface font-body text-on-surface flex min-h-screen overflow-hidden">
+<!-- SideNavBar (Authority: JSON & Design System) -->
+<aside class="h-screen w-64 bg-slate-50 border-r border-slate-200 font-manrope text-sm font-medium flex flex-col py-8 px-4 gap-2 shrink-0">
+<div class="px-4 mb-8">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-xl bg-primary flex items-center justify-center text-white shadow-lg shadow-primary/20">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">auto_awesome</span>
+</div>
+<div>
+<h1 class="text-xl font-black text-slate-900 tracking-tighter leading-none">Offera</h1>
+<p class="text-[10px] text-slate-500 uppercase tracking-widest mt-1">Premium SaaS</p>
+</div>
+</div>
+</div>
+<nav class="flex-1 space-y-1">
+<!-- Home -->
+<a class="flex items-center gap-3 px-4 py-3 text-slate-500 hover:text-slate-800 hover:translate-x-1 transition-transform duration-300" href="#">
+<span class="material-symbols-outlined">dashboard</span>
+<span>Home</span>
+</a>
+<!-- Proposals -->
+<a class="flex items-center gap-3 px-4 py-3 text-slate-500 hover:text-slate-800 hover:translate-x-1 transition-transform duration-300" href="#">
+<span class="material-symbols-outlined">description</span>
+<span>Proposals</span>
+</a>
+<!-- Library (ACTIVE - Mapping 'Templates' to 'Library') -->
+<a class="flex items-center gap-3 px-4 py-3 bg-white text-indigo-600 shadow-sm rounded-xl transition-transform duration-300 translate-x-1" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">folder_shared</span>
+<span class="font-bold">Library</span>
+</a>
+<!-- Team -->
+<a class="flex items-center gap-3 px-4 py-3 text-slate-500 hover:text-slate-800 hover:translate-x-1 transition-transform duration-300" href="#">
+<span class="material-symbols-outlined">group</span>
+<span>Team</span>
+</a>
+<!-- Billing -->
+<a class="flex items-center gap-3 px-4 py-3 text-slate-500 hover:text-slate-800 hover:translate-x-1 transition-transform duration-300" href="#">
+<span class="material-symbols-outlined">payments</span>
+<span>Billing</span>
+</a>
+</nav>
+<div class="mt-auto space-y-1 pt-6 border-t border-slate-200/60">
+<div class="px-4 py-4 mb-4 bg-indigo-50/50 rounded-2xl">
+<p class="text-xs text-indigo-900/60 mb-2 px-1">Storage used: 75%</p>
+<button class="w-full py-2.5 px-4 bg-primary text-white text-xs font-bold rounded-xl shadow-md shadow-primary/10 hover:bg-primary-dim transition-colors">
+                    Upgrade Plan
+                </button>
+</div>
+<a class="flex items-center gap-3 px-4 py-3 text-slate-500 hover:text-slate-800 hover:translate-x-1 transition-transform duration-300" href="#">
+<span class="material-symbols-outlined">support</span>
+<span>Help Center</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-slate-500 hover:text-slate-800 hover:translate-x-1 transition-transform duration-300" href="#">
+<span class="material-symbols-outlined">logout</span>
+<span>Log Out</span>
+</a>
+</div>
+</aside>
+<!-- Main Content Canvas -->
+<main class="flex-1 h-screen overflow-y-auto custom-scrollbar relative">
+<!-- Top Sticky Header Area -->
+<header class="sticky top-0 z-30 bg-surface/80 backdrop-blur-xl px-10 py-8 flex justify-between items-end">
+<div class="max-w-2xl">
+<h2 class="text-4xl font-headline font-extrabold text-on-surface tracking-tight leading-tight">
+                    Template Library
+                </h2>
+<p class="text-on-surface-variant mt-2 text-lg">Streamline your workflow with high-converting document layouts.</p>
+</div>
+<div class="flex items-center gap-4">
+<div class="relative">
+<span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-outline">search</span>
+<input class="pl-12 pr-6 py-3 bg-surface-container-lowest border-none rounded-2xl w-64 shadow-sm focus:ring-2 focus:ring-primary/20 text-sm placeholder:text-outline-variant" placeholder="Search templates..." type="text"/>
+</div>
+<button class="flex items-center gap-2 bg-primary hover:bg-primary-dim text-white px-6 py-3 rounded-xl font-bold text-sm shadow-lg shadow-primary/20 transition-all active:scale-95">
+<span class="material-symbols-outlined text-lg">add</span>
+                    Create Template
+                </button>
+</div>
+</header>
+<div class="px-10 pb-20 space-y-16">
+<!-- Category Navigation (Subtle Tonal Tabs) -->
+<section class="flex gap-8 border-b border-outline-variant/10">
+<button class="pb-4 text-sm font-bold text-primary border-b-2 border-primary">All Templates</button>
+<button class="pb-4 text-sm font-medium text-on-surface-variant hover:text-on-surface transition-colors">Digital Services</button>
+<button class="pb-4 text-sm font-medium text-on-surface-variant hover:text-on-surface transition-colors">Enterprise</button>
+<button class="pb-4 text-sm font-medium text-on-surface-variant hover:text-on-surface transition-colors">Legal &amp; Compliance</button>
+</section>
+<!-- Built-in Templates Section -->
+<section>
+<div class="flex items-baseline justify-between mb-8 asymmetric-gap">
+<div class="flex flex-col">
+<span class="text-[10px] font-bold tracking-[0.2em] text-primary uppercase mb-1">Curated Essentials</span>
+<h3 class="text-2xl font-headline font-bold text-on-surface">Built-in Templates</h3>
+</div>
+<a class="text-primary text-sm font-bold hover:underline" href="#">View all</a>
+</div>
+<!-- Bento-style Gallery Grid -->
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+<!-- Template Card 1 -->
+<div class="template-card group relative bg-surface-container-lowest rounded-3xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-500 cursor-pointer">
+<div class="aspect-[4/5] bg-surface-container overflow-hidden relative">
+<img class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" data-alt="Minimalist business proposal layout with elegant serif typography and clean grid structure on off-white paper texture" src="https://lh3.googleusercontent.com/aida-public/AB6AXuB2QSCVOKUCsmD5I1wXyxMYFlA4WLn7Ps2azkVNS3Ibi7qG-XxdqkuDCMNv--ePz4wVm8nP03N5K1YPohiKUlVtmb9QeCkqtA5euN06jc7F0pLChZSMW5dZHmOUsG_zSqOQIExwyrA_0FcPz1ksV1e6EGtaWIXKOo7s4F_fpziscgt6FjlNFs5hEEmnFniS8NbrsXlxNrdKNTWQurrXP9vtmoU7m7T48346g9mwcV3FbsKI522qrIRJRlXMBhYDPmjh7Z-IlSB9NKW3"/>
+<!-- Hover Overlay -->
+<div class="hover-actions absolute inset-0 bg-primary-dim/60 backdrop-blur-sm opacity-0 flex flex-col items-center justify-center gap-4 transition-all duration-300 translate-y-4">
+<button class="bg-white text-primary px-8 py-3 rounded-full font-bold shadow-xl active:scale-95 transition-transform">Use Template</button>
+<button class="text-white/90 font-medium hover:text-white transition-colors flex items-center gap-2">
+<span class="material-symbols-outlined text-lg">visibility</span> Preview
+                                </button>
+</div>
+</div>
+<div class="p-6">
+<div class="flex gap-2 mb-3">
+<span class="px-3 py-1 bg-primary/10 text-primary text-[10px] font-bold rounded-full uppercase">Digital Services</span>
+</div>
+<h4 class="text-lg font-headline font-bold text-on-surface leading-tight">Creative Agency Proposal</h4>
+<p class="text-on-surface-variant text-sm mt-2 line-clamp-2">A comprehensive document for pitching design, branding, and marketing services to mid-market clients.</p>
+</div>
+</div>
+<!-- Template Card 2 -->
+<div class="template-card group relative bg-surface-container-lowest rounded-3xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-500 cursor-pointer">
+<div class="aspect-[4/5] bg-surface-container overflow-hidden relative">
+<img class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" data-alt="Technical services agreement document preview with organized data tables and sleek tech-oriented indigo color accents" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAOyzWdK75v9kslhMyskn8osLgeavahfCa8fKf3J1ZlNvjezyPNWZfA5sgpBKoSS7ctJpq_1D07ZnYCfdpqVhDoqORpDcXQoX84dlo33oAFupigJ_G2cjfZ4L7G5dyUbj0oc8y8dB11yXUkJKRkzXfF88iYOSGgz5fT0vnFIcuyJKdksEFfi3KGlUCTMs5hr1BTN0YphtNo3QXoi64tntPgjRSQ_2NRbwgty4hhq18WIPSf05o2ZhYww3f9CIBPCaPu70c7amyL1mKP"/>
+<div class="hover-actions absolute inset-0 bg-primary-dim/60 backdrop-blur-sm opacity-0 flex flex-col items-center justify-center gap-4 transition-all duration-300 translate-y-4">
+<button class="bg-white text-primary px-8 py-3 rounded-full font-bold shadow-xl active:scale-95 transition-transform">Use Template</button>
+<button class="text-white/90 font-medium hover:text-white transition-colors flex items-center gap-2">
+<span class="material-symbols-outlined text-lg">visibility</span> Preview
+                                </button>
+</div>
+</div>
+<div class="p-6">
+<div class="flex gap-2 mb-3">
+<span class="px-3 py-1 bg-secondary-container text-on-secondary-container text-[10px] font-bold rounded-full uppercase">Enterprise</span>
+</div>
+<h4 class="text-lg font-headline font-bold text-on-surface leading-tight">AI Implementation Services</h4>
+<p class="text-on-surface-variant text-sm mt-2 line-clamp-2">Detailed technical scope of work and implementation timeline for high-end AI consulting projects.</p>
+</div>
+</div>
+<!-- Template Card 3 -->
+<div class="template-card group relative bg-surface-container-lowest rounded-3xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-500 cursor-pointer">
+<div class="aspect-[4/5] bg-surface-container overflow-hidden relative">
+<img class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" data-alt="Professional legal contract template with clear section headers and formal typographic hierarchy in monochrome aesthetic" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDbxq1_O0f4nsGk3lyY-Pp0rS0_vWLrFj69EcfWoLhW5hDIDe2CWyfTzVsNn0y4CTTDoB6wVNNk6QKVcCvQnmQEHzhxIu_cSLTTB6h0XQicAkOomr2CGKBSKBc3wObdCvT7URXu6MfAQMbYmekqtZq_xWpspWHT9PGneNSvwEoKqHUwmWWPrISBlamcuFmP4skmxAhCqgzDsOeRpyOzZL0UOENMZAn11Or7CcKP6cP50qysG2ABfW1eTyPVQu_nUDhxL-8CqsRay7U3"/>
+<div class="hover-actions absolute inset-0 bg-primary-dim/60 backdrop-blur-sm opacity-0 flex flex-col items-center justify-center gap-4 transition-all duration-300 translate-y-4">
+<button class="bg-white text-primary px-8 py-3 rounded-full font-bold shadow-xl active:scale-95 transition-transform">Use Template</button>
+<button class="text-white/90 font-medium hover:text-white transition-colors flex items-center gap-2">
+<span class="material-symbols-outlined text-lg">visibility</span> Preview
+                                </button>
+</div>
+</div>
+<div class="p-6">
+<div class="flex gap-2 mb-3">
+<span class="px-3 py-1 bg-tertiary-container text-on-tertiary-container text-[10px] font-bold rounded-full uppercase">Legal</span>
+</div>
+<h4 class="text-lg font-headline font-bold text-on-surface leading-tight">Master Service Agreement</h4>
+<p class="text-on-surface-variant text-sm mt-2 line-clamp-2">Standard legal protection for ongoing professional partnerships, vetted for international compliance.</p>
+</div>
+</div>
+</div>
+</section>
+<!-- Custom Templates Section (Empty State Visualization) -->
+<section class="pt-8">
+<div class="flex items-baseline justify-between mb-8 asymmetric-gap">
+<div class="flex flex-col">
+<span class="text-[10px] font-bold tracking-[0.2em] text-on-surface-variant uppercase mb-1">Your Creation Space</span>
+<h3 class="text-2xl font-headline font-bold text-on-surface">Custom Templates</h3>
+</div>
+</div>
+<!-- Empty State Card -->
+<div class="bg-surface-container-low rounded-[2.5rem] p-16 flex flex-col items-center justify-center text-center border-2 border-dashed border-outline-variant/30">
+<div class="w-24 h-24 bg-surface-container-lowest rounded-full flex items-center justify-center mb-8 shadow-inner">
+<span class="material-symbols-outlined text-5xl text-outline-variant">draw</span>
+</div>
+<h4 class="text-2xl font-headline font-bold text-on-surface mb-3">No custom templates yet</h4>
+<p class="text-on-surface-variant max-w-md mx-auto mb-10 leading-relaxed text-lg">
+                        Turn your best-performing proposals into reusable templates to save hours of manual formatting.
+                    </p>
+<button class="flex items-center gap-3 bg-primary text-white px-10 py-4 rounded-2xl font-bold shadow-xl shadow-primary/20 hover:scale-105 active:scale-95 transition-all">
+<span class="material-symbols-outlined">add_circle</span>
+                        Create Your First Template
+                    </button>
+</div>
+</section>
+</div>
+<!-- Footer Decoration (Asymmetric Layout Element) -->
+<footer class="mt-20 px-10 pb-12 opacity-40">
+<div class="flex justify-between items-center text-[10px] font-bold tracking-widest text-outline uppercase border-t border-outline-variant/20 pt-8">
+<div>© 2024 Offera Design System</div>
+<div class="flex gap-8">
+<a class="hover:text-primary transition-colors" href="#">Documentation</a>
+<a class="hover:text-primary transition-colors" href="#">API Keys</a>
+<a class="hover:text-primary transition-colors" href="#">Support</a>
+</div>
+</div>
+</footer>
+</main>
+<!-- Contextual HUD (BottomNavBar from JSON) -->
+<nav class="fixed bottom-8 left-1/2 -translate-x-1/2 z-50 flex items-center justify-around gap-4 p-2 bg-white/90 dark:bg-slate-900/90 backdrop-blur-2xl rounded-full border border-slate-200 shadow-2xl shadow-indigo-500/10 min-w-[320px]">
+<button class="text-slate-500 font-manrope text-[10px] uppercase tracking-widest font-bold px-6 py-2 hover:text-indigo-500 transition-all active:scale-95">
+<span class="material-symbols-outlined block mb-1 text-base">save</span>
+            Save
+        </button>
+<!-- Preview Active Mapping: Assuming the user wants to 'Preview' the current view/selection -->
+<button class="text-indigo-600 bg-indigo-50 rounded-full font-manrope text-[10px] uppercase tracking-widest font-bold px-6 py-2 transition-all scale-105">
+<span class="material-symbols-outlined block mb-1 text-base" style="font-variation-settings: 'FILL' 1;">visibility</span>
+            Preview
+        </button>
+<button class="text-slate-500 font-manrope text-[10px] uppercase tracking-widest font-bold px-6 py-2 hover:text-indigo-500 transition-all active:scale-95">
+<span class="material-symbols-outlined block mb-1 text-base">send</span>
+            Send
+        </button>
+</nav>
+</body></html>

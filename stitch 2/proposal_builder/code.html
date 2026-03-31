@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Offera | Proposal Builder</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;500;600;700;800&amp;family=Inter:wght@300;400;500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "tertiary": "#755478",
+              "surface-dim": "#d4dbdf",
+              "surface": "#f7f9fb",
+              "primary-fixed-dim": "#5a52f0",
+              "error-dim": "#6b0221",
+              "on-primary-fixed": "#ffffff",
+              "on-secondary-fixed": "#373f54",
+              "error": "#a8364b",
+              "secondary-fixed": "#dae2fd",
+              "surface-container-high": "#e3e9ed",
+              "primary-fixed": "#6760fd",
+              "primary-container": "#6760fd",
+              "on-primary-fixed-variant": "#edeaff",
+              "surface-container-highest": "#dce4e8",
+              "inverse-primary": "#8582ff",
+              "surface-bright": "#f7f9fb",
+              "secondary": "#575f75",
+              "tertiary-fixed": "#fdd2fd",
+              "primary": "#4e45e4",
+              "on-surface": "#2c3437",
+              "surface-variant": "#dce4e8",
+              "on-secondary-container": "#4a5167",
+              "on-background": "#2c3437",
+              "on-primary-container": "#000000",
+              "on-error": "#fff7f7",
+              "on-surface-variant": "#596064",
+              "on-primary": "#fbf7ff",
+              "surface-container": "#eaeff2",
+              "tertiary-container": "#fdd2fd",
+              "secondary-fixed-dim": "#ccd4ee",
+              "on-tertiary-fixed": "#513254",
+              "on-tertiary-container": "#654568",
+              "on-secondary": "#f9f8ff",
+              "tertiary-fixed-dim": "#eec4ef",
+              "error-container": "#f97386",
+              "secondary-dim": "#4b5369",
+              "surface-tint": "#4e45e4",
+              "on-tertiary-fixed-variant": "#704e72",
+              "on-secondary-fixed-variant": "#535b71",
+              "secondary-container": "#dae2fd",
+              "inverse-surface": "#0b0f10",
+              "on-tertiary": "#fff7fa",
+              "background": "#f7f9fb",
+              "surface-container-lowest": "#ffffff",
+              "inverse-on-surface": "#9a9d9f",
+              "outline": "#747c80",
+              "primary-dim": "#4135d8",
+              "tertiary-dim": "#68486b",
+              "on-error-container": "#6e0523",
+              "surface-container-low": "#f0f4f7",
+              "outline-variant": "#acb3b7"
+            },
+            fontFamily: {
+              "headline": ["Manrope"],
+              "body": ["Inter"],
+              "label": ["Inter"]
+            },
+            borderRadius: {"DEFAULT": "0.125rem", "lg": "0.25rem", "xl": "0.5rem", "full": "0.75rem"},
+          },
+        },
+      }
+    </script>
+<style>
+        .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+        .glass-panel { backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); }
+        .hide-scrollbar::-webkit-scrollbar { display: none; }
+        .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        .pricing-grid { display: grid; grid-template-columns: 2fr 1fr 1fr; }
+    </style>
+</head>
+<body class="bg-surface font-body text-on-surface antialiased overflow-hidden">
+<!-- Top Bar Navigation (Based on TopNavBar Shared Component Logic) -->
+<header class="fixed top-0 w-full z-50 bg-white/80 backdrop-blur-xl border-b border-slate-100 flex justify-between items-center h-16 px-6 shadow-sm">
+<div class="flex items-center gap-6">
+<button class="flex items-center gap-2 text-slate-500 hover:text-primary transition-colors group">
+<span class="material-symbols-outlined text-[20px]">arrow_back</span>
+<span class="font-medium text-sm">Dashboard</span>
+</button>
+<div class="h-6 w-[1px] bg-slate-200"></div>
+<div class="flex items-center gap-4">
+<input class="bg-transparent border-none font-headline font-bold text-slate-900 focus:ring-0 p-0 text-lg w-72" type="text" value="Enterprise Q3 Marketing Strategy"/>
+<span class="text-slate-300 text-xs uppercase tracking-widest font-bold">for</span>
+<input class="bg-transparent border-none font-body text-primary font-semibold focus:ring-0 p-0 text-sm w-40" type="text" value="Acme Corporation"/>
+</div>
+</div>
+<div class="flex items-center gap-3">
+<button class="px-5 py-2 rounded-lg text-slate-600 font-semibold text-sm hover:bg-slate-50 transition-all active:scale-95">
+                Preview
+            </button>
+<button class="px-6 py-2.5 rounded-lg bg-gradient-to-br from-primary to-primary-dim text-white font-bold text-sm shadow-lg shadow-indigo-500/20 hover:shadow-indigo-500/40 transition-all active:scale-95">
+                Send to Client
+            </button>
+<div class="ml-4 flex items-center gap-2">
+<span class="material-symbols-outlined text-slate-400 cursor-pointer hover:text-slate-600">notifications</span>
+<img alt="User Profile" class="w-8 h-8 rounded-full border-2 border-white shadow-sm" data-alt="Professional headshot of a creative director in a minimalist studio setting with soft natural lighting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBy70u1Ruqt-sQg8bpHITOqU9MhmQ1xUfxXxXLgsVSDZtxaxcTeoWBCFcYD-2a1U3EuLULkDdudjx-0f0Tp9ZRPExonMa8NlKsTJ9QkZvLgpPM-y6zH1nRzad0dKb-lwwHLM1g3o8SngzMN0h44fafh_1NmcoK-PPwj5gmEBoWVFNrTBiMaIPSzZaSynKlgF1lN1cfCDgUPxN9Cg7zM5qEdt8jT0G2PMjmzl6YWgzBvpTQPRuQaeu2hXUFbr2YrKjX2ehIS0PGeJ-TJ"/>
+</div>
+</div>
+</header>
+<main class="pt-16 h-screen flex overflow-hidden">
+<!-- Left Sidebar: Structure & Blocks -->
+<aside class="w-72 bg-surface-container-low border-r border-slate-200 flex flex-col hide-scrollbar overflow-y-auto">
+<div class="p-6">
+<h3 class="font-headline font-extrabold text-xs uppercase tracking-[0.15em] text-on-surface-variant mb-6">Structure &amp; Blocks</h3>
+<div class="space-y-4">
+<div class="group cursor-grab active:cursor-grabbing p-3 bg-surface-container-lowest rounded-xl border border-transparent hover:border-primary/20 hover:shadow-md transition-all">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-lg bg-indigo-50 flex items-center justify-center text-primary">
+<span class="material-symbols-outlined">title</span>
+</div>
+<div>
+<p class="text-sm font-bold text-slate-900">Heading</p>
+<p class="text-[11px] text-slate-500">Large editorial title</p>
+</div>
+</div>
+</div>
+<div class="group cursor-grab active:cursor-grabbing p-3 bg-surface-container-lowest rounded-xl border border-transparent hover:border-primary/20 hover:shadow-md transition-all">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-lg bg-indigo-50 flex items-center justify-center text-primary">
+<span class="material-symbols-outlined">subject</span>
+</div>
+<div>
+<p class="text-sm font-bold text-slate-900">Text Block</p>
+<p class="text-[11px] text-slate-500">Standard body copy</p>
+</div>
+</div>
+</div>
+<div class="group cursor-grab active:cursor-grabbing p-3 bg-surface-container-lowest rounded-xl border border-transparent hover:border-primary/20 hover:shadow-md transition-all">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-lg bg-indigo-50 flex items-center justify-center text-primary">
+<span class="material-symbols-outlined">image</span>
+</div>
+<div>
+<p class="text-sm font-bold text-slate-900">Image</p>
+<p class="text-[11px] text-slate-500">High-res visual media</p>
+</div>
+</div>
+</div>
+<div class="group cursor-grab active:cursor-grabbing p-3 bg-surface-container-lowest rounded-xl border border-transparent hover:border-primary/20 hover:shadow-md transition-all">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-lg bg-indigo-50 flex items-center justify-center text-primary">
+<span class="material-symbols-outlined">table_chart</span>
+</div>
+<div>
+<p class="text-sm font-bold text-slate-900">Pricing Table</p>
+<p class="text-[11px] text-slate-500">Smart interactive quote</p>
+</div>
+</div>
+</div>
+<div class="group cursor-grab active:cursor-grabbing p-3 bg-surface-container-lowest rounded-xl border border-transparent hover:border-primary/20 hover:shadow-md transition-all">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-lg bg-indigo-50 flex items-center justify-center text-primary">
+<span class="material-symbols-outlined">horizontal_rule</span>
+</div>
+<div>
+<p class="text-sm font-bold text-slate-900">Divider</p>
+<p class="text-[11px] text-slate-500">Visual section break</p>
+</div>
+</div>
+</div>
+</div>
+<div class="mt-12 p-4 rounded-2xl bg-indigo-600 text-white relative overflow-hidden group">
+<div class="absolute -right-4 -bottom-4 w-24 h-24 bg-white/10 rounded-full blur-2xl group-hover:scale-150 transition-transform duration-700"></div>
+<p class="text-[11px] font-bold uppercase tracking-widest opacity-80 mb-1">AI Assistant</p>
+<p class="text-sm font-medium mb-3 leading-snug">Generate a scope of work automatically.</p>
+<button class="w-full py-2 bg-white text-primary text-xs font-bold rounded-lg shadow-sm">Launch Magic</button>
+</div>
+</div>
+</aside>
+<!-- Center Canvas: Live Preview -->
+<section class="flex-1 overflow-y-auto bg-surface-container p-12 hide-scrollbar">
+<div class="max-w-4xl mx-auto min-h-[1200px] bg-white shadow-2xl shadow-slate-200/50 rounded-sm p-24 relative">
+<!-- Editorial Header -->
+<div class="mb-20">
+<div class="w-24 h-24 bg-surface-container mb-12 flex items-center justify-center group cursor-pointer relative">
+<span class="material-symbols-outlined text-slate-300 group-hover:text-primary">add_a_photo</span>
+<div class="absolute inset-0 opacity-0 group-hover:opacity-100 bg-slate-900/5 flex items-center justify-center transition-opacity">
+<span class="text-[10px] font-bold text-slate-600">UPLOAD LOGO</span>
+</div>
+</div>
+<div class="flex flex-col gap-4">
+<span class="text-primary font-bold tracking-[0.2em] uppercase text-xs">Strategic Proposal</span>
+<h1 class="text-6xl font-headline font-extrabold tracking-tighter text-slate-900 leading-[0.9] outline-none hover:bg-slate-50 transition-colors py-2" contenteditable="true">
+                            Transforming Digital Presence for Acme Corp.
+                        </h1>
+<div class="h-1 w-20 bg-primary mt-4"></div>
+</div>
+</div>
+<!-- Text Block -->
+<div class="grid grid-cols-12 gap-8 mb-16">
+<div class="col-span-4">
+<p class="text-xs font-bold text-on-surface-variant uppercase tracking-widest leading-loose">The Vision</p>
+</div>
+<div class="col-span-8">
+<p class="text-lg text-slate-600 leading-relaxed outline-none hover:bg-slate-50 transition-colors p-2" contenteditable="true">
+                            Our goal is to redefine how your brand communicates in the digital space. By leveraging emerging technologies and a human-centric design approach, we will elevate the Acme experience across every touchpoint.
+                        </p>
+</div>
+</div>
+<!-- Image Block (Asymmetric) -->
+<div class="relative mb-24 -mx-12">
+<div class="aspect-[21/9] overflow-hidden rounded-xl shadow-xl">
+<img class="w-full h-full object-cover" data-alt="Modern minimalist office interior with floor-to-ceiling windows and soft morning light highlighting sleek furniture" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBDDJhaIDyjWDh8nwiOO8uxSJLlZOdwYG1xDguy6io_vgxWGvYuesH8KQPQ6uqqTATn8KGEmztrno1OfjnpsFSDOsHLMJCtSHxvq7q2nZ9QqWxBEKnJWVf587Sf2eEwDSVrc9VhPsH2YC_4t8iHNDGbz0VNHmFViPllcvXT16moYtWLYeFoIIkRuuXowLIHAplVsSt3hTDVQ8eTH8G3rN4xXWY_jPIgWsbLwr2XgqcXmJG9PnMuzx_iNGUnblz9Q1rO-2Elm1m8U7Bg"/>
+</div>
+<div class="absolute -bottom-8 right-12 bg-white p-6 shadow-xl max-w-xs rounded-lg">
+<p class="text-sm italic text-slate-500 font-medium">"Innovation distinguishes between a leader and a follower."</p>
+</div>
+</div>
+<!-- Pricing Table Component -->
+<div class="mb-20">
+<h2 class="text-2xl font-headline font-bold mb-8 text-slate-900">Investment Summary</h2>
+<div class="border border-slate-100 rounded-2xl overflow-hidden shadow-sm">
+<div class="pricing-grid bg-slate-50 p-4 border-b border-slate-100">
+<div class="text-[11px] font-bold uppercase tracking-widest text-slate-400">Description</div>
+<div class="text-[11px] font-bold uppercase tracking-widest text-slate-400 text-right">Quantity</div>
+<div class="text-[11px] font-bold uppercase tracking-widest text-slate-400 text-right">Total</div>
+</div>
+<div class="pricing-grid p-6 border-b border-slate-50 items-center hover:bg-slate-50 transition-colors group">
+<div>
+<p class="font-bold text-slate-900 outline-none" contenteditable="true">Brand Identity Workshop</p>
+<p class="text-sm text-slate-500 outline-none" contenteditable="true">Full-day session with stakeholders</p>
+</div>
+<div class="text-right font-medium text-slate-600">01</div>
+<div class="text-right font-bold text-slate-900">$4,500.00</div>
+</div>
+<div class="pricing-grid p-6 border-b border-slate-50 items-center hover:bg-slate-50 transition-colors">
+<div>
+<p class="font-bold text-slate-900 outline-none" contenteditable="true">UI/UX Design Phase</p>
+<p class="text-sm text-slate-500 outline-none" contenteditable="true">Mobile and Desktop prototypes</p>
+</div>
+<div class="text-right font-medium text-slate-600">01</div>
+<div class="text-right font-bold text-slate-900">$12,000.00</div>
+</div>
+<div class="bg-indigo-50/30 p-8 flex justify-between items-center">
+<div>
+<span class="material-symbols-outlined text-primary text-3xl">verified</span>
+</div>
+<div class="text-right">
+<p class="text-xs font-bold uppercase tracking-widest text-indigo-400 mb-1">Total Investment</p>
+<p class="text-4xl font-headline font-black text-primary">$16,500.00</p>
+</div>
+</div>
+</div>
+<button class="mt-4 flex items-center gap-2 text-primary font-bold text-xs uppercase tracking-widest px-4 py-2 hover:bg-indigo-50 rounded-lg transition-colors">
+<span class="material-symbols-outlined text-sm">add</span> Add Line Item
+                    </button>
+</div>
+<!-- Footer Signoff -->
+<div class="border-t-4 border-primary pt-12 mt-32 grid grid-cols-2 gap-12">
+<div>
+<p class="text-xs font-bold uppercase tracking-widest text-slate-400 mb-8">Prepared by Offera Studio</p>
+<div class="w-40 h-16 border-b border-slate-300 mb-2"></div>
+<p class="text-sm font-bold">Jonathan Sterling</p>
+<p class="text-xs text-slate-500">Creative Director</p>
+</div>
+<div>
+<p class="text-xs font-bold uppercase tracking-widest text-slate-400 mb-8">Acme Corp Approval</p>
+<div class="w-40 h-16 border-b border-slate-200 mb-2 bg-slate-50/50 flex items-center justify-center">
+<span class="text-[10px] text-slate-300 font-bold">CLIENT SIGNATURE SPACE</span>
+</div>
+<p class="text-sm font-bold text-slate-300">Awaiting Signature</p>
+</div>
+</div>
+</div>
+</section>
+<!-- Right Sidebar: Styling & Branding -->
+<aside class="w-80 bg-surface-container-low border-l border-slate-200 flex flex-col hide-scrollbar overflow-y-auto">
+<div class="p-6">
+<h3 class="font-headline font-extrabold text-xs uppercase tracking-[0.15em] text-on-surface-variant mb-8">Styling &amp; Branding</h3>
+<!-- Color Palette -->
+<div class="mb-10">
+<label class="text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-4 block">Accent Color</label>
+<div class="grid grid-cols-5 gap-3">
+<button class="w-full aspect-square rounded-full bg-[#4e45e4] ring-2 ring-primary ring-offset-2 transition-all"></button>
+<button class="w-full aspect-square rounded-full bg-[#0ea5e9] hover:scale-110 transition-transform"></button>
+<button class="w-full aspect-square rounded-full bg-[#10b981] hover:scale-110 transition-transform"></button>
+<button class="w-full aspect-square rounded-full bg-[#f43f5e] hover:scale-110 transition-transform"></button>
+<button class="w-full aspect-square rounded-full border-2 border-slate-200 flex items-center justify-center hover:bg-white transition-colors">
+<span class="material-symbols-outlined text-slate-400 text-sm">palette</span>
+</button>
+</div>
+</div>
+<!-- Typography -->
+<div class="mb-10 space-y-6">
+<div>
+<label class="text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-3 block">Heading Font</label>
+<select class="w-full bg-white border-none rounded-xl text-sm font-medium focus:ring-primary shadow-sm">
+<option>Manrope (Modern)</option>
+<option>Inter (Universal)</option>
+<option>Playfair Display (Elegant)</option>
+<option>Space Grotesk (Tech)</option>
+</select>
+</div>
+<div>
+<label class="text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-3 block">Body Font</label>
+<select class="w-full bg-white border-none rounded-xl text-sm font-medium focus:ring-primary shadow-sm">
+<option>Inter (Universal)</option>
+<option>Roboto (Standard)</option>
+<option>Merriweather (Classic)</option>
+</select>
+</div>
+</div>
+<!-- Page Settings -->
+<div class="mb-10 p-4 bg-white rounded-2xl shadow-sm border border-slate-100">
+<label class="text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-4 block">Page Layout</label>
+<div class="space-y-4">
+<div class="flex items-center justify-between">
+<span class="text-sm font-medium text-slate-700">Cover Page</span>
+<div class="w-10 h-5 bg-primary rounded-full relative cursor-pointer">
+<div class="absolute right-1 top-1 w-3 h-3 bg-white rounded-full"></div>
+</div>
+</div>
+<div class="flex items-center justify-between">
+<span class="text-sm font-medium text-slate-700">Auto-numbering</span>
+<div class="w-10 h-5 bg-slate-200 rounded-full relative cursor-pointer">
+<div class="absolute left-1 top-1 w-3 h-3 bg-white rounded-full"></div>
+</div>
+</div>
+<div class="flex items-center justify-between">
+<span class="text-sm font-medium text-slate-700">Show Footer</span>
+<div class="w-10 h-5 bg-primary rounded-full relative cursor-pointer">
+<div class="absolute right-1 top-1 w-3 h-3 bg-white rounded-full"></div>
+</div>
+</div>
+</div>
+</div>
+<!-- Logo Management -->
+<div>
+<label class="text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-4 block">Brand Assets</label>
+<div class="border-2 border-dashed border-slate-200 rounded-2xl p-6 flex flex-col items-center gap-2 hover:border-primary/50 transition-colors cursor-pointer bg-slate-50/50">
+<span class="material-symbols-outlined text-slate-300 text-3xl">upload_file</span>
+<p class="text-xs font-bold text-slate-500">Click to upload logo</p>
+<p class="text-[10px] text-slate-400">PNG, SVG (Max 5MB)</p>
+</div>
+</div>
+</div>
+</aside>
+</main>
+<!-- Contextual HUD: Based on BottomNavBar Shared Component Logic -->
+<nav class="fixed bottom-8 left-1/2 -translate-x-1/2 z-50 flex items-center justify-around gap-4 p-2 bg-white/90 backdrop-blur-2xl rounded-full border border-slate-200 shadow-2xl shadow-indigo-500/10 min-w-[320px]">
+<button class="flex items-center gap-2 text-indigo-600 bg-indigo-50 rounded-full px-6 py-2 transition-all active:scale-95 group">
+<span class="material-symbols-outlined text-[18px]">save</span>
+<span class="font-manrope text-[10px] uppercase tracking-widest font-bold">Save</span>
+</button>
+<button class="flex items-center gap-2 text-slate-500 px-6 py-2 hover:text-indigo-500 transition-all active:scale-95 group">
+<span class="material-symbols-outlined text-[18px]">visibility</span>
+<span class="font-manrope text-[10px] uppercase tracking-widest font-bold">Preview</span>
+</button>
+<button class="flex items-center gap-2 text-slate-500 px-6 py-2 hover:text-indigo-500 transition-all active:scale-95 group">
+<span class="material-symbols-outlined text-[18px]">send</span>
+<span class="font-manrope text-[10px] uppercase tracking-widest font-bold">Send</span>
+</button>
+</nav>
+</body></html>

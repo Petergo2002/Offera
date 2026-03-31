@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Offera | Proposal for Acme Corp</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&amp;family=Inter:wght@400;500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "tertiary": "#755478",
+              "surface-dim": "#d4dbdf",
+              "surface": "#f7f9fb",
+              "primary-fixed-dim": "#5a52f0",
+              "error-dim": "#6b0221",
+              "on-primary-fixed": "#ffffff",
+              "on-secondary-fixed": "#373f54",
+              "error": "#a8364b",
+              "secondary-fixed": "#dae2fd",
+              "surface-container-high": "#e3e9ed",
+              "primary-fixed": "#6760fd",
+              "primary-container": "#6760fd",
+              "on-primary-fixed-variant": "#edeaff",
+              "surface-container-highest": "#dce4e8",
+              "inverse-primary": "#8582ff",
+              "surface-bright": "#f7f9fb",
+              "secondary": "#575f75",
+              "tertiary-fixed": "#fdd2fd",
+              "primary": "#4e45e4",
+              "on-surface": "#2c3437",
+              "surface-variant": "#dce4e8",
+              "on-secondary-container": "#4a5167",
+              "on-background": "#2c3437",
+              "on-primary-container": "#000000",
+              "on-error": "#fff7f7",
+              "on-surface-variant": "#596064",
+              "on-primary": "#fbf7ff",
+              "surface-container": "#eaeff2",
+              "tertiary-container": "#fdd2fd",
+              "secondary-fixed-dim": "#ccd4ee",
+              "on-tertiary-fixed": "#513254",
+              "on-tertiary-container": "#654568",
+              "on-secondary": "#f9f8ff",
+              "tertiary-fixed-dim": "#eec4ef",
+              "error-container": "#f97386",
+              "secondary-dim": "#4b5369",
+              "surface-tint": "#4e45e4",
+              "on-tertiary-fixed-variant": "#704e72",
+              "on-secondary-fixed-variant": "#535b71",
+              "secondary-container": "#dae2fd",
+              "inverse-surface": "#0b0f10",
+              "on-tertiary": "#fff7fa",
+              "background": "#f7f9fb",
+              "surface-container-lowest": "#ffffff",
+              "inverse-on-surface": "#9a9d9f",
+              "outline": "#747c80",
+              "primary-dim": "#4135d8",
+              "tertiary-dim": "#68486b",
+              "on-error-container": "#6e0523",
+              "surface-container-low": "#f0f4f7",
+              "outline-variant": "#acb3b7"
+            },
+            fontFamily: {
+              "headline": ["Manrope"],
+              "body": ["Inter"],
+              "label": ["Inter"]
+            },
+            borderRadius: {"DEFAULT": "0.125rem", "lg": "0.25rem", "xl": "0.5rem", "full": "0.75rem"},
+          },
+        },
+      }
+    </script>
+<style>
+        body { font-family: 'Inter', sans-serif; background-color: #f7f9fb; color: #2c3437; }
+        .font-headline { font-family: 'Manrope', sans-serif; }
+        .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+        .glass-nav { background: rgba(255, 255, 255, 0.8); backdrop-filter: blur(20px); }
+        .hero-gradient { background: linear-gradient(145deg, #4e45e4 0%, #4135d8 100%); }
+    </style>
+</head>
+<body class="antialiased">
+<!-- TopNavBar (Shared Component Identity) -->
+<header class="fixed top-0 w-full z-50 bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl shadow-sm dark:shadow-none border-b border-slate-100 dark:border-slate-800 font-manrope antialiased tracking-tight">
+<div class="flex justify-between items-center h-16 px-6 md:px-12 w-full mx-auto">
+<div class="flex items-center gap-8">
+<span class="text-2xl font-bold tracking-tighter text-slate-900 dark:text-white">Offera</span>
+<!-- Preview Status Indicator -->
+<div class="hidden md:flex items-center gap-2 px-3 py-1 bg-surface-container rounded-full border border-outline-variant/15">
+<span class="w-2 h-2 rounded-full bg-primary"></span>
+<span class="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant">Live View</span>
+</div>
+</div>
+<div class="flex items-center gap-4">
+<button class="hidden md:flex items-center gap-2 text-slate-500 hover:text-slate-900 transition-colors px-4 py-2 rounded-lg hover:bg-slate-50">
+<span class="material-symbols-outlined text-xl">download</span>
+<span class="text-sm font-medium">Download PDF</span>
+</button>
+<button class="bg-primary text-on-primary px-6 py-2.5 rounded-lg font-semibold shadow-lg shadow-primary/20 hover:bg-primary-dim transition-all active:scale-95">
+                    Accept Proposal
+                </button>
+</div>
+</div>
+</header>
+<main class="pt-16">
+<!-- Hero Section -->
+<section class="relative min-h-[716px] flex flex-col justify-center items-center text-center px-6 overflow-hidden bg-surface">
+<div class="absolute top-0 left-0 w-full h-full opacity-[0.03] pointer-events-none" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuAtrK4VWP5Xa7ifXxj9eL297v4gpwLX6HqgsGdQ74Kaso4fYwGqPt6lgtikVs0mATydKiCa5r90t4ziiv3DTpSzCjb7sVuolUC37ypc_5c-_jWcdVYUAS1ekfI-VCf_uEFdZoQcJDHC73Z06mT_7RyUWnUVEPELqhXO210Uf_qWGtY5LkujzbH78ieNTFcN-qjduiQz5NV6z2pnn32abZClB6wPff1zPI4NEFoohrpVHTjpRp1I7cxSNJjFEc-Tmo-sXTplrXt6PK99');"></div>
+<div class="max-w-4xl mx-auto z-10">
+<p class="text-primary font-bold tracking-[0.2em] uppercase text-xs mb-6">Strategic Partnership</p>
+<h1 class="font-headline text-5xl md:text-7xl font-extrabold text-on-surface tracking-tight leading-[1.1] mb-8">
+                    Web Development &amp; Digital Ecosystem for Acme Corp
+                </h1>
+<div class="flex flex-col md:flex-row items-center justify-center gap-8 md:gap-16 text-on-surface-variant">
+<div class="flex flex-col items-center md:items-start">
+<span class="text-[10px] uppercase tracking-widest font-bold mb-1 opacity-60">Prepared For</span>
+<span class="text-lg font-semibold text-on-surface">Acme Corporation</span>
+</div>
+<div class="w-px h-8 bg-outline-variant/30 hidden md:block"></div>
+<div class="flex flex-col items-center md:items-start">
+<span class="text-[10px] uppercase tracking-widest font-bold mb-1 opacity-60">Issued Date</span>
+<span class="text-lg font-semibold text-on-surface">October 24, 2023</span>
+</div>
+<div class="w-px h-8 bg-outline-variant/30 hidden md:block"></div>
+<div class="flex flex-col items-center md:items-start">
+<span class="text-[10px] uppercase tracking-widest font-bold mb-1 opacity-60">Validity</span>
+<span class="text-lg font-semibold text-on-surface">30 Days</span>
+</div>
+</div>
+</div>
+<!-- Scroll Indicator -->
+<div class="absolute bottom-12 animate-bounce">
+<span class="material-symbols-outlined text-outline-variant">keyboard_double_arrow_down</span>
+</div>
+</section>
+<!-- The Vision Section -->
+<section class="py-24 px-6 md:px-12 bg-surface-container-low">
+<div class="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
+<div class="order-2 lg:order-1">
+<div class="inline-block p-3 bg-white rounded-2xl shadow-sm mb-8">
+<span class="material-symbols-outlined text-primary text-3xl" data-weight="fill">lightbulb</span>
+</div>
+<h2 class="font-headline text-4xl font-bold text-on-surface mb-6 leading-tight">The Vision</h2>
+<div class="space-y-6 text-on-surface-variant leading-relaxed text-lg">
+<p>
+                            We don't just build websites; we architect digital destinations. Our vision for Acme Corp is to create a seamless, high-performance platform that bridges the gap between your innovative products and your sophisticated global audience.
+                        </p>
+<p>
+                            By leveraging the latest in headless architecture and immersive UI design, we will position Acme as the undisputed leader in the tech manufacturing sector, driving both brand equity and measurable conversion growth.
+                        </p>
+</div>
+<!-- Personal Note Tonal Card -->
+<div class="mt-12 p-8 bg-surface-container-lowest rounded-2xl border-l-4 border-primary">
+<p class="italic text-on-surface mb-6 text-lg">"The synergy between Acme's mission and our creative approach is undeniable. We are thrilled at the prospect of defining the next chapter of your digital presence together."</p>
+<div class="flex items-center gap-4">
+<img alt="Founder" class="w-12 h-12 rounded-full object-cover" data-alt="Professional portrait of a design agency founder with a friendly expression in a bright modern office setting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBqNAoosxznHwvHd8Ni9IkIgZpVJ1ms7pRhQGVtnTNzJIH0G2OQoSJdwvYT96rLss_3OvGs5drFlXVaiJ8IakfSdrFnKb545-RPMlomwx7bDzJtwdUK_kPje9QMoi7Gep4syEGIbg83Ct3j3SgzW-eBgzms-YF7e2vRnqker4Y72G96dq7xtHgC2_hXOzSObm9U1zdGguRine2GabWzky027I7CQSAcggdmH4EWgAjdROs0x-lyYulZbO29RZxO06cHXMcv1qr7AXnF"/>
+<div>
+<p class="font-bold text-on-surface leading-none">Julian Thorne</p>
+<p class="text-xs text-on-surface-variant uppercase tracking-wider mt-1">Creative Director, Offera Agency</p>
+</div>
+</div>
+</div>
+</div>
+<div class="order-1 lg:order-2">
+<div class="relative group">
+<div class="absolute -inset-4 bg-primary/10 rounded-[2rem] transform group-hover:scale-105 transition-transform duration-500"></div>
+<img alt="Visionary Design" class="relative rounded-[1.5rem] shadow-2xl w-full aspect-video object-cover" data-alt="Modern workspace with large monitor displaying complex data visualizations and UI design layouts in a bright clean environment" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAVn8qwmlo3amXANrR9nM2car2fseHbcAhzDhuwrrVHjsPh8pqB_ge5mCUi1XkxJ3P9q4kMOVGh5dhLAcY0rTk-qY7XnxNHNIwnC0fdFPR4vwXBFbDyaj5xNS3nxk7IGIn-fzF4NsmZTv-X61sIt2kQMWEbVYiBJCP725qFTLzCPB-kxfCLSo6yHCCHnjSl4SbrZqUJ30cyjkyMDXQbsTGD1T2ym67hYqcbBdsq8n6RfwtYas3uOK3YiN_rmMNkJmeQKBpTGXPUkr11"/>
+</div>
+</div>
+</div>
+</section>
+<!-- Scope of Work Section -->
+<section class="py-24 px-6 md:px-12 bg-surface">
+<div class="max-w-7xl mx-auto">
+<div class="mb-16">
+<span class="text-primary font-bold tracking-[0.2em] uppercase text-xs mb-4 block">Strategic Execution</span>
+<h2 class="font-headline text-4xl font-bold text-on-surface leading-tight">Scope of Work</h2>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+<!-- Scope Item 1 -->
+<div class="bg-surface-container-lowest p-8 rounded-2xl transition-all hover:translate-y-[-8px] hover:shadow-xl hover:shadow-primary/5">
+<span class="material-symbols-outlined text-primary mb-6 text-4xl">architecture</span>
+<h3 class="font-headline text-xl font-bold text-on-surface mb-4">Architecture &amp; Strategy</h3>
+<ul class="space-y-3 text-on-surface-variant text-sm leading-relaxed">
+<li class="flex items-start gap-3">
+<span class="material-symbols-outlined text-primary text-sm mt-0.5" data-weight="fill">check_circle</span>
+                                User Persona Mapping &amp; Journey Audit
+                            </li>
+<li class="flex items-start gap-3">
+<span class="material-symbols-outlined text-primary text-sm mt-0.5" data-weight="fill">check_circle</span>
+                                Information Architecture &amp; Sitemap Design
+                            </li>
+<li class="flex items-start gap-3">
+<span class="material-symbols-outlined text-primary text-sm mt-0.5" data-weight="fill">check_circle</span>
+                                Technology Stack Selection (Next.js/Tailwind)
+                            </li>
+</ul>
+</div>
+<!-- Scope Item 2 -->
+<div class="bg-surface-container-lowest p-8 rounded-2xl transition-all hover:translate-y-[-8px] hover:shadow-xl hover:shadow-primary/5">
+<span class="material-symbols-outlined text-primary mb-6 text-4xl">palette</span>
+<h3 class="font-headline text-xl font-bold text-on-surface mb-4">Visual Language</h3>
+<ul class="space-y-3 text-on-surface-variant text-sm leading-relaxed">
+<li class="flex items-start gap-3">
+<span class="material-symbols-outlined text-primary text-sm mt-0.5" data-weight="fill">check_circle</span>
+                                High-Fidelity UI/UX Prototyping
+                            </li>
+<li class="flex items-start gap-3">
+<span class="material-symbols-outlined text-primary text-sm mt-0.5" data-weight="fill">check_circle</span>
+                                Custom Motion Design &amp; Interaction
+                            </li>
+<li class="flex items-start gap-3">
+<span class="material-symbols-outlined text-primary text-sm mt-0.5" data-weight="fill">check_circle</span>
+                                Comprehensive Design System Library
+                            </li>
+</ul>
+</div>
+<!-- Scope Item 3 -->
+<div class="bg-surface-container-lowest p-8 rounded-2xl transition-all hover:translate-y-[-8px] hover:shadow-xl hover:shadow-primary/5">
+<span class="material-symbols-outlined text-primary mb-6 text-4xl">code</span>
+<h3 class="font-headline text-xl font-bold text-on-surface mb-4">Engineering</h3>
+<ul class="space-y-3 text-on-surface-variant text-sm leading-relaxed">
+<li class="flex items-start gap-3">
+<span class="material-symbols-outlined text-primary text-sm mt-0.5" data-weight="fill">check_circle</span>
+                                Responsive Web Implementation
+                            </li>
+<li class="flex items-start gap-3">
+<span class="material-symbols-outlined text-primary text-sm mt-0.5" data-weight="fill">check_circle</span>
+                                CMS Integration (Contentful)
+                            </li>
+<li class="flex items-start gap-3">
+<span class="material-symbols-outlined text-primary text-sm mt-0.5" data-weight="fill">check_circle</span>
+                                Performance Optimization (Core Web Vitals)
+                            </li>
+</ul>
+</div>
+</div>
+</div>
+</section>
+<!-- Pricing & Package Section -->
+<section class="py-24 px-6 md:px-12 bg-surface-container-low">
+<div class="max-w-4xl mx-auto">
+<div class="text-center mb-16">
+<span class="text-primary font-bold tracking-[0.2em] uppercase text-xs mb-4 block">Investment</span>
+<h2 class="font-headline text-4xl font-bold text-on-surface leading-tight">Pricing &amp; Package</h2>
+</div>
+<!-- Premium Pricing Table -->
+<div class="bg-surface-container-lowest rounded-3xl shadow-2xl shadow-on-surface/5 overflow-hidden border border-white">
+<div class="p-8 md:p-12 border-b border-surface-container">
+<div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+<div>
+<h3 class="text-2xl font-headline font-bold text-on-surface mb-2">The Enterprise Growth Suite</h3>
+<p class="text-on-surface-variant text-sm">Full-cycle development from discovery to launch.</p>
+</div>
+<div class="text-right">
+<span class="text-4xl font-headline font-extrabold text-on-surface">$24,500</span>
+<p class="text-[10px] uppercase tracking-widest font-bold text-primary mt-1">Flat Project Fee</p>
+</div>
+</div>
+</div>
+<div class="p-8 md:p-12 space-y-6">
+<div class="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-4">
+<div class="flex items-center justify-between py-3 border-b border-surface-container-low">
+<span class="text-on-surface-variant text-sm font-medium">Design &amp; Strategy</span>
+<span class="text-on-surface font-semibold text-sm">$8,000</span>
+</div>
+<div class="flex items-center justify-between py-3 border-b border-surface-container-low">
+<span class="text-on-surface-variant text-sm font-medium">Front-end Engineering</span>
+<span class="text-on-surface font-semibold text-sm">$10,500</span>
+</div>
+<div class="flex items-center justify-between py-3 border-b border-surface-container-low">
+<span class="text-on-surface-variant text-sm font-medium">CMS &amp; Backend Setup</span>
+<span class="text-on-surface font-semibold text-sm">$4,000</span>
+</div>
+<div class="flex items-center justify-between py-3 border-b border-surface-container-low">
+<span class="text-on-surface-variant text-sm font-medium">Testing &amp; Deployment</span>
+<span class="text-on-surface font-semibold text-sm">$2,000</span>
+</div>
+</div>
+<div class="mt-8 p-6 bg-surface-container-low rounded-xl flex items-center gap-4">
+<span class="material-symbols-outlined text-primary">info</span>
+<p class="text-sm text-on-surface-variant leading-relaxed">
+<span class="font-bold text-on-surface">Payment Schedule:</span> 50% Upfront, 25% at Alpha Milestone, 25% upon final Handover.
+                            </p>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- Final CTA Section -->
+<section class="py-32 px-6 md:px-12 bg-surface text-center">
+<div class="max-w-3xl mx-auto">
+<h2 class="font-headline text-4xl md:text-5xl font-bold text-on-surface mb-8 leading-tight">Ready to elevate Acme Corp?</h2>
+<p class="text-on-surface-variant text-lg mb-12 max-w-xl mx-auto leading-relaxed">
+                    Review the terms above and click accept to begin our collaboration. We've simplified the onboarding process to get started immediately.
+                </p>
+<div class="flex flex-col sm:flex-row items-center justify-center gap-6">
+<button class="w-full sm:w-auto px-12 py-5 bg-primary text-on-primary rounded-xl font-bold text-lg shadow-2xl shadow-primary/30 hover:bg-primary-dim transition-all active:scale-95 hero-gradient">
+                        Accept and Sign Proposal
+                    </button>
+<button class="w-full sm:w-auto px-12 py-5 bg-surface-container-high text-on-secondary-container rounded-xl font-bold text-lg hover:bg-surface-container-highest transition-all">
+                        Decline
+                    </button>
+</div>
+<div class="mt-16 pt-16 border-t border-outline-variant/20 flex flex-col items-center">
+<p class="text-[10px] uppercase tracking-[0.3em] font-black text-on-surface-variant mb-4">Powered By</p>
+<div class="flex items-center gap-2 opacity-50 grayscale hover:grayscale-0 transition-all cursor-pointer">
+<span class="font-headline font-black text-xl text-on-surface">Offera</span>
+</div>
+</div>
+</div>
+</section>
+</main>
+<!-- Contextual HUD / BottomNavBar (Shared Component Shell) -->
+<nav class="fixed bottom-8 left-1/2 -translate-x-1/2 z-50 flex items-center justify-around gap-4 p-2 shadow-lg bg-white/90 dark:bg-slate-900/90 backdrop-blur-2xl rounded-full border border-slate-200 dark:border-slate-700 min-w-[320px]">
+<button class="text-slate-500 px-6 py-2 hover:text-indigo-500 transition-all flex flex-col items-center gap-1 active:scale-95">
+<span class="material-symbols-outlined text-lg">save</span>
+<span class="font-manrope text-[10px] uppercase tracking-widest font-bold">Save</span>
+</button>
+<button class="text-indigo-600 bg-indigo-50 dark:bg-indigo-900/30 rounded-full px-6 py-2 flex flex-col items-center gap-1 scale-105">
+<span class="material-symbols-outlined text-lg">visibility</span>
+<span class="font-manrope text-[10px] uppercase tracking-widest font-bold">Preview</span>
+</button>
+<button class="text-slate-500 px-6 py-2 hover:text-indigo-500 transition-all flex flex-col items-center gap-1 active:scale-95">
+<span class="material-symbols-outlined text-lg">send</span>
+<span class="font-manrope text-[10px] uppercase tracking-widest font-bold">Send</span>
+</button>
+</nav>
+</body></html>

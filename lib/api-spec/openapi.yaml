@@ -11,6 +11,8 @@ tags:
     description: Health operations
   - name: proposals
     description: Proposal management
+  - name: templates
+    description: Template management
 paths:
   /healthz:
     get:
@@ -200,6 +202,124 @@ paths:
               schema:
                 $ref: "#/components/schemas/Proposal"
 
+  /templates:
+    get:
+      operationId: listTemplates
+      tags: [templates]
+      summary: List all templates
+      responses:
+        "200":
+          description: List of templates
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Template"
+    post:
+      operationId: createTemplate
+      tags: [templates]
+      summary: Create a new template
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateTemplateRequest"
+      responses:
+        "201":
+          description: Created template
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Template"
+
+  /templates/{id}:
+    get:
+      operationId: getTemplate
+      tags: [templates]
+      summary: Get a template by ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Template
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Template"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    put:
+      operationId: updateTemplate
+      tags: [templates]
+      summary: Update a template
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateTemplateRequest"
+      responses:
+        "200":
+          description: Updated template
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Template"
+    delete:
+      operationId: deleteTemplate
+      tags: [templates]
+      summary: Delete a template
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Deleted
+
+  /templates/{id}/copy:
+    post:
+      operationId: copyTemplate
+      tags: [templates]
+      summary: Copy a template
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CopyTemplateRequest"
+      responses:
+        "201":
+          description: Copied template
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Template"
+
 components:
   schemas:
     HealthStatus:
@@ -233,6 +353,16 @@ components:
           type: number
         unitPrice:
           type: number
+        unit:
+          type: string
+        type:
+          type: string
+          enum: [one_time, recurring]
+        interval:
+          type: string
+          enum: [monthly, yearly]
+        bindingPeriod:
+          type: number
         total:
           type: number
       required:
@@ -240,6 +370,7 @@ components:
         - description
         - quantity
         - unitPrice
+        - type
         - total
 
     ContentBlock:
@@ -252,6 +383,12 @@ components:
           enum: [heading, text, image, pricing, divider]
         content:
           type: string
+        description:
+          type: string
+        features:
+          type: array
+          items:
+            type: string
         rows:
           type: array
           items:
@@ -294,9 +431,125 @@ components:
         font:
           type: string
           enum: [inter, playfair, dm-sans]
+        fontPairing:
+          type: string
+          enum: [modern, klassisk, editorial]
+        coverEnabled:
+          type: boolean
+        coverBackground:
+          type: string
+        coverHeadline:
+          type: string
+        coverSubheadline:
+          type: string
+        logoPosition:
+          type: string
+          enum: [left, center, right]
+        dividerStyle:
+          type: string
+          enum: [line, space, decorative]
       required:
         - accentColor
-        - font
+
+    DocumentDesignSettings:
+      type: object
+      properties:
+        logoUrl:
+          type: string
+        accentColor:
+          type: string
+        fontPairing:
+          type: string
+          enum: [modern, klassisk, editorial]
+        coverEnabled:
+          type: boolean
+        coverBackground:
+          type: string
+        coverHeadline:
+          type: string
+        coverSubheadline:
+          type: string
+        logoPosition:
+          type: string
+          enum: [left, center, right]
+        dividerStyle:
+          type: string
+          enum: [line, space, decorative]
+      required:
+        - accentColor
+        - fontPairing
+        - coverEnabled
+        - coverBackground
+        - logoPosition
+        - dividerStyle
+
+    TemplateCategory:
+      type: string
+      enum: [webb, ai-agent, konsult, ovrigt]
+
+    ProposalParty:
+      type: object
+      properties:
+        companyName:
+          type: string
+        orgNumber:
+          type: string
+        contactName:
+          type: string
+        email:
+          type: string
+        phone:
+          type: string
+        address:
+          type: string
+        postalCode:
+          type: string
+        city:
+          type: string
+      required:
+        - companyName
+        - orgNumber
+        - contactName
+        - email
+        - phone
+        - address
+        - postalCode
+        - city
+
+    ProposalRecipient:
+      allOf:
+        - $ref: "#/components/schemas/ProposalParty"
+        - type: object
+          properties:
+            kind:
+              type: string
+              enum: [company, person]
+          required:
+            - kind
+
+    ProposalParties:
+      type: object
+      properties:
+        sender:
+          $ref: "#/components/schemas/ProposalParty"
+        recipient:
+          $ref: "#/components/schemas/ProposalRecipient"
+      required:
+        - sender
+        - recipient
+
+    ProposalAuditSummary:
+      type: object
+      properties:
+        eventCount:
+          type: integer
+        lastEventAt:
+          type: string
+          format: date-time
+        lastEventType:
+          type: string
+      required:
+        - eventCount
 
     Proposal:
       type: object
@@ -315,14 +568,27 @@ components:
           type: number
         publicSlug:
           type: string
+        templateId:
+          type: integer
         sections:
           type: array
           items:
             $ref: "#/components/schemas/ProposalSection"
         branding:
           $ref: "#/components/schemas/ProposalBranding"
+        parties:
+          $ref: "#/components/schemas/ProposalParties"
         personalMessage:
           type: string
+        signedByName:
+          type: string
+        signatureInitials:
+          type: string
+        signatureDataUrl:
+          type: string
+        signedAt:
+          type: string
+          format: date-time
         createdAt:
           type: string
           format: date-time
@@ -332,6 +598,22 @@ components:
         lastActivityAt:
           type: string
           format: date-time
+        revisionId:
+          type: integer
+        snapshotHash:
+          type: string
+        sentAt:
+          type: string
+          format: date-time
+        viewedAt:
+          type: string
+          format: date-time
+        signingRecipientEmail:
+          type: string
+        resendEmailId:
+          type: string
+        auditSummary:
+          $ref: "#/components/schemas/ProposalAuditSummary"
       required:
         - id
         - title
@@ -341,6 +623,45 @@ components:
         - publicSlug
         - sections
         - branding
+        - parties
+        - createdAt
+        - updatedAt
+
+    Template:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        description:
+          type: string
+        category:
+          $ref: "#/components/schemas/TemplateCategory"
+        designSettings:
+          $ref: "#/components/schemas/DocumentDesignSettings"
+        isBuiltIn:
+          type: boolean
+        usageCount:
+          type: integer
+        sections:
+          type: array
+          items:
+            $ref: "#/components/schemas/ProposalSection"
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - name
+        - category
+        - designSettings
+        - isBuiltIn
+        - usageCount
+        - sections
         - createdAt
         - updatedAt
 
@@ -353,9 +674,8 @@ components:
           type: string
         clientEmail:
           type: string
-      required:
-        - title
-        - clientName
+        templateId:
+          type: integer
 
     UpdateProposalRequest:
       type: object
@@ -372,6 +692,8 @@ components:
             $ref: "#/components/schemas/ProposalSection"
         branding:
           $ref: "#/components/schemas/ProposalBranding"
+        parties:
+          $ref: "#/components/schemas/ProposalParties"
         totalValue:
           type: number
 
@@ -391,5 +713,74 @@ components:
         action:
           type: string
           enum: [accept, decline]
+        signerEmail:
+          type: string
+          format: email
+          maxLength: 320
+        signingToken:
+          type: string
+          minLength: 1
+          maxLength: 256
+        signerName:
+          type: string
+          minLength: 1
+          maxLength: 160
+        initials:
+          type: string
+          minLength: 1
+          maxLength: 5
+        signatureDataUrl:
+          type: string
+          maxLength: 500000
+          pattern: "^data:image/png;base64,"
+        termsAccepted:
+          type: boolean
       required:
         - action
+
+    CreateTemplateRequest:
+      type: object
+      properties:
+        name:
+          type: string
+        description:
+          type: string
+        category:
+          $ref: "#/components/schemas/TemplateCategory"
+        sections:
+          type: array
+          items:
+            $ref: "#/components/schemas/ProposalSection"
+        designSettings:
+          $ref: "#/components/schemas/DocumentDesignSettings"
+        sourceProposalId:
+          type: integer
+      required:
+        - name
+        - category
+
+    UpdateTemplateRequest:
+      type: object
+      properties:
+        name:
+          type: string
+        description:
+          type: string
+        category:
+          $ref: "#/components/schemas/TemplateCategory"
+        sections:
+          type: array
+          items:
+            $ref: "#/components/schemas/ProposalSection"
+        designSettings:
+          $ref: "#/components/schemas/DocumentDesignSettings"
+
+    CopyTemplateRequest:
+      type: object
+      properties:
+        name:
+          type: string
+        description:
+          type: string
+        category:
+          $ref: "#/components/schemas/TemplateCategory"

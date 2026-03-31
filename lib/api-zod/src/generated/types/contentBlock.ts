@@ -12,6 +12,8 @@ export interface ContentBlock {
   id: string;
   type: ContentBlockType;
   content?: string;
+  description?: string;
+  features?: string[];
   rows?: PricingRow[];
   discount?: number;
   vatEnabled?: boolean;

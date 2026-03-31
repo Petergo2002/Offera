@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Offera | Dashboard</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&amp;family=Inter:wght@400;500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "tertiary": "#755478",
+              "surface-dim": "#d4dbdf",
+              "surface": "#f7f9fb",
+              "primary-fixed-dim": "#5a52f0",
+              "error-dim": "#6b0221",
+              "on-primary-fixed": "#ffffff",
+              "on-secondary-fixed": "#373f54",
+              "error": "#a8364b",
+              "secondary-fixed": "#dae2fd",
+              "surface-container-high": "#e3e9ed",
+              "primary-fixed": "#6760fd",
+              "primary-container": "#6760fd",
+              "on-primary-fixed-variant": "#edeaff",
+              "surface-container-highest": "#dce4e8",
+              "inverse-primary": "#8582ff",
+              "surface-bright": "#f7f9fb",
+              "secondary": "#575f75",
+              "tertiary-fixed": "#fdd2fd",
+              "primary": "#4e45e4",
+              "on-surface": "#2c3437",
+              "surface-variant": "#dce4e8",
+              "on-secondary-container": "#4a5167",
+              "on-background": "#2c3437",
+              "on-primary-container": "#000000",
+              "on-error": "#fff7f7",
+              "on-surface-variant": "#596064",
+              "on-primary": "#fbf7ff",
+              "surface-container": "#eaeff2",
+              "tertiary-container": "#fdd2fd",
+              "secondary-fixed-dim": "#ccd4ee",
+              "on-tertiary-fixed": "#513254",
+              "on-tertiary-container": "#654568",
+              "on-secondary": "#f9f8ff",
+              "tertiary-fixed-dim": "#eec4ef",
+              "error-container": "#f97386",
+              "secondary-dim": "#4b5369",
+              "surface-tint": "#4e45e4",
+              "on-tertiary-fixed-variant": "#704e72",
+              "on-secondary-fixed-variant": "#535b71",
+              "secondary-container": "#dae2fd",
+              "inverse-surface": "#0b0f10",
+              "on-tertiary": "#fff7fa",
+              "background": "#f7f9fb",
+              "surface-container-lowest": "#ffffff",
+              "inverse-on-surface": "#9a9d9f",
+              "outline": "#747c80",
+              "primary-dim": "#4135d8",
+              "tertiary-dim": "#68486b",
+              "on-error-container": "#6e0523",
+              "surface-container-low": "#f0f4f7",
+              "outline-variant": "#acb3b7"
+            },
+            fontFamily: {
+              "headline": ["Manrope"],
+              "body": ["Inter"],
+              "label": ["Inter"]
+            },
+            borderRadius: {"DEFAULT": "0.125rem", "lg": "0.25rem", "xl": "0.5rem", "full": "0.75rem"},
+          },
+        },
+      }
+    </script>
+<style>
+        body { font-family: 'Inter', sans-serif; }
+        .headline { font-family: 'Manrope', sans-serif; }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            vertical-align: middle;
+        }
+        .tonal-shift-bg-surface-container-low { background-color: #f0f4f7; }
+        .glassmorphism-overlay { backdrop-filter: blur(20px); background: rgba(255, 255, 255, 0.8); }
+    </style>
+</head>
+<body class="bg-surface text-on-surface antialiased">
+<!-- TopNavBar -->
+<nav class="fixed top-0 w-full z-50 border-b border-outline-variant/15 bg-white/80 backdrop-blur-xl shadow-sm font-manrope antialiased tracking-tight">
+<div class="flex justify-between items-center h-16 px-6 md:px-12 w-full mx-auto">
+<div class="flex items-center gap-8">
+<span class="text-2xl font-bold tracking-tighter text-slate-900">Offera</span>
+<!-- Desktop Navigation Links -->
+<div class="hidden md:flex gap-6">
+<a class="text-indigo-600 font-semibold border-b-2 border-indigo-600 py-5" href="#">Dashboard</a>
+<a class="text-slate-500 hover:text-slate-900 transition-colors py-5" href="#">Templates</a>
+<a class="text-slate-500 hover:text-slate-900 transition-colors py-5" href="#">Analytics</a>
+<a class="text-slate-500 hover:text-slate-900 transition-colors py-5" href="#">Settings</a>
+</div>
+</div>
+<div class="flex items-center gap-4">
+<div class="relative hidden sm:block">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline">search</span>
+<input class="pl-10 pr-4 py-2 bg-surface-container-low border-none rounded-xl text-sm w-64 focus:ring-2 focus:ring-primary/20 transition-all" placeholder="Search proposals..." type="text"/>
+</div>
+<div class="flex items-center gap-2">
+<button class="p-2 hover:bg-slate-50 rounded-lg active:scale-95 duration-200 ease-out transition-colors">
+<span class="material-symbols-outlined text-on-surface-variant">notifications</span>
+</button>
+<button class="p-2 hover:bg-slate-50 rounded-lg active:scale-95 duration-200 ease-out transition-colors">
+<span class="material-symbols-outlined text-on-surface-variant">help</span>
+</button>
+</div>
+<button class="bg-gradient-to-br from-primary to-primary-dim text-white px-5 py-2 rounded-xl font-semibold shadow-lg shadow-primary/20 active:scale-95 duration-200 ease-out">
+                    Create New
+                </button>
+<img alt="User Profile" class="w-8 h-8 rounded-full border border-outline-variant/30" data-alt="Professional headshot of a smiling executive with short dark hair, wearing a navy blue suit jacket in a minimalist studio setting." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDrkg0jI4rbIOxvXbe8VTLJEisQu6VBWDTe-Hsd9VL8SaUqnYpq_E6ZJjg0FEqWdNSngOatA9tV2BMj18CgKtxRoHYSOYyXHJi6ive9SpDg2Q7ZU9L_odWDZuhdSk1f6O_l33bjpGsWgex_OsC7NJBmCwCXVJxosXx4_ig3CPBWcx6jMNbZiXuwnUJukEKTS7S9UtelO6M-dOINTAKunq0-ep05GN7KL5DxyL-yndhzsVoQnvAyseDXzlTT1RP0RmfrJl-aeAKJGeZR"/>
+</div>
+</div>
+</nav>
+<!-- App Shell Container -->
+<div class="flex pt-16 h-screen overflow-hidden">
+<!-- SideNavBar (Hidden on small screens) -->
+<aside class="hidden lg:flex flex-col py-8 px-4 gap-2 h-full w-64 border-r border-outline-variant/15 bg-slate-50 font-manrope text-sm font-medium">
+<div class="px-4 mb-6">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 bg-primary rounded-xl flex items-center justify-center text-white">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">dashboard_customize</span>
+</div>
+<div>
+<p class="text-slate-900 font-bold tracking-tight">Offera</p>
+<p class="text-[10px] text-on-surface-variant uppercase tracking-widest">Premium SaaS</p>
+</div>
+</div>
+</div>
+<nav class="flex-1 flex flex-col gap-1">
+<a class="flex items-center gap-3 px-4 py-3 bg-white text-indigo-600 shadow-sm rounded-xl hover:translate-x-1 transition-all duration-300" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">dashboard</span>
+                    Home
+                </a>
+<a class="flex items-center gap-3 px-4 py-3 text-slate-500 hover:text-slate-800 hover:translate-x-1 transition-all duration-300" href="#">
+<span class="material-symbols-outlined">description</span>
+                    Proposals
+                </a>
+<a class="flex items-center gap-3 px-4 py-3 text-slate-500 hover:text-slate-800 hover:translate-x-1 transition-all duration-300" href="#">
+<span class="material-symbols-outlined">folder_shared</span>
+                    Library
+                </a>
+<a class="flex items-center gap-3 px-4 py-3 text-slate-500 hover:text-slate-800 hover:translate-x-1 transition-all duration-300" href="#">
+<span class="material-symbols-outlined">group</span>
+                    Team
+                </a>
+<a class="flex items-center gap-3 px-4 py-3 text-slate-500 hover:text-slate-800 hover:translate-x-1 transition-all duration-300" href="#">
+<span class="material-symbols-outlined">payments</span>
+                    Billing
+                </a>
+</nav>
+<div class="mt-auto px-2">
+<div class="bg-indigo-600/5 p-4 rounded-2xl border border-indigo-600/10 mb-6">
+<p class="text-indigo-900 font-bold mb-1">Upgrade Plan</p>
+<p class="text-xs text-indigo-700/70 mb-3 leading-relaxed">Unlock advanced analytics and unlimited templates.</p>
+<button class="w-full bg-white text-indigo-600 text-xs py-2 rounded-lg font-bold shadow-sm">Explore Pro</button>
+</div>
+<div class="flex flex-col gap-1">
+<a class="flex items-center gap-3 px-4 py-2 text-slate-500 hover:text-slate-800 transition-colors" href="#">
+<span class="material-symbols-outlined">support</span>
+                        Help Center
+                    </a>
+<a class="flex items-center gap-3 px-4 py-2 text-error hover:bg-error-container/10 rounded-lg transition-colors" href="#">
+<span class="material-symbols-outlined">logout</span>
+                        Log Out
+                    </a>
+</div>
+</div>
+</aside>
+<!-- Main Content Canvas -->
+<main class="flex-1 overflow-y-auto bg-surface p-6 md:p-12">
+<!-- Header Section -->
+<header class="mb-12">
+<h1 class="headline text-4xl font-extrabold tracking-tight text-on-surface mb-2">Workspace Dashboard</h1>
+<p class="text-on-surface-variant max-w-2xl">Welcome back, Adrian. You have <span class="text-primary font-semibold">4 proposals</span> that require your immediate attention.</p>
+</header>
+<!-- Bento Stats Grid -->
+<div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
+<div class="bg-surface-container-lowest p-6 rounded-2xl shadow-sm border border-outline-variant/10">
+<div class="flex justify-between items-start mb-4">
+<div class="p-2 bg-indigo-50 text-indigo-600 rounded-lg">
+<span class="material-symbols-outlined">description</span>
+</div>
+<span class="text-xs font-bold text-emerald-600 bg-emerald-50 px-2 py-1 rounded-full">+12%</span>
+</div>
+<p class="text-on-surface-variant text-sm font-medium mb-1">Active Proposals</p>
+<h2 class="text-3xl font-black headline">24</h2>
+</div>
+<div class="bg-surface-container-lowest p-6 rounded-2xl shadow-sm border border-outline-variant/10">
+<div class="flex justify-between items-start mb-4">
+<div class="p-2 bg-emerald-50 text-emerald-600 rounded-lg">
+<span class="material-symbols-outlined">payments</span>
+</div>
+<span class="text-xs font-bold text-emerald-600 bg-emerald-50 px-2 py-1 rounded-full">+8%</span>
+</div>
+<p class="text-on-surface-variant text-sm font-medium mb-1">Total Value</p>
+<h2 class="text-3xl font-black headline">$142,800</h2>
+</div>
+<div class="bg-surface-container-lowest p-6 rounded-2xl shadow-sm border border-outline-variant/10">
+<div class="flex justify-between items-start mb-4">
+<div class="p-2 bg-amber-50 text-amber-600 rounded-lg">
+<span class="material-symbols-outlined">insights</span>
+</div>
+<span class="text-xs font-bold text-slate-400 bg-slate-50 px-2 py-1 rounded-full">Stable</span>
+</div>
+<p class="text-on-surface-variant text-sm font-medium mb-1">Acceptance Rate</p>
+<h2 class="text-3xl font-black headline">78.4%</h2>
+</div>
+</div>
+<!-- Main Layout: Table and Secondary Sidebar -->
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-12">
+<!-- Recent Proposals Table -->
+<div class="lg:col-span-8">
+<div class="flex items-center justify-between mb-6">
+<h3 class="headline text-xl font-bold">Recent Proposals</h3>
+<button class="text-primary text-sm font-bold hover:underline">View all</button>
+</div>
+<div class="bg-surface-container-lowest rounded-2xl border border-outline-variant/10 overflow-hidden shadow-sm">
+<table class="w-full text-left border-collapse">
+<thead>
+<tr class="bg-slate-50/50 border-b border-outline-variant/10">
+<th class="px-6 py-4 text-xs font-bold text-on-surface-variant uppercase tracking-widest">Proposal &amp; Client</th>
+<th class="px-6 py-4 text-xs font-bold text-on-surface-variant uppercase tracking-widest">Status</th>
+<th class="px-6 py-4 text-xs font-bold text-on-surface-variant uppercase tracking-widest">Value</th>
+<th class="px-6 py-4 text-xs font-bold text-on-surface-variant uppercase tracking-widest">Date</th>
+<th class="px-6 py-4"></th>
+</tr>
+</thead>
+<tbody class="divide-y divide-outline-variant/5">
+<!-- Row 1 -->
+<tr class="hover:bg-slate-50/50 transition-colors group">
+<td class="px-6 py-4">
+<div class="flex items-center gap-3">
+<img class="w-8 h-8 rounded-lg" data-alt="Close-up portrait of a creative professional man with a neat beard wearing a minimalist grey t-shirt in a bright modern office." src="https://lh3.googleusercontent.com/aida-public/AB6AXuB0eGTykGLpe666iwRr9nuJBFQzCRTwAUGurBiMNtmUFc39d3ijJLt_ePeny-H7Xi_OU9_4EsCHjbnwC9D9iOjOAN0RG2CNyvFEySr-ER37_WoqGpba2kLK19ONdYgQ5kTPQzPIzqxCop5hcYM0VCSkpQdXUg7LZD1FWlt2WiZDfQsJBJFLqan8hPNnLcrdFT0g8y6D7bMu7kylFOoB2jvJK4X44TGSwvPo9u_ELXRh7papTX7Nb-OGzSR9lowiRWRSdf-l6130F1Fz"/>
+<div>
+<p class="font-bold text-slate-900 group-hover:text-primary transition-colors">Web Development for Acme Corp</p>
+<p class="text-xs text-on-surface-variant">Acme Industries Ltd.</p>
+</div>
+</div>
+</td>
+<td class="px-6 py-4">
+<span class="px-3 py-1 bg-emerald-100 text-emerald-700 text-[10px] font-bold uppercase tracking-wider rounded-full">Accepted</span>
+</td>
+<td class="px-6 py-4 text-sm font-bold">$12,500</td>
+<td class="px-6 py-4 text-xs text-on-surface-variant">Oct 12, 2023</td>
+<td class="px-6 py-4 text-right">
+<button class="p-1 hover:bg-slate-200 rounded-md transition-colors"><span class="material-symbols-outlined text-outline">more_horiz</span></button>
+</td>
+</tr>
+<!-- Row 2 -->
+<tr class="hover:bg-slate-50/50 transition-colors group">
+<td class="px-6 py-4">
+<div class="flex items-center gap-3">
+<img class="w-8 h-8 rounded-lg" data-alt="Headshot of a focused business woman with glasses and dark hair, wearing a white blouse, sitting in a clean high-end studio." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCc03HGC4JD7OLaqQpOmKiYX4SYBeDr5dATCQPIXkzE5riC-jxUos5hi0_4kreFF1KT7Lo_VfH-lsGoSEv8cT_U3xpVGrblqpupmLGtXp4XfC5dXdqjKjoefYvmcWynJCQ9gv3wZFcOhuToeeHfTbyqSxiYE3pjLh78k22C4ehJvZUxnXwN5ct-VNlW5vigdFDuT6p3TDoKgNJuEk4Cc1ljq04hUOZAhTE3i_qgEtF5i-cT8s1-KvXzzeR9X_VZ392MoERMAv5i8kdQ"/>
+<div>
+<p class="font-bold text-slate-900 group-hover:text-primary transition-colors">Brand Refresh: Stellar AI</p>
+<p class="text-xs text-on-surface-variant">Stellar Systems Inc.</p>
+</div>
+</div>
+</td>
+<td class="px-6 py-4">
+<span class="px-3 py-1 bg-indigo-100 text-indigo-700 text-[10px] font-bold uppercase tracking-wider rounded-full">Sent</span>
+</td>
+<td class="px-6 py-4 text-sm font-bold">$8,200</td>
+<td class="px-6 py-4 text-xs text-on-surface-variant">Oct 14, 2023</td>
+<td class="px-6 py-4 text-right">
+<button class="p-1 hover:bg-slate-200 rounded-md transition-colors"><span class="material-symbols-outlined text-outline">more_horiz</span></button>
+</td>
+</tr>
+<!-- Row 3 -->
+<tr class="hover:bg-slate-50/50 transition-colors group">
+<td class="px-6 py-4">
+<div class="flex items-center gap-3">
+<img class="w-8 h-8 rounded-lg" data-alt="Professional woman with a warm smile, wearing a cream sweater, soft daylight lighting her from the side." src="https://lh3.googleusercontent.com/aida-public/AB6AXuA-Hui2m93tPzX6bNcBI3gyZfc2lBaGbKV0IlpJVPReX_GDn-oAf0QweV1ueB2G6RjZnJn3u_ygiQCG-guo4uZjVV9AVaI0sKj0RVXYTodPLnDMpzgaMJifog_k9-VEdXOLuOVhOAEo50i1LNXTiqu2_WXLlBo1BxdebY3rJ3A9fZwHEkw2cgNGNv44q9lfzGnu97UXUJ0bYIQcIcf9ZCHJAHXeN9kCcpjhli0gAJ5ilDowBYujUQGhVma4Bg_HARCzl0jtOgO-M5be"/>
+<div>
+<p class="font-bold text-slate-900 group-hover:text-primary transition-colors">SEO Strategy Phase 2</p>
+<p class="text-xs text-on-surface-variant">Global Reach Co.</p>
+</div>
+</div>
+</td>
+<td class="px-6 py-4">
+<span class="px-3 py-1 bg-amber-100 text-amber-700 text-[10px] font-bold uppercase tracking-wider rounded-full">Viewed</span>
+</td>
+<td class="px-6 py-4 text-sm font-bold">$4,800</td>
+<td class="px-6 py-4 text-xs text-on-surface-variant">Oct 15, 2023</td>
+<td class="px-6 py-4 text-right">
+<button class="p-1 hover:bg-slate-200 rounded-md transition-colors"><span class="material-symbols-outlined text-outline">more_horiz</span></button>
+</td>
+</tr>
+<!-- Row 4 -->
+<tr class="hover:bg-slate-50/50 transition-colors group">
+<td class="px-6 py-4">
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 rounded-lg bg-slate-100 flex items-center justify-center text-slate-400">
+<span class="material-symbols-outlined text-sm">apartment</span>
+</div>
+<div>
+<p class="font-bold text-slate-900 group-hover:text-primary transition-colors">Cloud Migration Plan</p>
+<p class="text-xs text-on-surface-variant">TechNexus Enterprise</p>
+</div>
+</div>
+</td>
+<td class="px-6 py-4">
+<span class="px-3 py-1 bg-slate-100 text-slate-600 text-[10px] font-bold uppercase tracking-wider rounded-full">Draft</span>
+</td>
+<td class="px-6 py-4 text-sm font-bold">$24,000</td>
+<td class="px-6 py-4 text-xs text-on-surface-variant">Oct 16, 2023</td>
+<td class="px-6 py-4 text-right">
+<button class="p-1 hover:bg-slate-200 rounded-md transition-colors"><span class="material-symbols-outlined text-outline">more_horiz</span></button>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<!-- Side Panel: Action Required / Drafts -->
+<div class="lg:col-span-4 space-y-8">
+<section>
+<h3 class="headline text-xl font-bold mb-6">Action Required</h3>
+<div class="space-y-4">
+<!-- Action Item -->
+<div class="bg-surface-container-lowest p-4 rounded-2xl border-l-4 border-amber-400 shadow-sm transition-transform hover:-translate-y-1 duration-300">
+<div class="flex items-start gap-3">
+<div class="p-2 bg-amber-50 text-amber-600 rounded-lg">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">visibility</span>
+</div>
+<div>
+<p class="text-sm font-bold mb-1">Stellar Systems viewed 'Brand Refresh'</p>
+<p class="text-xs text-on-surface-variant mb-3">Viewed 2 hours ago. Follow up suggested.</p>
+<button class="text-xs font-bold text-primary px-3 py-1.5 border border-primary/20 rounded-lg hover:bg-primary/5 transition-colors">Send Reminder</button>
+</div>
+</div>
+</div>
+<!-- Action Item -->
+<div class="bg-surface-container-lowest p-4 rounded-2xl border-l-4 border-error-container shadow-sm transition-transform hover:-translate-y-1 duration-300">
+<div class="flex items-start gap-3">
+<div class="p-2 bg-error-container/10 text-error rounded-lg">
+<span class="material-symbols-outlined">assignment_late</span>
+</div>
+<div>
+<p class="text-sm font-bold mb-1">Contract Expiration: Acme Corp</p>
+<p class="text-xs text-on-surface-variant mb-3">Proposal for 'Web Dev' expires in 24h.</p>
+<button class="text-xs font-bold text-on-primary bg-primary px-3 py-1.5 rounded-lg active:scale-95 transition-all">Renew Now</button>
+</div>
+</div>
+</div>
+</div>
+</section>
+<section>
+<h3 class="headline text-xl font-bold mb-6">Latest Drafts</h3>
+<div class="bg-surface-container p-6 rounded-2xl border border-outline-variant/10">
+<ul class="space-y-4">
+<li class="flex items-center justify-between">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-slate-400">edit_note</span>
+<span class="text-sm font-medium">Design System Overhaul</span>
+</div>
+<span class="text-[10px] text-on-surface-variant font-bold uppercase">4h ago</span>
+</li>
+<li class="flex items-center justify-between">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-slate-400">edit_note</span>
+<span class="text-sm font-medium">Social Media Retainer</span>
+</div>
+<span class="text-[10px] text-on-surface-variant font-bold uppercase">1d ago</span>
+</li>
+<li class="flex items-center justify-between">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-slate-400">edit_note</span>
+<span class="text-sm font-medium">App Maintenance 2024</span>
+</div>
+<span class="text-[10px] text-on-surface-variant font-bold uppercase">3d ago</span>
+</li>
+</ul>
+<button class="w-full mt-6 py-2 bg-white text-on-surface text-sm font-bold rounded-xl shadow-sm border border-outline-variant/10 hover:bg-slate-50 transition-colors">Go to Library</button>
+</div>
+</section>
+</div>
+</div>
+</main>
+</div>
+<!-- BottomNavBar (The Contextual HUD) - Mobile Only -->
+<div class="fixed bottom-8 left-1/2 -translate-x-1/2 z-50 flex items-center justify-around gap-4 p-2 shadow-2xl shadow-indigo-500/10 md:hidden bg-white/90 backdrop-blur-2xl rounded-full border border-slate-200 min-w-[320px]">
+<button class="text-indigo-600 bg-indigo-50 rounded-full px-6 py-2 flex flex-col items-center gap-0.5 transition-all active:scale-95">
+<span class="material-symbols-outlined">save</span>
+<span class="font-manrope text-[10px] uppercase tracking-widest font-bold">Save</span>
+</button>
+<button class="text-slate-500 px-6 py-2 flex flex-col items-center gap-0.5 hover:text-indigo-500 transition-all">
+<span class="material-symbols-outlined">visibility</span>
+<span class="font-manrope text-[10px] uppercase tracking-widest font-bold">Preview</span>
+</button>
+<button class="text-slate-500 px-6 py-2 flex flex-col items-center gap-0.5 hover:text-indigo-500 transition-all">
+<span class="material-symbols-outlined">send</span>
+<span class="font-manrope text-[10px] uppercase tracking-widest font-bold">Send</span>
+</button>
+</div>
+</body></html>

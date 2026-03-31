@@ -24,11 +24,31 @@ export const ProposalStatus = {
   declined: "declined",
 } as const;
 
+export type PricingRowType =
+  (typeof PricingRowType)[keyof typeof PricingRowType];
+
+export const PricingRowType = {
+  one_time: "one_time",
+  recurring: "recurring",
+} as const;
+
+export type PricingRowInterval =
+  (typeof PricingRowInterval)[keyof typeof PricingRowInterval];
+
+export const PricingRowInterval = {
+  monthly: "monthly",
+  yearly: "yearly",
+} as const;
+
 export interface PricingRow {
   id: string;
   description: string;
   quantity: number;
   unitPrice: number;
+  unit?: string;
+  type: PricingRowType;
+  interval?: PricingRowInterval;
+  bindingPeriod?: number;
   total: number;
 }
 
@@ -47,6 +67,8 @@ export interface ContentBlock {
   id: string;
   type: ContentBlockType;
   content?: string;
+  description?: string;
+  features?: string[];
   rows?: PricingRow[];
   discount?: number;
   vatEnabled?: boolean;
@@ -69,10 +91,127 @@ export const ProposalBrandingFont = {
   "dm-sans": "dm-sans",
 } as const;
 
+export type ProposalBrandingFontPairing =
+  (typeof ProposalBrandingFontPairing)[keyof typeof ProposalBrandingFontPairing];
+
+export const ProposalBrandingFontPairing = {
+  modern: "modern",
+  klassisk: "klassisk",
+  editorial: "editorial",
+} as const;
+
+export type ProposalBrandingLogoPosition =
+  (typeof ProposalBrandingLogoPosition)[keyof typeof ProposalBrandingLogoPosition];
+
+export const ProposalBrandingLogoPosition = {
+  left: "left",
+  center: "center",
+  right: "right",
+} as const;
+
+export type ProposalBrandingDividerStyle =
+  (typeof ProposalBrandingDividerStyle)[keyof typeof ProposalBrandingDividerStyle];
+
+export const ProposalBrandingDividerStyle = {
+  line: "line",
+  space: "space",
+  decorative: "decorative",
+} as const;
+
 export interface ProposalBranding {
   logoUrl?: string;
   accentColor: string;
-  font: ProposalBrandingFont;
+  font?: ProposalBrandingFont;
+  fontPairing?: ProposalBrandingFontPairing;
+  coverEnabled?: boolean;
+  coverBackground?: string;
+  coverHeadline?: string;
+  coverSubheadline?: string;
+  logoPosition?: ProposalBrandingLogoPosition;
+  dividerStyle?: ProposalBrandingDividerStyle;
+}
+
+export type DocumentDesignSettingsFontPairing =
+  (typeof DocumentDesignSettingsFontPairing)[keyof typeof DocumentDesignSettingsFontPairing];
+
+export const DocumentDesignSettingsFontPairing = {
+  modern: "modern",
+  klassisk: "klassisk",
+  editorial: "editorial",
+} as const;
+
+export type DocumentDesignSettingsLogoPosition =
+  (typeof DocumentDesignSettingsLogoPosition)[keyof typeof DocumentDesignSettingsLogoPosition];
+
+export const DocumentDesignSettingsLogoPosition = {
+  left: "left",
+  center: "center",
+  right: "right",
+} as const;
+
+export type DocumentDesignSettingsDividerStyle =
+  (typeof DocumentDesignSettingsDividerStyle)[keyof typeof DocumentDesignSettingsDividerStyle];
+
+export const DocumentDesignSettingsDividerStyle = {
+  line: "line",
+  space: "space",
+  decorative: "decorative",
+} as const;
+
+export interface DocumentDesignSettings {
+  logoUrl?: string;
+  accentColor: string;
+  fontPairing: DocumentDesignSettingsFontPairing;
+  coverEnabled: boolean;
+  coverBackground: string;
+  coverHeadline?: string;
+  coverSubheadline?: string;
+  logoPosition: DocumentDesignSettingsLogoPosition;
+  dividerStyle: DocumentDesignSettingsDividerStyle;
+}
+
+export type TemplateCategory =
+  (typeof TemplateCategory)[keyof typeof TemplateCategory];
+
+export const TemplateCategory = {
+  webb: "webb",
+  "ai-agent": "ai-agent",
+  konsult: "konsult",
+  ovrigt: "ovrigt",
+} as const;
+
+export interface ProposalParty {
+  companyName: string;
+  orgNumber: string;
+  contactName: string;
+  email: string;
+  phone: string;
+  address: string;
+  postalCode: string;
+  city: string;
+}
+
+export type ProposalRecipientKind =
+  (typeof ProposalRecipientKind)[keyof typeof ProposalRecipientKind];
+
+export const ProposalRecipientKind = {
+  company: "company",
+  person: "person",
+} as const;
+
+export type ProposalRecipient = ProposalParty & {
+  kind: ProposalRecipientKind;
+};
+
+export interface ProposalParties {
+  sender: ProposalParty;
+  recipient: ProposalRecipient;
+}
+
+export interface ProposalAuditSummary {
+  eventCount: number;
+  lastEventAt?: string;
+  lastEventType?: string;
 }
 
 export interface Proposal {
@@ -83,18 +222,45 @@ export interface Proposal {
   status: ProposalStatus;
   totalValue: number;
   publicSlug: string;
+  templateId?: number;
   sections: ProposalSection[];
   branding: ProposalBranding;
+  parties: ProposalParties;
   personalMessage?: string;
+  signedByName?: string;
+  signatureInitials?: string;
+  signatureDataUrl?: string;
+  signedAt?: string;
   createdAt: string;
   updatedAt: string;
   lastActivityAt?: string;
+  revisionId?: number;
+  snapshotHash?: string;
+  sentAt?: string;
+  viewedAt?: string;
+  signingRecipientEmail?: string;
+  resendEmailId?: string;
+  auditSummary?: ProposalAuditSummary;
+}
+
+export interface Template {
+  id: number;
+  name: string;
+  description?: string;
+  category: TemplateCategory;
+  designSettings: DocumentDesignSettings;
+  isBuiltIn: boolean;
+  usageCount: number;
+  sections: ProposalSection[];
+  createdAt: string;
+  updatedAt: string;
 }
 
 export interface CreateProposalRequest {
-  title: string;
-  clientName: string;
+  title?: string;
+  clientName?: string;
   clientEmail?: string;
+  templateId?: number;
 }
 
 export interface UpdateProposalRequest {
@@ -103,6 +269,7 @@ export interface UpdateProposalRequest {
   clientEmail?: string;
   sections?: ProposalSection[];
   branding?: ProposalBranding;
+  parties?: ProposalParties;
   totalValue?: number;
 }
 
@@ -121,4 +288,50 @@ export const RespondToProposalRequestAction = {
 
 export interface RespondToProposalRequest {
   action: RespondToProposalRequestAction;
+  /** @maxLength 320 */
+  signerEmail?: string;
+  /**
+   * @minLength 1
+   * @maxLength 256
+   */
+  signingToken?: string;
+  /**
+   * @minLength 1
+   * @maxLength 160
+   */
+  signerName?: string;
+  /**
+   * @minLength 1
+   * @maxLength 5
+   */
+  initials?: string;
+  /**
+   * @maxLength 500000
+   * @pattern ^data:image/png;base64,
+   */
+  signatureDataUrl?: string;
+  termsAccepted?: boolean;
+}
+
+export interface CreateTemplateRequest {
+  name: string;
+  description?: string;
+  category: TemplateCategory;
+  sections?: ProposalSection[];
+  designSettings?: DocumentDesignSettings;
+  sourceProposalId?: number;
+}
+
+export interface UpdateTemplateRequest {
+  name?: string;
+  description?: string;
+  category?: TemplateCategory;
+  sections?: ProposalSection[];
+  designSettings?: DocumentDesignSettings;
+}
+
+export interface CopyTemplateRequest {
+  name?: string;
+  description?: string;
+  category?: TemplateCategory;
 }
