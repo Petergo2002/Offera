@@ -1,7 +1,7 @@
 import React from "react";
 import type { Session } from "@supabase/supabase-js";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { setAuthTokenGetter } from "@workspace/api-client-react";
+import { setAuthTokenGetter, setBaseUrl } from "@workspace/api-client-react";
 import type {
   CompanyProfile,
   Me,
@@ -33,6 +33,7 @@ type AuthContextValue = {
 };
 
 const AuthContext = React.createContext<AuthContextValue | null>(null);
+const apiBaseUrl = import.meta.env.VITE_API_BASE_URL?.trim() || null;
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const queryClient = useQueryClient();
@@ -40,6 +41,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [isSessionLoading, setIsSessionLoading] = React.useState(true);
 
   React.useEffect(() => {
+    setBaseUrl(apiBaseUrl);
+
     setAuthTokenGetter(async () => {
       const {
         data: { session: activeSession },
@@ -49,6 +52,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     });
 
     return () => {
+      setBaseUrl(null);
       setAuthTokenGetter(null);
     };
   }, []);

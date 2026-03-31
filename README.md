@@ -55,10 +55,13 @@ Minimikrav för full app:
 DATABASE_URL=postgresql://...
 VITE_SUPABASE_URL=https://YOUR_PROJECT.supabase.co
 VITE_SUPABASE_PUBLISHABLE_KEY=sb_publishable_...
+VITE_API_BASE_URL=https://your-api-project.vercel.app
 APP_ORIGIN=http://localhost:5173
 RESEND_API_KEY=re_...
 RESEND_FROM_EMAIL="Offera <signing@yourdomain.com>"
 ```
+
+`VITE_API_BASE_URL` är optional lokalt men rekommenderas när webben och API:t deployas som separata projekt, till exempel på Vercel.
 
 3. Starta lokalt:
 

@@ -11,6 +11,7 @@ Dev-skripten läser `.env` automatiskt. Du behöver normalt inte exportera varia
 | `DATABASE_URL` | Krävs för Postgres-läge | PostgreSQL/Supabase-anslutning |
 | `VITE_SUPABASE_URL` | Krävs för auth | Supabase-projektets URL |
 | `VITE_SUPABASE_PUBLISHABLE_KEY` | Krävs för auth | publishable key för browser-klienten |
+| `VITE_API_BASE_URL` | Optional | publik API-bas-URL när webben inte kör same-origin med `/api` |
 | `APP_ORIGIN` | Krävs för utskick | publik bas-URL för signeringslänkar |
 | `RESEND_API_KEY` | Krävs för mejlutskick | Resend-auth |
 | `RESEND_FROM_EMAIL` | Krävs för mejlutskick | verifierad avsändaradress |
@@ -44,6 +45,7 @@ I praktiken räcker det oftast att ha `VITE_SUPABASE_URL` i `.env`, eftersom dev
 DATABASE_URL=postgresql://...
 VITE_SUPABASE_URL=https://YOUR_PROJECT.supabase.co
 VITE_SUPABASE_PUBLISHABLE_KEY=sb_publishable_...
+VITE_API_BASE_URL=https://your-api-project.vercel.app
 APP_ORIGIN=http://localhost:5173
 RESEND_API_KEY=re_...
 RESEND_FROM_EMAIL="Offera <signing@yourdomain.com>"
@@ -76,5 +78,6 @@ När `DATABASE_URL` saknas:
 
 - använda projekt-URL som `DATABASE_URL`
 - glömma `VITE_SUPABASE_PUBLISHABLE_KEY`
+- glömma `VITE_API_BASE_URL` när frontend och API ligger på olika domäner
 - använda obekräftad `RESEND_FROM_EMAIL`
 - köra utan `APP_ORIGIN`, vilket ger trasiga signeringslänkar
