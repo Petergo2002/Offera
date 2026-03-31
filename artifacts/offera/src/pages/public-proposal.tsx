@@ -199,6 +199,16 @@ export default function PublicProposal() {
   const isAwaitingResponse =
     proposal.status === "sent" || proposal.status === "viewed";
   const canRespond = isAwaitingResponse && signingToken.length > 0;
+  const hasPreviewBanner = isAwaitingResponse;
+  const previewBadgeLabel = canRespond
+    ? "Signeringslänk aktiv"
+    : "Förhandsvisning";
+  const previewTitle = canRespond
+    ? "Den här personliga länken kan användas för att signera."
+    : "Du tittar på en läsbar förhandsvisning.";
+  const previewDescription = canRespond
+    ? "Du kan acceptera offerten direkt härifrån eller markera att något behöver ändras."
+    : "För att svara eller signera behöver mottagaren öppna sin personliga länk från e-posten.";
 
   const customStyles = {
     "--proposal-accent": branding?.accentColor || "#FF5C00",
@@ -469,6 +479,60 @@ export default function PublicProposal() {
             </div>
           </div>
         )}
+
+        {hasPreviewBanner ? (
+          <div className="no-print border-b border-black/[0.04] bg-[linear-gradient(180deg,rgba(255,255,255,0.96),rgba(247,247,247,0.92))] px-5 py-5 sm:px-8 md:px-24">
+            <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+              <div className="space-y-2">
+                <Badge
+                  variant="outline"
+                  className={cn(
+                    "rounded-full px-3 py-1 text-[10px] font-black uppercase tracking-[0.22em]",
+                    canRespond
+                      ? "border-transparent text-white"
+                      : "border-black/10 bg-white text-foreground",
+                  )}
+                  style={
+                    canRespond
+                      ? {
+                          backgroundColor: "var(--proposal-accent)",
+                        }
+                      : undefined
+                  }
+                >
+                  {previewBadgeLabel}
+                </Badge>
+                <div className="space-y-1">
+                  <p className="text-base font-black tracking-tight text-foreground sm:text-lg">
+                    {previewTitle}
+                  </p>
+                  <p className="max-w-3xl text-sm font-medium leading-6 text-gray-500">
+                    {previewDescription}
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-3 self-start rounded-[1.4rem] border border-black/5 bg-white/90 px-4 py-3 shadow-[0_14px_34px_-26px_rgba(0,0,0,0.24)]">
+                <div
+                  className="h-2.5 w-2.5 rounded-full"
+                  style={{
+                    backgroundColor: canRespond
+                      ? "var(--proposal-accent)"
+                      : "#9CA3AF",
+                  }}
+                />
+                <div className="space-y-0.5">
+                  <p className="text-[10px] font-black uppercase tracking-[0.22em] text-gray-400">
+                    Status
+                  </p>
+                  <p className="text-sm font-bold text-foreground">
+                    {canRespond ? "Svar aktivt" : "Läsläge"}
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        ) : null}
 
         <div className="px-5 py-20 sm:px-8 md:px-24 md:py-32 space-y-24">
           {proposal.personalMessage && (
@@ -1079,8 +1143,8 @@ export default function PublicProposal() {
               </motion.div>
             ) : isAwaitingResponse ? (
               <div className="text-center py-4 text-gray-400 no-print space-y-2">
-                <p>Den här visningslänken kan inte användas för att signera.</p>
-                <p>Öppna den personliga länken som skickades till motpartens e-postadress.</p>
+                <p>Det här är en läsbar förhandsvisning av offerten.</p>
+                <p>För att svara eller signera behöver mottagaren öppna sin personliga länk från e-posten.</p>
               </div>
             ) : (
               <div className="text-center py-4 text-gray-400 no-print">
