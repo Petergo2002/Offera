@@ -32,7 +32,12 @@ import {
   type UpdateTemplateRequest,
   type UpdateCompanyProfileRequest,
 } from "@workspace/api-zod";
-import { customFetch } from "@workspace/api-client-react";
+import { customFetch, setBaseUrl } from "@workspace/api-client-react";
+
+const apiBaseUrl = import.meta.env.VITE_API_BASE_URL?.trim() || null;
+
+// Configure the API origin eagerly so public routes work before React effects run.
+setBaseUrl(apiBaseUrl);
 
 async function request<T>(
   input: string,
