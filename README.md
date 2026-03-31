@@ -63,6 +63,40 @@ RESEND_FROM_EMAIL="Offera <signing@yourdomain.com>"
 
 `VITE_API_BASE_URL` är optional lokalt men rekommenderas när webben och API:t deployas som separata projekt, till exempel på Vercel.
 
+### Vercel setup
+
+Deployen använder två separata Vercel-projekt:
+
+1. Frontendprojekt
+   Root directory: `artifacts/offera`
+2. API-projekt
+   Root directory: `artifacts/api-server`
+
+Frontendprojektet ska ha:
+
+```bash
+VITE_SUPABASE_URL=https://YOUR_PROJECT.supabase.co
+VITE_SUPABASE_PUBLISHABLE_KEY=sb_publishable_...
+VITE_API_BASE_URL=https://your-api-project.vercel.app
+```
+
+API-projektet ska ha:
+
+```bash
+DATABASE_URL=postgresql://...
+SUPABASE_URL=https://YOUR_PROJECT.supabase.co
+APP_ORIGIN=https://your-web-project.vercel.app
+RESEND_API_KEY=re_...
+RESEND_FROM_EMAIL="Offera <signing@yourdomain.com>"
+```
+
+Viktigt:
+
+- `VITE_API_BASE_URL` ska peka på API:t
+- `APP_ORIGIN` ska peka på frontenddomänen
+- lägg inte `DATABASE_URL` eller `RESEND_API_KEY` i frontendprojektet
+- lägg inte `VITE_SUPABASE_PUBLISHABLE_KEY` i API-projektet om du inte har ett särskilt skäl
+
 3. Starta lokalt:
 
 ```bash

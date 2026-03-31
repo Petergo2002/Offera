@@ -16,6 +16,74 @@ Dev-skripten läser `.env` automatiskt. Du behöver normalt inte exportera varia
 | `RESEND_API_KEY` | Krävs för mejlutskick | Resend-auth |
 | `RESEND_FROM_EMAIL` | Krävs för mejlutskick | verifierad avsändaradress |
 
+## Vercel: två projekt
+
+Produktionen är byggd för två separata Vercel-projekt:
+
+- frontendprojekt med root `artifacts/offera`
+- API-projekt med root `artifacts/api-server`
+
+De ska inte dela exakt samma env-vars. De viktigaste variablerna pekar dessutom åt olika håll:
+
+- `VITE_API_BASE_URL` ska peka på API-domänen
+- `APP_ORIGIN` ska peka på frontend-domänen
+
+## Vercel: frontendprojekt
+
+Projekt:
+
+- root directory: `artifacts/offera`
+- framework preset: `Vite`
+
+Sätt dessa variabler i frontendprojektet:
+
+| Variabel | Value-format | Exempel |
+| --- | --- | --- |
+| `VITE_SUPABASE_URL` | Supabase-projektets URL | `https://YOUR_PROJECT.supabase.co` |
+| `VITE_SUPABASE_PUBLISHABLE_KEY` | Supabase publishable key | `sb_publishable_...` |
+| `VITE_API_BASE_URL` | publik URL till API-projektet | `https://your-api-project.vercel.app` |
+
+Frontend ska inte ha:
+
+- `DATABASE_URL`
+- `APP_ORIGIN`
+- `RESEND_API_KEY`
+- `RESEND_FROM_EMAIL`
+
+## Vercel: API-projekt
+
+Projekt:
+
+- root directory: `artifacts/api-server`
+- framework preset: `Express`
+
+Sätt dessa variabler i API-projektet:
+
+| Variabel | Value-format | Exempel |
+| --- | --- | --- |
+| `DATABASE_URL` | PostgreSQL-anslutningssträng | `postgresql://...` |
+| `SUPABASE_URL` | Supabase-projektets URL | `https://YOUR_PROJECT.supabase.co` |
+| `APP_ORIGIN` | publik URL till frontendprojektet | `https://your-web-project.vercel.app` |
+| `RESEND_API_KEY` | Resend API-nyckel | `re_...` |
+| `RESEND_FROM_EMAIL` | verifierad avsändaradress i Resend | `Offera <signing@yourdomain.com>` |
+
+API-projektet behöver inte `VITE_SUPABASE_PUBLISHABLE_KEY`.
+
+## Viktiga relationer
+
+- `VITE_API_BASE_URL` och `APP_ORIGIN` ska aldrig vara samma värde när frontend och API ligger på olika Vercel-domäner.
+- `VITE_API_BASE_URL` ska vara API:t, till exempel `https://offera-woad.vercel.app`
+- `APP_ORIGIN` ska vara webben, till exempel `https://offera-offera.vercel.app`
+- `DATABASE_URL` ska vara en riktig Postgres connection string, inte en vanlig projekt-URL
+
+## Vad koden faktiskt läser
+
+- frontend auth kräver `VITE_SUPABASE_URL` och `VITE_SUPABASE_PUBLISHABLE_KEY`
+- frontend API-klient läser `VITE_API_BASE_URL`
+- backend DB-klient kräver `DATABASE_URL`
+- backend auth läser `SUPABASE_URL` eller fallback-namn
+- backend mejl/signeringslänkar kräver `APP_ORIGIN`, `RESEND_API_KEY` och `RESEND_FROM_EMAIL`
+
 ## Dev-/routingvariabler
 
 | Variabel | Default | Syfte |
@@ -79,5 +147,8 @@ När `DATABASE_URL` saknas:
 - använda projekt-URL som `DATABASE_URL`
 - glömma `VITE_SUPABASE_PUBLISHABLE_KEY`
 - glömma `VITE_API_BASE_URL` när frontend och API ligger på olika domäner
+- sätta `APP_ORIGIN` till API-domänen i stället för frontend-domänen
+- sätta `VITE_API_BASE_URL` till frontend-domänen i stället för API-domänen
+- lägga backend-hemligheter i frontendprojektet
 - använda obekräftad `RESEND_FROM_EMAIL`
 - köra utan `APP_ORIGIN`, vilket ger trasiga signeringslänkar
