@@ -21,12 +21,15 @@ export const templatesTable = pgTable("templates", {
   designSettings: jsonb("design_settings")
     .notNull()
     .default({
-      accentColor: "#FF5C00",
+      accentColor: "#4e45e4",
       fontPairing: "modern",
       coverEnabled: true,
       coverBackground: "#0F172A",
       logoPosition: "left",
       dividerStyle: "line",
+      glassmorphismEnabled: false,
+      vibePreset: "architectural",
+      gradientEnabled: false,
     }),
   createdAt: timestamp("created_at").notNull().defaultNow(),
   updatedAt: timestamp("updated_at").notNull().defaultNow(),

@@ -8,6 +8,7 @@
 import type { DocumentDesignSettingsDividerStyle } from "./documentDesignSettingsDividerStyle";
 import type { DocumentDesignSettingsFontPairing } from "./documentDesignSettingsFontPairing";
 import type { DocumentDesignSettingsLogoPosition } from "./documentDesignSettingsLogoPosition";
+import type { DocumentDesignSettingsVibePreset } from "./documentDesignSettingsVibePreset";
 
 export interface DocumentDesignSettings {
   logoUrl?: string;
@@ -19,4 +20,7 @@ export interface DocumentDesignSettings {
   coverSubheadline?: string;
   logoPosition: DocumentDesignSettingsLogoPosition;
   dividerStyle: DocumentDesignSettingsDividerStyle;
+  glassmorphismEnabled?: boolean;
+  vibePreset?: DocumentDesignSettingsVibePreset;
+  gradientEnabled?: boolean;
 }

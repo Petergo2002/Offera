@@ -1,130 +1,80 @@
 # Environment
 
-## Overview
+## Översikt
 
-The project uses a small set of environment variables, mostly for ports, proxy targets, and database selection. There are no checked-in secret examples or `.env` files in the repository.
+Dev-skripten läser `.env` automatiskt. Du behöver normalt inte exportera variabler manuellt innan `pnpm run dev`.
 
-## Variable Reference
+## Kärnvariabler
 
-| Variable | Required | Default | Used In | Purpose |
-| --- | --- | --- | --- | --- |
-| `DATABASE_URL` | Required for PostgreSQL mode; optional overall | None | `lib/db/src/index.ts`, `lib/db/drizzle.config.ts`, API route modules | Enables PostgreSQL-backed persistence. Without it, the API falls back to local JSON storage. |
-| `PORT` | Optional | `3001` for API, `5173` for web, `4173` for sandbox | API/server and Vite configs | Runtime port for whichever process is starting. |
-| `API_TARGET` | Optional | `http://127.0.0.1:3001` | `artifacts/offera/vite.config.ts`, `scripts/dev.mjs`, `scripts/run-offera-dev.mjs` | Vite dev proxy target for `/api`. |
-| `BASE_PATH` | Optional | `/` for web, `/__mockup` for sandbox artifact, `/` in dev scripts | Vite configs and dev scripts | Mount path for the SPA and preview sandbox. |
-| `API_PORT` | Optional | `3001` | `scripts/dev.mjs` | Convenience variable for the combined dev launcher to override the API port. |
-| `WEB_PORT` | Optional | `5173` | `scripts/dev.mjs` | Convenience variable for the combined dev launcher to override the web port. |
-| `NODE_ENV` | Optional | `development` in dev scripts | API logger, API build/run, Vite configs | Controls dev/prod behavior such as pretty logging and Replit dev plugins. |
-| `LOG_LEVEL` | Optional | `info` | `artifacts/api-server/src/lib/logger.ts` | Pino log level override. |
-| `APP_ORIGIN` | Required for Resend-backed signing links | None | `artifacts/api-server/src/lib/proposal-signing.ts`, proposal send route | Base public URL used to build the personal signing link sent to the recipient. |
-| `RESEND_API_KEY` | Required for Resend-backed signing links | None | `artifacts/api-server/src/lib/resend.ts` | Authenticates outbound email delivery via Resend. |
-| `RESEND_FROM_EMAIL` | Required for Resend-backed signing links | None | `artifacts/api-server/src/lib/resend.ts` | Sender address used when sending signing emails. Should belong to a verified Resend domain in production. |
-| `REPL_ID` | Optional, Replit-specific | None | web and sandbox Vite configs | Enables Replit-only development plugins. |
-| `CI` | Optional, artifact-build specific | `true` in `.replit` postBuild | `.replit` | Replit build environment flag. |
+| Variabel | Krav | Syfte |
+| --- | --- | --- |
+| `DATABASE_URL` | Krävs för Postgres-läge | PostgreSQL/Supabase-anslutning |
+| `VITE_SUPABASE_URL` | Krävs för auth | Supabase-projektets URL |
+| `VITE_SUPABASE_PUBLISHABLE_KEY` | Krävs för auth | publishable key för browser-klienten |
+| `APP_ORIGIN` | Krävs för utskick | publik bas-URL för signeringslänkar |
+| `RESEND_API_KEY` | Krävs för mejlutskick | Resend-auth |
+| `RESEND_FROM_EMAIL` | Krävs för mejlutskick | verifierad avsändaradress |
 
-## Required vs Optional
+## Dev-/routingvariabler
 
-### Required to use the DB package directly
+| Variabel | Default | Syfte |
+| --- | --- | --- |
+| `PORT` | processberoende | generell portoverride |
+| `API_PORT` | `3001` | API-port i `pnpm run dev` |
+| `WEB_PORT` | `5173` | webbport i `pnpm run dev` |
+| `API_TARGET` | `http://127.0.0.1:3001` | Vite-proxy för `/api` |
+| `BASE_PATH` | `/` | mount path för SPA |
+| `NODE_ENV` | `development` | dev/prod-beteende |
+| `LOG_LEVEL` | `info` | Pino-loggnivå |
+| `REPL_ID` | optional | Replit-specifika dev plugins |
 
-- `DATABASE_URL`
+## Backend auth-relaterat
 
-`lib/db/src/index.ts` throws immediately if it is missing, because the DB package itself only supports PostgreSQL mode.
+API:t kan läsa Supabase-URL från flera namn:
 
-### Optional for the application as a whole
+- `SUPABASE_URL`
+- `NEXT_PUBLIC_SUPABASE_URL`
+- `VITE_SUPABASE_URL`
 
-- `DATABASE_URL`
+I praktiken räcker det oftast att ha `VITE_SUPABASE_URL` i `.env`, eftersom dev-skripten laddar samma miljö för både web och API.
 
-The API runtime checks for this variable and intentionally falls back to `local-store.ts` when absent.
-
-## Consumption Details
-
-### `DATABASE_URL`
-
-- DB package:
-  - `lib/db/src/index.ts`
-  - `lib/db/drizzle.config.ts`
-- API behavior switches:
-  - `artifacts/api-server/src/routes/proposals.ts`
-  - `artifacts/api-server/src/routes/templates.ts`
-
-Behavior:
-
-- present: use PostgreSQL/Drizzle
-- absent: use `.local/offera-dev-data.json`
-
-### `PORT`
-
-Different packages assign different defaults:
-
-- API server: `3001`
-- Offera web app: `5173`
-- Mockup sandbox: `4173`
-- Replit production API artifact: `8080`
-- Replit production web artifact: `25570`
-
-### `BASE_PATH`
-
-Used to support non-root hosting:
-
-- web app router base in `artifacts/offera/src/App.tsx` via `import.meta.env.BASE_URL`
-- Vite config in `artifacts/offera/vite.config.ts`
-- sandbox preview path base in `artifacts/mockup-sandbox/vite.config.ts`
-
-### `API_TARGET`
-
-Used only in local/dev web serving to proxy `/api` requests to the API process.
-
-### Resend-backed signing
-
-These variables are required only if you want proposal sending to deliver personal signing links by email:
-
-- `APP_ORIGIN`
-- `RESEND_API_KEY`
-- `RESEND_FROM_EMAIL`
-
-## Replit-provided Environment
-
-The repository expects Replit to supply some runtime defaults through artifact configs:
-
-- API artifact:
-  - `PORT=8080`
-  - `NODE_ENV=production`
-- Web artifact:
-  - `PORT=25570`
-  - `BASE_PATH=/`
-
-## Example Local Setups
-
-### Local JSON fallback mode
+## Exempel: full lokal setup
 
 ```bash
-pnpm run dev
+DATABASE_URL=postgresql://...
+VITE_SUPABASE_URL=https://YOUR_PROJECT.supabase.co
+VITE_SUPABASE_PUBLISHABLE_KEY=sb_publishable_...
+APP_ORIGIN=http://localhost:5173
+RESEND_API_KEY=re_...
+RESEND_FROM_EMAIL="Offera <signing@yourdomain.com>"
+API_PORT=3001
+WEB_PORT=5173
+API_TARGET=http://127.0.0.1:3001
+BASE_PATH=/
+NODE_ENV=development
+LOG_LEVEL=info
 ```
 
-No extra variables required.
+## Driftlägen
 
-### PostgreSQL-backed local mode
+### Databasläge
 
-```bash
-DATABASE_URL=postgres://user:pass@host:5432/dbname pnpm run dev
-```
+När `DATABASE_URL` finns:
 
-### PostgreSQL + Resend signing mode
+- API:t använder Postgres/Drizzle
+- auth/workspace/RLS fungerar som tänkt
+- evidence-export, revisionskedja och workspace-data ligger i DB
 
-```bash
-DATABASE_URL=postgres://user:pass@host:5432/dbname \
-APP_ORIGIN=http://localhost:5173 \
-RESEND_API_KEY=re_xxx \
-RESEND_FROM_EMAIL="Offera <signing@yourdomain.com>" \
-pnpm run dev
-```
+### Fallbackläge
 
-### Custom ports
+När `DATABASE_URL` saknas:
 
-```bash
-API_PORT=4001 WEB_PORT=5174 pnpm run dev
-```
+- offerter och mallar går via `.local/offera-dev-data.json`
+- detta är främst ett enklare dev-läge, inte det rekommenderade driftläget
 
-## Notes
+## Vanliga misstag
 
-> ⚠️ Unclear: `scripts/post-merge.sh` assumes a DB push should happen after merge, but if `DATABASE_URL` is not available in that environment the script will fail.
+- använda projekt-URL som `DATABASE_URL`
+- glömma `VITE_SUPABASE_PUBLISHABLE_KEY`
+- använda obekräftad `RESEND_FROM_EMAIL`
+- köra utan `APP_ORIGIN`, vilket ger trasiga signeringslänkar

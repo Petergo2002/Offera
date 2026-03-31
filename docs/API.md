@@ -1,254 +1,120 @@
 # API
 
-## Overview
+## Översikt
 
 - Base path: `/api`
-- Transport: JSON over HTTP
-- Auth: no authentication or authorization is implemented anywhere in the current API
-- Contract source: `lib/api-spec/openapi.yaml`
-- Runtime validators: `@workspace/api-zod`
+- Transport: JSON över HTTP
+- Kontrakt: `lib/api-spec/openapi.yaml`
+- Runtime-validering: `@workspace/api-zod`
+- Auth: Supabase bearer-token för interna routes
 
-The same contract is used by:
+## Endpoint-sammanfattning
 
-- `artifacts/api-server` for request parsing
-- `artifacts/offera/src/lib/api.ts` for frontend response parsing
-- `lib/api-client-react` for generated request helpers and React Query hooks
-
-## Endpoint Summary
-
-| Method | Path | Purpose | Auth |
+| Method | Path | Auth | Syfte |
 | --- | --- | --- | --- |
-| `GET` | `/api/healthz` | Health check | None |
-| `GET` | `/api/proposals` | List proposals | None |
-| `POST` | `/api/proposals` | Create proposal | None |
-| `GET` | `/api/proposals/:id` | Fetch proposal by numeric ID | None |
-| `PUT` | `/api/proposals/:id` | Update proposal | None |
-| `DELETE` | `/api/proposals/:id` | Delete proposal | None |
-| `POST` | `/api/proposals/:id/send` | Mark proposal as sent and save recipient email/message | None |
-| `GET` | `/api/proposals/public/:slug` | Public proposal lookup by slug | None |
-| `POST` | `/api/proposals/public/:slug/respond` | Accept or decline public proposal | None |
-| `GET` | `/api/templates` | List templates | None |
-| `POST` | `/api/templates` | Create template | None |
-| `GET` | `/api/templates/:id` | Fetch template by numeric ID | None |
-| `PUT` | `/api/templates/:id` | Update template | None |
-| `DELETE` | `/api/templates/:id` | Delete template | None |
-| `POST` | `/api/templates/:id/copy` | Duplicate template | None |
+| `GET` | `/api/healthz` | Nej | Health check |
+| `GET` | `/api/me` | Ja | Hämtar användare, profil, workspace och company profile |
+| `GET` | `/api/company-profile` | Ja | Hämtar företagets standardprofil |
+| `PUT` | `/api/company-profile` | Ja | Uppdaterar företagets standardprofil |
+| `GET` | `/api/proposals` | Ja | Listar workspace-offerter |
+| `POST` | `/api/proposals` | Ja | Skapar ny offert |
+| `GET` | `/api/proposals/:id` | Ja | Hämtar offert |
+| `PUT` | `/api/proposals/:id` | Ja | Uppdaterar offertutkast |
+| `DELETE` | `/api/proposals/:id` | Ja | Raderar offert |
+| `POST` | `/api/proposals/:id/send` | Ja | Skickar offert och skapar signerbar revision |
+| `GET` | `/api/proposals/:id/evidence` | Ja | Hämtar evidence package |
+| `GET` | `/api/proposals/public/:slug` | Personlig länk eller workspace-auth | Läs skyddad offertvy |
+| `POST` | `/api/proposals/public/:slug/respond` | Nej | Acceptera eller avböj publik offert |
+| `GET` | `/api/templates` | Ja | Listar built-in + workspace-mallar |
+| `POST` | `/api/templates` | Ja | Skapar mall |
+| `GET` | `/api/templates/:id` | Ja | Hämtar mall |
+| `PUT` | `/api/templates/:id` | Ja | Uppdaterar mall |
+| `POST` | `/api/templates/:id/copy` | Ja | Kopierar mall |
+| `DELETE` | `/api/templates/:id` | Ja | Raderar mall |
 
-## Endpoints
+## Viktiga beteenden
 
-### `GET /api/healthz`
+### `/api/me`
 
-- Returns: `{ "status": "ok" }`
-- Used by: Replit artifact health check and any runtime liveness probe
+Returnerar:
 
-### `GET /api/proposals`
+- Supabase-användaren
+- `profiles`
+- `workspaces`
+- `company_profiles`
 
-- Returns: `Proposal[]`
-- Sorting:
-  - Database mode: newest `updatedAt` first
-  - Local mode: local store also sorts newest first
-- Notes:
-  - Proposal totals are returned as numbers even though PostgreSQL stores `total_value` as numeric text
+Den används som bas för hela interna app-shellen.
 
-### `POST /api/proposals`
+### `/api/company-profile`
 
-- Request body: `CreateProposalRequest`
-  - `title?: string`
-  - `clientName?: string`
-  - `clientEmail?: string`
-  - `templateId?: number`
-- Response: `201 Created` with `Proposal`
-- Behavior:
-  - Seeds sections/branding from a template when `templateId` exists
-  - Otherwise creates default sections and default branding
-  - Initializes status as `draft`
-  - Generates a random public slug
+Lagrar standarduppgifter för avsändaren:
 
-### `GET /api/proposals/:id`
+- företagsnamn
+- kontaktperson
+- org-nummer
+- e-post
+- telefon
+- adress/postnummer/ort
+- webbplats
+- logga
+- standardvaluta och standardmoms
 
-- Path params:
-  - `id: integer`
-- Responses:
-  - `200` with `Proposal`
-  - `400` when `id` is not numeric
-  - `404` when not found
+### `/api/proposals/:id/send`
 
-### `PUT /api/proposals/:id`
+När en offert skickas gör API:t mer än att bara sätta status:
 
-- Path params:
-  - `id: integer`
-- Request body: `UpdateProposalRequest`
-  - `title?: string`
-  - `clientName?: string`
-  - `clientEmail?: string`
-  - `sections?: ProposalSection[]`
-  - `branding?: ProposalBranding`
-  - `parties?: ProposalParties`
-  - `totalValue?: number`
-- Response: updated `Proposal`
-- Behavior:
-  - Updates `updatedAt` and `lastActivityAt`
-  - Keeps legacy `clientName`/`clientEmail` mirrored with `parties.recipient`
+- låser en signerbar revision
+- bygger snapshot av dokumentet
+- hash:ar snapshoten
+- skapar signing token
+- skickar personlig länk via Resend
+- loggar audit event
 
-### `DELETE /api/proposals/:id`
+### `/api/proposals/public/:slug`
 
-- Path params:
-  - `id: integer`
-- Response: `204 No Content`
-- Behavior:
-  - Deletes the proposal in DB mode
-  - Removes it from local JSON storage in fallback mode
+Skyddad route för offertmottagaren och intern preview.
 
-### `POST /api/proposals/:id/send`
+Använder signerbar revision när sådan finns, inte bara den muterbara live-offerten. Externa visningar kräver personlig `signing_token`, medan interna workspace-användare kan öppna samma vy med sin vanliga session.
 
-- Path params:
-  - `id: integer`
-- Request body: `SendProposalRequest`
-  - `clientEmail: string`
-  - `personalMessage?: string`
-- Response: updated `Proposal`
-- Behavior:
-  - Sets status to `sent`
-  - Stores recipient email and optional personal message
-  - Does not actually send email; it only records send intent/state
+### `/api/proposals/public/:slug/respond`
 
-### `GET /api/proposals/public/:slug`
+Stödjer:
 
-- Path params:
-  - `slug: string`
-- Response: `Proposal`
-- Public access: yes
-- Behavior:
-  - Looks up the proposal by `publicSlug`
-  - If the current status is `sent`, the endpoint promotes it to `viewed`
-  - Returns `404` when the slug is missing
+- `accept`
+- `decline`
 
-### `POST /api/proposals/public/:slug/respond`
+Vid accept krävs signeringsuppgifter och giltigt flöde för personlig länk/token. Signatur och acceptance evidence kopplas till revisionen.
 
-- Path params:
-  - `slug: string`
-- Request body: `RespondToProposalRequest`
-  - `action: "accept" | "decline"`
-  - `signerName?: string`
-  - `initials?: string`
-  - `signatureDataUrl?: string`
-  - `termsAccepted?: boolean`
-- Response: updated `Proposal`
-- Public access: yes
-- Accept validation rules from runtime implementation:
-  - `signerName` is required
-  - `initials` is required and normalized to uppercase, max 5 chars
-  - `termsAccepted` must be `true`
-  - `signatureDataUrl` must exist
-  - signature must be a PNG data URL
-  - signature payload length must be `<= 500000`
-- Stored acceptance evidence:
-  - signer name
-  - initials
-  - signature image data URL
-  - consent timestamp
-  - requester IP address when available
-  - requester user agent when available
+### `/api/proposals/:id/evidence`
 
-### `GET /api/templates`
+Returnerar ett evidence package för arkivet, inklusive:
 
-- Returns: `Template[]`
-- Behavior:
-  - Ensures built-in starter templates exist before listing
-  - Adds `usageCount` based on proposals referencing each template
-  - Sorts built-ins before custom templates
+- proposal metadata
+- aktiv revision
+- audit events
+- signing-token metadata
+- exported-by metadata
 
-### `POST /api/templates`
+## Auth-modell
 
-- Request body: `CreateTemplateRequest`
-  - `name: string`
-  - `description?: string`
-  - `category: "webb" | "ai-agent" | "konsult" | "ovrigt"`
-  - `sections?: ProposalSection[]`
-  - `designSettings?: DocumentDesignSettings`
-  - `sourceProposalId?: number`
-- Response: `201 Created` with `Template`
-- Behavior:
-  - Rejects duplicate template names with `409`
-  - When `sourceProposalId` is provided, clones a proposal into a sanitized template:
-    - customer names/emails are replaced with placeholders
-    - pricing rows are reset to generic rows and zero amounts
+- interna routes skyddas av `requireAuth`
+- Supabase JWT verifieras mot projektets JWKS
+- `workspace_id` löses via användarens profil
+- legacy-data kan bootstrap-claimas till första workspace när auth används
 
-### `GET /api/templates/:id`
+## Felmönster
 
-- Path params:
-  - `id: integer`
-- Responses:
-  - `200` with `Template`
-  - `400` for invalid IDs
-  - `404` when not found
+Vanliga svar:
 
-### `PUT /api/templates/:id`
+- `401` när bearer-token saknas eller är ogiltig
+- `404` när record saknas
+- `409` vid namnkonflikter, t.ex. mallnamn
+- `500` vid oväntade serverfel
 
-- Path params:
-  - `id: integer`
-- Request body: `UpdateTemplateRequest`
-  - `name?: string`
-  - `description?: string`
-  - `category?: TemplateCategory`
-  - `sections?: ProposalSection[]`
-  - `designSettings?: DocumentDesignSettings`
-- Response: updated `Template`
-- Guardrails:
-  - Built-in templates return `403`
-  - Duplicate names return `409`
+## Källa till sanning
 
-### `DELETE /api/templates/:id`
+När API-dokumentation och implementation skiljer sig åt ska ni i första hand lita på:
 
-- Path params:
-  - `id: integer`
-- Response: `204 No Content`
-- Guardrails:
-  - Built-in templates cannot be deleted and return `403`
-  - Missing templates return `404`
-
-### `POST /api/templates/:id/copy`
-
-- Path params:
-  - `id: integer`
-- Request body: `CopyTemplateRequest`
-  - `name?: string`
-  - `description?: string`
-  - `category?: TemplateCategory`
-- Response: `201 Created` with copied `Template`
-- Behavior:
-  - Generates names like `Original (kopia)` and `Original (kopia) 2`
-  - Copy is always stored as `isBuiltIn: false`
-
-## Error Semantics
-
-Common runtime error shapes:
-
-- Validation/business errors: `{ "error": "..." }`
-- Missing records: `404` with `{ "error": "Proposal not found" }` or `{ "error": "Template not found" }`
-- Conflicts: `409` with duplicate-name messages
-- Unexpected failures: `500` with `{ "error": "Internal server error" }`
-
-## External API Usage
-
-Strictly speaking, the runtime application does not call third-party business APIs.
-
-What it does call:
-
-- Frontend to backend: same-origin `fetch("/api/...")`
-- Browser asset loading:
-  - Google Fonts in `artifacts/offera/index.html` and `artifacts/offera/src/index.css`
-  - Google Fonts in the mockup sandbox HTML
-
-What is not implemented:
-
-- No email provider integration
-- No payment integration
-- No e-signature SaaS integration
-- No authentication provider
-
-## Contract vs Implementation Notes
-
-> ⚠️ Unclear: `replit.md` still documents `/api/health`, but the live code, OpenAPI spec, and artifact health probe all use `/api/healthz`.
-
-> ⚠️ Unclear: The API has no auth checks at all, even for operator-only routes such as create/update/delete. That may be intentional for an internal prototype, but the code does not indicate a future auth boundary yet.
+1. `lib/api-spec/openapi.yaml`
+2. route-implementation i `artifacts/api-server/src/routes/*`
+3. frontend-klienten i `artifacts/offera/src/lib/api.ts`

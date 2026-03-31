@@ -133,8 +133,8 @@ export function TemplatePreviewDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-6xl border-none bg-white p-0 shadow-elevated">
-        <DialogHeader className="border-b border-outline-variant/10 px-8 py-6">
+      <DialogContent className="w-[calc(100vw-1rem)] max-w-6xl border-none bg-white p-0 shadow-elevated sm:w-[calc(100vw-2rem)]">
+        <DialogHeader className="border-b border-outline-variant/10 px-5 py-5 sm:px-8 sm:py-6">
           <div className="flex flex-wrap items-center gap-2">
             <Badge className="border-none bg-primary/10 px-3 py-1 text-[10px] font-black uppercase tracking-widest text-primary">
               Förhandsgranskning
@@ -152,14 +152,14 @@ export function TemplatePreviewDialog({
           </DialogDescription>
         </DialogHeader>
 
-        <div className="max-h-[80vh] overflow-y-auto bg-surface-container-low/30 px-6 py-6 md:px-8 md:py-8">
+        <div className="max-h-[80vh] overflow-y-auto bg-surface-container-low/30 px-3 py-3 sm:px-6 sm:py-6 md:px-8 md:py-8">
           <div
             className="mx-auto w-full max-w-4xl rounded-[2.5rem] border border-outline-variant/10 bg-white shadow-subtle"
             style={styles}
           >
             {designSettings.coverEnabled ? (
               <section
-                className="relative overflow-hidden rounded-t-[2.5rem] px-8 py-12 text-white md:px-12 md:py-16"
+                className="relative overflow-hidden rounded-t-[2.5rem] px-6 py-10 text-white sm:px-8 sm:py-12 md:px-12 md:py-16"
                 style={{ background: designSettings.coverBackground }}
               >
                 <div className="absolute inset-0 opacity-[0.08]">
@@ -180,22 +180,22 @@ export function TemplatePreviewDialog({
                     </div>
                   </div>
 
-                  <div className="space-y-4">
+                  <div className="space-y-3 sm:space-y-4">
                     <h2
-                      className="max-w-3xl text-4xl font-semibold leading-[1.02] tracking-[-0.04em] md:text-6xl"
+                      className="max-w-3xl text-[2.35rem] font-semibold leading-[0.98] tracking-[-0.04em] sm:text-4xl md:text-6xl"
                       style={{ fontFamily: "var(--proposal-heading-font)" }}
                     >
                       {coverHeadline}
                     </h2>
                     <p
-                      className="max-w-2xl text-base leading-8 text-white/80 md:text-xl"
+                      className="max-w-2xl text-sm leading-7 text-white/80 sm:text-base md:text-xl"
                       style={{ fontFamily: "var(--proposal-body-font)" }}
                     >
                       {coverSubheadline}
                     </p>
                   </div>
 
-                  <div className="grid gap-4 md:grid-cols-3">
+                  <div className="grid gap-3 sm:gap-4 md:grid-cols-3">
                     <div className="rounded-2xl border border-white/12 bg-white/8 px-4 py-4 backdrop-blur">
                       <p className="text-[10px] font-black uppercase tracking-widest text-white/60">
                         Kund
@@ -225,7 +225,7 @@ export function TemplatePreviewDialog({
               </section>
             ) : null}
 
-            <div className="space-y-12 px-8 py-10 md:px-12 md:py-12">
+            <div className="space-y-10 px-6 py-8 sm:px-8 sm:py-10 md:space-y-12 md:px-12 md:py-12">
               {template.sections.map((section, sectionIndex) => (
                 <section key={section.id} className="space-y-6">
                   <div className="flex items-center gap-3">
@@ -240,7 +240,7 @@ export function TemplatePreviewDialog({
 
                   <div className="space-y-6">
                     <h3
-                      className="text-[2rem] font-semibold leading-[1.04] tracking-[-0.035em] text-on-surface"
+                      className="text-[1.65rem] font-semibold leading-[1.04] tracking-[-0.035em] text-on-surface sm:text-[2rem]"
                       style={{ fontFamily: "var(--proposal-heading-font)" }}
                     >
                       {resolveDynamicText(section.title, MOCK_PREVIEW_CONTEXT)}

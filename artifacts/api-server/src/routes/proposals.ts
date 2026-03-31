@@ -41,7 +41,7 @@ import {
   requireAppOrigin,
 } from "../lib/proposal-signing";
 import { requireResendFromEmail, sendEmail } from "../lib/resend";
-import { requireAuth } from "../lib/auth";
+import { requireAuth, resolveAuthContextFromToken } from "../lib/auth";
 import { normalizeProposalSections } from "../lib/legacy-content";
 
 const router: IRouter = Router();
@@ -121,6 +121,19 @@ type ProposalAuditEventRecord = {
   createdAt: Date;
 };
 
+type ProposalSigningTokenRecord = {
+  id: number;
+  workspaceId?: string | null;
+  proposalId: number;
+  revisionId?: number | null;
+  recipientEmail: string;
+  tokenHash: string;
+  emailId?: string | null;
+  expiresAt: Date;
+  usedAt?: Date | null;
+  createdAt: Date;
+};
+
 type ProposalAuditSummary = {
   eventCount: number;
   lastEventAt?: string;
@@ -138,6 +151,113 @@ type AcceptanceCapture = {
 
 function generateSlug(): string {
   return randomBytes(5).toString("hex");
+}
+
+function getBearerToken(req: Request) {
+  const header = req.get("authorization");
+  if (!header) {
+    return null;
+  }
+
+  const [scheme, token] = header.split(" ");
+  if (scheme?.toLowerCase() !== "bearer" || !token) {
+    return null;
+  }
+
+  return token.trim();
+}
+
+async function attachOptionalAuth(req: Request) {
+  if (req.auth) {
+    return;
+  }
+
+  const token = getBearerToken(req);
+  if (!token) {
+    return;
+  }
+
+  try {
+    req.auth = await resolveAuthContextFromToken(token);
+  } catch (error) {
+    req.log.debug({ err: error }, "Ignoring invalid bearer token on public route");
+  }
+}
+
+function isWorkspaceProposalViewer(
+  req: Request,
+  proposal: Pick<ProposalRecord, "workspaceId">,
+) {
+  return Boolean(
+    req.auth?.workspaceId &&
+      proposal.workspaceId &&
+      req.auth.workspaceId === proposal.workspaceId,
+  );
+}
+
+function toPublicProposalView<
+  T extends {
+    id: number;
+    title: string;
+    clientName: string;
+    clientEmail?: string;
+    status: string;
+    totalValue: number;
+    publicSlug: string;
+    templateId?: number;
+    sections: unknown;
+    branding: unknown;
+    parties: unknown;
+    personalMessage?: string;
+    signedByName?: string;
+    signatureInitials?: string;
+    signedAt?: string;
+    createdAt: string;
+    updatedAt: string;
+    lastActivityAt?: string;
+  },
+>(proposal: T) {
+  return {
+    id: proposal.id,
+    title: proposal.title,
+    clientName: proposal.clientName,
+    clientEmail: proposal.clientEmail,
+    status: proposal.status,
+    totalValue: proposal.totalValue,
+    publicSlug: proposal.publicSlug,
+    templateId: proposal.templateId,
+    sections: proposal.sections,
+    branding: proposal.branding,
+    parties: proposal.parties,
+    personalMessage: proposal.personalMessage,
+    signedByName: proposal.signedByName,
+    signatureInitials: proposal.signatureInitials,
+    signedAt: proposal.signedAt,
+    createdAt: proposal.createdAt,
+    updatedAt: proposal.updatedAt,
+    lastActivityAt: proposal.lastActivityAt,
+  };
+}
+
+async function findPublicViewSigningToken(
+  dbModule: Awaited<ReturnType<typeof getDbModule>>,
+  proposalId: number,
+  activeRevisionId: number,
+  rawToken: string,
+) {
+  const tokenHash = hashSigningToken(rawToken.trim());
+  const [signingToken] = await dbModule.db
+    .select()
+    .from(dbModule.proposalSigningTokensTable)
+    .where(
+      and(
+        eq(dbModule.proposalSigningTokensTable.proposalId, proposalId),
+        eq(dbModule.proposalSigningTokensTable.revisionId, activeRevisionId),
+        eq(dbModule.proposalSigningTokensTable.tokenHash, tokenHash),
+      ),
+    );
+
+  return signingToken as ProposalSigningTokenRecord | undefined;
 }
 
 async function getDbModule() {
@@ -551,7 +671,7 @@ function buildSignedConfirmationEmail({
   senderDisplayName,
   signedAt,
   snapshotHash,
-  publicLink,
+  documentLink,
   logoUrl,
   accentColor,
 }: {
@@ -560,7 +680,7 @@ function buildSignedConfirmationEmail({
   senderDisplayName: string;
   signedAt: Date;
   snapshotHash: string;
-  publicLink: string;
+  documentLink: string;
   logoUrl?: string;
   accentColor: string;
 }) {
@@ -568,7 +688,7 @@ function buildSignedConfirmationEmail({
   const escapedRecipient = escapeHtml(recipientName || "mottagaren");
   const escapedSender = escapeHtml(senderDisplayName || "Offera");
   const escapedSnapshotHash = escapeHtml(snapshotHash);
-  const escapedPublicLink = escapeHtml(publicLink);
+  const escapedDocumentLink = escapeHtml(documentLink);
   const escapedAccentColor = escapeHtml(accentColor);
 
   const logoHtml = logoUrl
@@ -644,7 +764,7 @@ function buildSignedConfirmationEmail({
               </tr>
               <tr>
                 <td align="center" style="padding: 0 32px 40px;">
-                  <a href="${escapedPublicLink}" style="display: inline-block; background-color: #111827; color: #ffffff; font-size: 16px; font-weight: 600; text-decoration: none; padding: 18px 36px; border-radius: 14px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);">
+                  <a href="${escapedDocumentLink}" style="display: inline-block; background-color: #111827; color: #ffffff; font-size: 16px; font-weight: 600; text-decoration: none; padding: 18px 36px; border-radius: 14px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);">
                     Visa det signerade dokumentet
                   </a>
                 </td>
@@ -681,7 +801,7 @@ function buildSignedConfirmationEmail({
       `Mottagare: ${recipientName || "mottagaren"}`,
       `Signerad: ${signedAt.toISOString()}`,
       `Dokumentfingerprint: ${snapshotHash}`,
-      `Offertlänk: ${publicLink}`,
+      `Offertlänk: ${documentLink}`,
     ].join("\n"),
   };
 }
@@ -1085,6 +1205,8 @@ router.post("/", async (req, res) => {
 router.get("/public/:slug", async (req, res) => {
   try {
     const { slug } = req.params;
+    const signingTokenParam =
+      typeof req.query.signing_token === "string" ? req.query.signing_token.trim() : "";
 
     if (!hasDatabase) {
       const proposal = await getLocalPublicProposal(slug);
@@ -1092,7 +1214,8 @@ router.get("/public/:slug", async (req, res) => {
         res.status(404).json({ error: "Proposal not found" });
         return;
       }
-      res.json(serializeProposal(proposal));
+
+      res.json(toPublicProposalView(serializeProposal(proposal)));
       return;
     }
 
@@ -1107,24 +1230,72 @@ router.get("/public/:slug", async (req, res) => {
       return;
     }
 
+    await attachOptionalAuth(req);
+    const internalViewer = isWorkspaceProposalViewer(req, proposal as ProposalRecord);
     const activeRevision = await ensureActiveRevisionForProposal(
       proposal as ProposalRecord,
       dbModule,
     );
-    const signingTokenParam =
-      typeof req.query.signing_token === "string" ? req.query.signing_token : undefined;
 
     if (!activeRevision) {
-      if (proposal.status === "sent") {
-        await dbModule.db
-          .update(dbModule.proposalsTable)
-          .set({ status: "viewed", lastActivityAt: new Date() })
-          .where(eq(dbModule.proposalsTable.id, proposal.id));
-        proposal.status = "viewed";
+      if (!internalViewer) {
+        res.status(403).json({
+          error:
+            "Den här offerten kräver en personlig signeringslänk eller en inloggad workspace-session för att visas.",
+        });
+        return;
       }
 
-      res.json(serializeProposal(proposal as ProposalRecord));
+      res.json(toPublicProposalView(serializeProposal(proposal as ProposalRecord)));
       return;
+    }
+
+    let signingToken: ProposalSigningTokenRecord | undefined;
+    if (!internalViewer) {
+      if (!signingTokenParam) {
+        res.status(403).json({
+          error:
+            "Den här offerten kräver den personliga länken från e-posten som skickades till motparten.",
+        });
+        return;
+      }
+
+      signingToken = await findPublicViewSigningToken(
+        dbModule,
+        proposal.id,
+        activeRevision.id,
+        signingTokenParam,
+      );
+      if (!signingToken) {
+        res.status(403).json({
+          error:
+            "Signeringslänken är ogiltig eller matchar inte den aktuella dokumentversionen.",
+        });
+        return;
+      }
+
+      const isAwaitingResponse =
+        activeRevision.status === "sent" || activeRevision.status === "viewed";
+      if (
+        isAwaitingResponse &&
+        signingToken.expiresAt.getTime() <= Date.now()
+      ) {
+        res.status(403).json({
+          error:
+            "Signeringslänken har gått ut. Be avsändaren skicka en ny personlig länk.",
+        });
+        return;
+      }
+
+      if (
+        normalizeEmail(signingToken.recipientEmail) !==
+        normalizeEmail(activeRevision.signingRecipientEmail)
+      ) {
+        res.status(403).json({
+          error: "Signeringslänken matchar inte längre den registrerade mottagaren.",
+        });
+        return;
+      }
     }
 
     const integrity = verifyRevisionIntegrity(activeRevision);
@@ -1154,7 +1325,7 @@ router.get("/public/:slug", async (req, res) => {
     }
 
     let currentRevision = activeRevision;
-    if (activeRevision.status === "sent") {
+    if (activeRevision.status === "sent" && !internalViewer) {
       const viewedAt = new Date();
       const [updatedRevision] = await dbModule.db
         .update(dbModule.proposalRevisionsTable)
@@ -1174,13 +1345,13 @@ router.get("/public/:slug", async (req, res) => {
         workspaceId: (proposal as ProposalRecord).workspaceId ?? null,
         proposalId: proposal.id,
         revisionId: activeRevision.id,
-        eventType: signingTokenParam ? "signing_link_opened" : "proposal_viewed",
+        eventType: signingToken ? "signing_link_opened" : "proposal_viewed",
         actorType: "recipient",
         actorEmail: activeRevision.signingRecipientEmail,
         ipAddress: getRequestMetadata(req).ipAddress,
         userAgent: getRequestMetadata(req).userAgent,
         metadata: {
-          viaSigningLink: Boolean(signingTokenParam),
+          viaSigningLink: Boolean(signingToken),
         },
       });
 
@@ -1188,9 +1359,11 @@ router.get("/public/:slug", async (req, res) => {
     }
 
     res.json(
-      buildPublicProposalFromRevision(
-        integrity.snapshot,
-        currentRevision,
+      toPublicProposalView(
+        buildPublicProposalFromRevision(
+          integrity.snapshot,
+          currentRevision,
+        ),
       ),
     );
   } catch (err) {
@@ -1235,6 +1408,13 @@ router.post("/public/:slug/respond", async (req, res) => {
       res.status(403).json({
         error:
           "Offerten har ingen låst signerbar version än. Skicka offerten igen innan den kan besvaras.",
+      });
+      return;
+    }
+
+    if (activeRevision.status !== "sent" && activeRevision.status !== "viewed") {
+      res.status(409).json({
+        error: "Offerten har redan besvarats och kan inte signeras eller avvisas igen.",
       });
       return;
     }
@@ -1435,25 +1615,31 @@ router.post("/public/:slug/respond", async (req, res) => {
           `/p/${revisionSnapshot.publicSlug}`,
           `${appOrigin}/`,
         ).toString();
-        const confirmationEmail = buildSignedConfirmationEmail({
-          proposalTitle: revisionSnapshot.title,
-          recipientName:
-            revisionSnapshot.clientName ||
-            revisionSnapshot.signingRecipientEmail ||
-            "mottagaren",
-          senderDisplayName: getProposalSenderDisplayName({ branding: revisionSnapshot.branding } as any),
-          signedAt: now,
-          snapshotHash: updatedRevision.snapshotHash,
-          publicLink,
-          logoUrl: getProposalLogoUrl({ branding: revisionSnapshot.branding }),
-          accentColor: getProposalAccentColor({ branding: revisionSnapshot.branding }),
-        });
+        const recipientLink = body.signingToken?.trim()
+          ? buildSigningLink(appOrigin, revisionSnapshot.publicSlug, body.signingToken.trim())
+          : publicLink;
         const confirmationRecipients = [
           normalizeEmail(updatedRevision.signingRecipientEmail),
           normalizeEmail((proposal as ProposalRecord).parties?.sender.email),
         ].filter(Boolean);
 
         for (const recipient of Array.from(new Set(confirmationRecipients))) {
+          const confirmationEmail = buildSignedConfirmationEmail({
+            proposalTitle: revisionSnapshot.title,
+            recipientName:
+              revisionSnapshot.clientName ||
+              revisionSnapshot.signingRecipientEmail ||
+              "mottagaren",
+            senderDisplayName: getProposalSenderDisplayName({ branding: revisionSnapshot.branding } as any),
+            signedAt: now,
+            snapshotHash: updatedRevision.snapshotHash,
+            documentLink:
+              recipient === normalizeEmail(updatedRevision.signingRecipientEmail)
+                ? recipientLink
+                : publicLink,
+            logoUrl: getProposalLogoUrl({ branding: revisionSnapshot.branding }),
+            accentColor: getProposalAccentColor({ branding: revisionSnapshot.branding }),
+          });
           const emailResult = await sendEmail({
             from: resendFrom,
             to: recipient,
@@ -1488,9 +1674,11 @@ router.post("/public/:slug/respond", async (req, res) => {
     }
 
     res.json(
-      buildPublicProposalFromRevision(
-        integrity.snapshot,
-        updatedRevision as ProposalRevisionRecord,
+      toPublicProposalView(
+        buildPublicProposalFromRevision(
+          integrity.snapshot,
+          updatedRevision as ProposalRevisionRecord,
+        ),
       ),
     );
   } catch (err) {

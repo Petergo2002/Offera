@@ -132,7 +132,7 @@ export default function TemplatesPage() {
   return (
     <div className="mx-auto max-w-7xl animate-in fade-in slide-in-from-bottom-6 duration-700">
       {/* Search and Header Section */}
-      <div className="mb-12 flex flex-col gap-8 lg:flex-row lg:items-center lg:justify-between bg-white p-8 md:p-10 rounded-[2.5rem] shadow-subtle border border-outline-variant/10">
+      <div className="mb-10 flex flex-col gap-6 rounded-[2.25rem] border border-outline-variant/10 bg-white p-5 shadow-subtle sm:p-8 md:mb-12 md:p-10 lg:flex-row lg:items-center lg:justify-between">
         <div className="flex-1">
           <div className="flex items-center gap-2 mb-3">
             <span className="h-1.5 w-8 bg-primary rounded-full" />
@@ -140,10 +140,10 @@ export default function TemplatesPage() {
               Skapa nytt
             </p>
           </div>
-          <h1 className="text-4xl md:text-5xl font-black tracking-tighter text-on-surface">
+          <h1 className="text-3xl font-black tracking-tighter text-on-surface sm:text-4xl md:text-5xl">
             Vad vill du skapa idag?
           </h1>
-          <p className="mt-4 max-w-xl text-lg text-on-surface-variant/70 leading-relaxed font-medium">
+          <p className="mt-4 max-w-xl text-base font-medium leading-relaxed text-on-surface-variant/70 sm:text-lg">
             Börja från ett tomt blad eller välj en av de professionella mallarna
             nedan för att komma igång snabbare.
           </p>
@@ -171,7 +171,7 @@ export default function TemplatesPage() {
           </div>
         </div>
 
-        <div className="flex flex-col gap-4 sm:flex-row items-center pt-4 lg:pt-0">
+        <div className="flex flex-col items-stretch gap-3 pt-2 sm:flex-row sm:items-center sm:gap-4 lg:pt-0">
           <div className="relative group w-full sm:w-72">
             <Search className="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-on-surface-variant transition-colors group-focus-within:text-primary" />
             <Input
@@ -226,14 +226,14 @@ export default function TemplatesPage() {
             </div>
 
             {customTemplates.length === 0 ? (
-              <div className="rounded-[4rem] border-2 border-dashed border-outline-variant/20 bg-surface-container-low/20 p-24 text-center">
-                <div className="mx-auto mb-10 flex h-32 w-32 items-center justify-center rounded-[2.5rem] bg-white shadow-elevated border border-outline-variant/5 rotate-3">
+              <div className="rounded-[2.5rem] border-2 border-dashed border-outline-variant/20 bg-surface-container-low/20 p-10 text-center sm:p-16 md:rounded-[4rem] md:p-24">
+                <div className="mx-auto mb-8 flex h-24 w-24 items-center justify-center rounded-[2rem] border border-outline-variant/5 bg-white shadow-elevated rotate-3 sm:mb-10 sm:h-32 sm:w-32 sm:rounded-[2.5rem]">
                   <Plus className="h-14 w-14 text-primary/20" />
                 </div>
-                <h3 className="text-3xl font-black tracking-tight text-on-surface">
+                <h3 className="text-2xl font-black tracking-tight text-on-surface sm:text-3xl">
                   Tomt i biblioteket
                 </h3>
-                <p className="mx-auto mt-6 max-w-md text-on-surface-variant/70 text-lg leading-relaxed font-medium">
+                <p className="mx-auto mt-6 max-w-md text-base font-medium leading-relaxed text-on-surface-variant/70 sm:text-lg">
                   Du har inga egna mallar än. Börja bygga din första mall för
                   att skala upp din säljprocess.
                 </p>

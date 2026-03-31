@@ -9,6 +9,7 @@ import type { ProposalBrandingDividerStyle } from "./proposalBrandingDividerStyl
 import type { ProposalBrandingFont } from "./proposalBrandingFont";
 import type { ProposalBrandingFontPairing } from "./proposalBrandingFontPairing";
 import type { ProposalBrandingLogoPosition } from "./proposalBrandingLogoPosition";
+import type { ProposalBrandingVibePreset } from "./proposalBrandingVibePreset";
 
 export interface ProposalBranding {
   logoUrl?: string;
@@ -21,4 +22,7 @@ export interface ProposalBranding {
   coverSubheadline?: string;
   logoPosition?: ProposalBrandingLogoPosition;
   dividerStyle?: ProposalBrandingDividerStyle;
+  glassmorphismEnabled?: boolean;
+  vibePreset?: ProposalBrandingVibePreset;
+  gradientEnabled?: boolean;
 }

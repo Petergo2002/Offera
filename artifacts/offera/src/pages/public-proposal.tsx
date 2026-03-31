@@ -32,6 +32,7 @@ import {
   resolveDynamicText,
 } from "@/lib/document";
 import { Badge } from "@/components/ui/badge";
+import { cn } from "@/lib/utils";
 
 const SIGNATURE_CANVAS_HEIGHT = 220;
 const MAX_SIGNATURE_DATA_URL_LENGTH = 500_000;
@@ -64,6 +65,7 @@ export default function PublicProposal() {
   const {
     data: fetchedProposal,
     isLoading,
+    error,
     refetch,
   } = useQuery({
     queryKey: ["public-proposal", slug, signingToken],
@@ -168,13 +170,24 @@ export default function PublicProposal() {
   }
 
   if (!proposal) {
+    const errorMessage =
+      error instanceof Error ? error.message : "Länken kan vara felaktig eller inaktuell.";
+    const isAccessDenied =
+      errorMessage.includes("403") ||
+      errorMessage.includes("personliga länken") ||
+      errorMessage.includes("workspace-session");
+
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
         <div className="text-center">
           <XCircle className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
-          <h1 className="text-2xl font-bold">Offerten hittades inte</h1>
+          <h1 className="text-2xl font-bold">
+            {isAccessDenied ? "Åtkomst nekad" : "Offerten hittades inte"}
+          </h1>
           <p className="text-muted-foreground mt-2">
-            Länken kan vara felaktig eller inaktuell.
+            {isAccessDenied
+              ? "Den här offerten kräver den personliga länken från e-posten eller en inloggad workspace-session."
+              : "Länken kan vara felaktig eller inaktuell."}
           </p>
         </div>
       </div>
@@ -329,7 +342,13 @@ export default function PublicProposal() {
         initial={{ opacity: 0, y: 30 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.8, ease: "easeOut" }}
-        className="max-w-[1120px] mx-auto bg-white rounded-none sm:rounded-[3rem] shadow-[0_40px_100px_-20px_rgba(0,0,0,0.06)] border border-black/[0.03] overflow-hidden print:shadow-none print:border-none print:rounded-none relative z-10"
+        className={cn(
+          "max-w-[1120px] mx-auto bg-white rounded-none sm:rounded-[3rem] shadow-[0_40px_100px_-20px_rgba(0,0,0,0.06)] border border-black/[0.03] overflow-hidden print:shadow-none print:border-none print:rounded-none relative z-10",
+          branding?.vibePreset === "editorial" && "vibe-editorial",
+          branding?.vibePreset === "architectural" && "vibe-architectural",
+          branding?.vibePreset === "minimal" && "vibe-minimal",
+          (branding?.glassmorphismEnabled || branding?.vibePreset === "glass") && "vibe-glass",
+        )}
         style={{ fontFamily: "var(--proposal-font)" }}
       >
         <style>
@@ -345,20 +364,22 @@ export default function PublicProposal() {
         </style>
         {branding?.coverEnabled ? (
           <div
-            className="relative flex min-h-[640px] w-full flex-col justify-center overflow-hidden px-8 py-20 md:px-24 md:py-32"
+            className="relative flex min-h-[560px] w-full flex-col justify-center overflow-hidden px-5 py-16 sm:px-8 sm:py-20 md:min-h-[640px] md:px-24 md:py-32"
             style={{
               backgroundColor: branding.coverBackground || "var(--proposal-accent)",
             }}
           >
             <div className="pointer-events-none absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-[0.03]" />
 
-            <div className="absolute top-12 left-8 right-8 flex items-center justify-between md:left-24 md:right-24">
+            <div className="absolute left-5 right-5 top-8 flex items-center justify-between sm:left-8 sm:right-8 sm:top-12 md:left-24 md:right-24">
               {branding.logoUrl ? (
-                <img
-                  src={branding.logoUrl}
-                  alt="Logo"
-                  className="h-12 object-contain brightness-0 invert md:h-16"
-                />
+                <div className="rounded-[1.35rem] bg-white/96 px-4 py-3 shadow-[0_14px_32px_-18px_rgba(0,0,0,0.55)] backdrop-blur">
+                  <img
+                    src={branding.logoUrl}
+                    alt="Logo"
+                    className="h-10 w-auto max-w-[180px] object-contain md:h-14 md:max-w-[240px]"
+                  />
+                </div>
               ) : (
                 <div />
               )}
@@ -377,7 +398,7 @@ export default function PublicProposal() {
                 initial={{ opacity: 0, x: -20 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: 0.3, duration: 0.8 }}
-                className="mb-8 text-6xl font-black leading-[0.9] tracking-tighter md:text-8xl"
+                className="mb-6 text-[3.25rem] font-black leading-[0.92] tracking-tighter sm:mb-8 sm:text-6xl md:text-8xl"
               >
                 {resolveDynamicText(
                   branding.coverHeadline || proposal.title,
@@ -388,7 +409,7 @@ export default function PublicProposal() {
                 initial={{ opacity: 0, x: -20 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: 0.5, duration: 0.8 }}
-                className="max-w-2xl text-xl font-medium leading-relaxed opacity-80 md:text-3xl"
+                className="max-w-2xl text-base font-medium leading-relaxed opacity-80 sm:text-xl md:text-3xl"
               >
                 {resolveDynamicText(
                   branding.coverSubheadline,
@@ -397,14 +418,14 @@ export default function PublicProposal() {
               </motion.p>
             </div>
 
-            <div className="absolute bottom-16 left-8 text-white/70 md:left-24">
+            <div className="absolute bottom-10 left-5 text-white/70 sm:bottom-16 sm:left-8 md:left-24">
               <div className="mb-2 flex items-center gap-4">
                 <div className="h-px w-8 bg-white/30" />
-                <p className="text-sm font-black uppercase tracking-widest">
+                <p className="text-[11px] font-black uppercase tracking-widest sm:text-sm">
                   Förberedd för
                 </p>
               </div>
-              <p className="text-2xl font-bold text-white">
+              <p className="text-xl font-bold text-white sm:text-2xl">
                 {resolveDynamicText(proposal.clientName, placeholderContext)}
               </p>
               <p className="mt-1 text-sm opacity-60">
@@ -417,7 +438,7 @@ export default function PublicProposal() {
             <div className="pointer-events-none absolute -bottom-24 -right-24 h-96 w-96 rounded-full bg-white/5 blur-3xl" />
           </div>
         ) : (
-          <div className="flex flex-col items-start justify-between gap-6 border-b border-gray-100 p-8 pb-8 md:flex-row md:items-center md:p-16">
+          <div className="flex flex-col items-start justify-between gap-5 border-b border-gray-100 p-5 pb-5 sm:p-8 md:flex-row md:items-center md:p-16">
             {branding?.logoUrl ? (
               <img
                 src={branding.logoUrl}
@@ -449,7 +470,7 @@ export default function PublicProposal() {
           </div>
         )}
 
-        <div className="px-8 py-20 md:px-24 md:py-32 space-y-24">
+        <div className="px-5 py-20 sm:px-8 md:px-24 md:py-32 space-y-24">
           {proposal.personalMessage && (
             <div
               className="p-10 bg-gray-50/50 rounded-[2.5rem] border border-gray-100 flex flex-col md:flex-row gap-8 items-start animate-in fade-in duration-1000"
@@ -482,25 +503,25 @@ export default function PublicProposal() {
               <div className="animate-in fade-in slide-in-from-bottom-4 duration-700 delay-200">
                 {isPartiesSection(section) ? (
                   <div className="overflow-hidden rounded-[2.5rem] border border-gray-100 bg-gray-50/40 shadow-[0_20px_45px_-18px_rgba(0,0,0,0.08)]">
-                    <div className="grid gap-0 md:grid-cols-2">
-                      <div className="border-b border-gray-100 p-8 md:border-b-0 md:border-r">
+                    <div className="grid grid-cols-1 gap-0 md:grid-cols-2">
+                      <div className="border-b border-gray-100 p-5 sm:p-8 md:border-b-0 md:border-r">
                         <p className="mb-3 text-[11px] font-black uppercase tracking-[0.22em] text-gray-400">
                           Tjänsteleverantör
                         </p>
-                        <h3 className="text-2xl font-black tracking-tight text-foreground">
+                        <h3 className="text-xl sm:text-2xl font-black tracking-tight text-foreground break-words">
                           {proposal.parties.sender.companyName || "Ej angivet"}
                         </h3>
                         {proposal.parties.sender.orgNumber ? (
-                          <p className="mt-2 text-[11px] font-black uppercase tracking-widest text-gray-400">
+                          <p className="mt-2 text-[10px] font-black uppercase tracking-widest text-gray-400">
                             Org: {proposal.parties.sender.orgNumber}
                           </p>
                         ) : null}
-                        <div className="mt-5 space-y-1 text-sm font-medium leading-6 text-gray-600">
+                        <div className="mt-5 space-y-1.5 text-sm font-medium leading-6 text-gray-600 break-words">
                           {proposal.parties.sender.contactName ? (
                             <p>{proposal.parties.sender.contactName}</p>
                           ) : null}
                           {proposal.parties.sender.email ? (
-                            <p>{proposal.parties.sender.email}</p>
+                            <p className="text-xs sm:text-sm">{proposal.parties.sender.email}</p>
                           ) : null}
                           {proposal.parties.sender.phone ? (
                             <p>{proposal.parties.sender.phone}</p>
@@ -521,28 +542,28 @@ export default function PublicProposal() {
                         </div>
                       </div>
 
-                      <div className="p-8">
+                      <div className="p-5 sm:p-8">
                         <p className="mb-3 text-[11px] font-black uppercase tracking-[0.22em] text-gray-400">
                           Motpart
                         </p>
-                        <h3 className="text-2xl font-black tracking-tight text-foreground">
+                        <h3 className="text-xl sm:text-2xl font-black tracking-tight text-foreground break-words">
                           {proposal.parties.recipient.kind === "company"
                             ? proposal.parties.recipient.companyName || "Ej angivet"
                             : proposal.parties.recipient.contactName || "Ej angivet"}
                         </h3>
                         {proposal.parties.recipient.kind === "company" &&
                         proposal.parties.recipient.orgNumber ? (
-                          <p className="mt-2 text-[11px] font-black uppercase tracking-widest text-gray-400">
+                          <p className="mt-2 text-[10px] font-black uppercase tracking-widest text-gray-400">
                             Org: {proposal.parties.recipient.orgNumber}
                           </p>
                         ) : null}
-                        <div className="mt-5 space-y-1 text-sm font-medium leading-6 text-gray-600">
+                        <div className="mt-5 space-y-1.5 text-sm font-medium leading-6 text-gray-600 break-words">
                           {proposal.parties.recipient.kind === "company" &&
                           proposal.parties.recipient.contactName ? (
                             <p>{proposal.parties.recipient.contactName}</p>
                           ) : null}
                           {proposal.parties.recipient.email ? (
-                            <p>{proposal.parties.recipient.email}</p>
+                            <p className="text-xs sm:text-sm">{proposal.parties.recipient.email}</p>
                           ) : null}
                           {proposal.parties.recipient.phone ? (
                             <p>{proposal.parties.recipient.phone}</p>
@@ -628,16 +649,25 @@ export default function PublicProposal() {
                       return (
                         <div
                           key={block.id}
-                          className="my-16 overflow-hidden rounded-[3rem] border border-gray-100 bg-white shadow-[0_30px_60px_-12px_rgba(0,0,0,0.08)] transition-all hover:shadow-[0_40px_80px_-15px_rgba(0,0,0,0.1)]"
+                          className={cn(
+                            "my-16 overflow-hidden rounded-[3rem] border transition-all duration-700",
+                            (branding?.glassmorphismEnabled || branding?.vibePreset === "glass") 
+                              ? "glass-card" 
+                              : "border-gray-100 bg-white shadow-[0_30px_60px_-12px_rgba(0,0,0,0.08)] hover:shadow-[0_40px_80px_-15px_rgba(0,0,0,0.1)]",
+                            branding?.vibePreset === "minimal" && "border-transparent shadow-subtle"
+                          )}
                         >
                           {/* Premium Package Header */}
                           <div className="bg-white p-10 md:p-16">
                             <div className="max-w-3xl">
                               <div className="mb-8 flex items-center gap-4">
                                 <div
-                                  className="h-1.5 w-16 rounded-full"
+                                  className={cn(
+                                    "h-1.5 w-16 rounded-full",
+                                    branding?.gradientEnabled && "bg-primary-gradient"
+                                  )}
                                   style={{
-                                    backgroundColor: "var(--proposal-accent)",
+                                    backgroundColor: branding?.gradientEnabled ? undefined : "var(--proposal-accent)",
                                   }}
                                 />
                                 <span
@@ -654,12 +684,12 @@ export default function PublicProposal() {
                                   placeholderContext,
                                 )}
                               </h3>
-                              <p className="mb-12 text-xl font-medium leading-relaxed text-gray-500/80">
+                              <p className="mb-10 text-lg md:mb-12 md:text-xl font-medium leading-relaxed text-gray-500/80">
                                 {block.description}
                               </p>
 
                                 {block.features && block.features.length > 0 && (
-                                  <div className="grid grid-cols-1 gap-x-12 gap-y-6 md:grid-cols-2">
+                                  <div className="grid grid-cols-1 gap-x-12 gap-y-5 md:gap-y-6 md:grid-cols-2">
                                   {block.features.map((feature, i) => (
                                     <div
                                       key={i}
@@ -688,13 +718,95 @@ export default function PublicProposal() {
                             </div>
                           </div>
 
-                          <div className="bg-gray-50/40 px-10 py-6 border-y border-gray-100 flex items-center justify-between">
+                          <div className="bg-gray-50/40 px-6 py-5 md:px-10 md:py-6 border-y border-gray-100 flex items-center justify-between">
                             <h4 className="text-[11px] font-black uppercase tracking-[0.25em] text-gray-400">
                               Kostnadsspecifikation
                             </h4>
                           </div>
 
-                          <div className="overflow-x-auto">
+                          <div className="md:hidden divide-y divide-gray-100">
+                            {totals.rows.map((row) => (
+                              <div key={row.id} className="bg-white px-6 py-5">
+                                <div className="flex items-start justify-between gap-4">
+                                  <div className="min-w-0 flex-1">
+                                    <div className="font-black text-foreground text-xl tracking-tight leading-tight">
+                                      {row.description}
+                                    </div>
+                                    <div className="mt-3 flex flex-wrap gap-2">
+                                      <div
+                                        className="text-[10px] font-black uppercase inline-flex px-2 py-1 rounded-full"
+                                        style={{
+                                          color:
+                                            row.type === "one_time"
+                                              ? "#d97706"
+                                              : "var(--proposal-accent)",
+                                          backgroundColor:
+                                            row.type === "one_time"
+                                              ? "rgba(245, 158, 11, 0.12)"
+                                              : "color-mix(in srgb, var(--proposal-accent) 15%, transparent)",
+                                        }}
+                                      >
+                                        {row.type === "one_time"
+                                          ? "Engångs"
+                                          : row.interval === "yearly"
+                                            ? "Årlig avgift"
+                                            : "Löpande avgift"}
+                                      </div>
+                                      {row.type === "recurring" && row.bindingPeriod ? (
+                                        <Badge
+                                          variant="secondary"
+                                          className="bg-gray-100 text-gray-500 text-[10px] font-black uppercase tracking-widest px-2 py-1 rounded-full"
+                                        >
+                                          {row.bindingPeriod} mån bindning
+                                        </Badge>
+                                      ) : null}
+                                    </div>
+                                  </div>
+                                  <div className="text-right shrink-0">
+                                    <p className="text-xl font-black tabular-nums text-foreground">
+                                      {formatCurrency(row.total || 0)}
+                                    </p>
+                                    <p className="mt-1 text-[10px] font-black uppercase tracking-widest text-gray-400">
+                                      totalt
+                                    </p>
+                                  </div>
+                                </div>
+
+                                <div className="mt-4 grid grid-cols-3 gap-3 rounded-2xl bg-gray-50/70 p-4">
+                                  <div>
+                                    <p className="text-[9px] font-black uppercase tracking-widest text-gray-400">
+                                      Antal
+                                    </p>
+                                    <p className="mt-1 text-sm font-bold text-gray-700">
+                                      {row.quantity} {row.unit || "st"}
+                                    </p>
+                                  </div>
+                                  <div>
+                                    <p className="text-[9px] font-black uppercase tracking-widest text-gray-400">
+                                      A-pris
+                                    </p>
+                                    <p className="mt-1 text-sm font-bold text-gray-700">
+                                      {formatCurrency(row.unitPrice)}
+                                    </p>
+                                  </div>
+                                  <div>
+                                    <p className="text-[9px] font-black uppercase tracking-widest text-gray-400">
+                                      Intervall
+                                    </p>
+                                    <p className="mt-1 text-sm font-bold text-gray-700">
+                                      {row.type === "recurring"
+                                        ? row.interval === "yearly"
+                                          ? "Per år"
+                                          : "Per mån"
+                                        : "Engång"}
+                                    </p>
+                                  </div>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+
+                          <div className="hidden overflow-x-auto md:block">
                             <table className="w-full text-left text-base border-collapse min-w-[600px]">
                               <thead className="text-gray-400 border-b border-gray-100">
                                 <tr>
@@ -759,8 +871,8 @@ export default function PublicProposal() {
                             </table>
                           </div>
 
-                          <div className="bg-gray-50/50 p-12 md:p-16 border-t border-gray-100 flex flex-col items-end">
-                            <div className="space-y-6 w-full max-w-sm">
+                          <div className="bg-gray-50/50 p-6 md:p-16 border-t border-gray-100 flex flex-col items-end">
+                            <div className="space-y-5 md:space-y-6 w-full max-w-sm">
                               <div className="flex justify-between items-center text-gray-500">
                                 <span className="text-[11px] font-black uppercase tracking-[0.2em]">
                                   Första faktura
@@ -827,7 +939,7 @@ export default function PublicProposal() {
 
                               <div className="h-px w-full bg-gray-200/60 my-8" />
 
-                              <div className="flex justify-between items-end gap-10">
+                              <div className="flex justify-between items-end gap-6 md:gap-10">
                                 <div className="flex flex-col gap-1">
                                   <span className="text-xs font-black uppercase text-gray-400 tracking-[0.2em]">
                                     {totals.totalLabel}
@@ -838,7 +950,7 @@ export default function PublicProposal() {
                                 </div>
                                 <div className="text-right">
                                   <span
-                                    className="font-black text-5xl md:text-6xl tracking-tighter tabular-nums leading-none block"
+                                    className="font-black text-[2.65rem] sm:text-5xl md:text-6xl tracking-tighter tabular-nums leading-none block"
                                     style={{ color: "var(--proposal-accent)" }}
                                   >
                                     {formatCurrency(
@@ -879,9 +991,7 @@ export default function PublicProposal() {
                   Offert signerad ✓
                 </h3>
 
-                {(proposal.signedByName ||
-                  proposal.signatureInitials ||
-                  proposal.signatureDataUrl) && (
+                {(proposal.signedByName || proposal.signatureInitials) && (
                   <div className="my-8 max-w-md mx-auto p-8 border border-border bg-white rounded-2xl shadow-sm text-left space-y-5">
                     <div>
                       <p className="text-sm text-muted-foreground uppercase tracking-widest mb-2">
@@ -899,15 +1009,7 @@ export default function PublicProposal() {
                       ) : null}
                     </div>
 
-                    {proposal.signatureDataUrl ? (
-                      <div className="rounded-2xl border border-dashed border-border bg-muted/30 p-4">
-                        <img
-                          src={proposal.signatureDataUrl}
-                          alt="Kundens signatur"
-                          className="mx-auto max-h-28 w-auto"
-                        />
-                      </div>
-                    ) : proposal.signatureInitials ? (
+                    {proposal.signatureInitials ? (
                       <div
                         className="text-5xl font-serif italic text-foreground"
                         style={{ color: "var(--proposal-accent)" }}
@@ -937,40 +1039,42 @@ export default function PublicProposal() {
               </div>
             ) : canRespond ? (
               <motion.div
-                exit={{ opacity: 0, y: -20 }}
-                className="max-w-md mx-auto text-center space-y-6"
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                className={cn(
+                  "p-10 rounded-[2.5rem] border text-center transition-all duration-500",
+                  (branding?.glassmorphismEnabled || branding?.vibePreset === "glass")
+                    ? "glass-card bg-primary/5"
+                    : "bg-white border-primary/20 shadow-[0_20px_50px_-12px_rgba(var(--primary),0.12)]"
+                )}
               >
-                <h3 className="text-2xl font-bold">Redo att gå vidare?</h3>
-                <p className="text-gray-500">
-                  Genom att acceptera godkänner du villkoren i denna offert.
-                </p>
-                <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                  <Button
-                    size="lg"
-                    variant="outline"
-                    className="h-14 px-8 text-base bg-white"
-                    onClick={handleDecline}
-                    disabled={isResponding}
-                  >
-                    Avvisa offert
-                  </Button>
-                  <Button
-                    size="lg"
-                    className="h-14 px-8 text-base text-white shadow-xl hover:shadow-2xl transition-all hover:-translate-y-0.5"
-                    style={{
-                      backgroundColor: "var(--proposal-accent)",
-                      boxShadow:
-                        "0 10px 25px -5px color-mix(in srgb, var(--proposal-accent) 40%, transparent)",
-                    }}
-                    onClick={() => setSignatureModalOpen(true)}
-                    disabled={isResponding}
-                  >
-                    {isResponding ? (
-                      <Loader2 className="w-5 h-5 animate-spin" />
-                    ) : (
-                      "Acceptera Offert"
-                    )}
-                  </Button>
+                <div className="max-w-2xl mx-auto">
+                  <h3 className="text-3xl font-black text-foreground mb-4 tracking-tight"> Redo att gå vidare? </h3>
+                  <p className="text-muted-foreground mb-10 text-lg font-medium">
+                    Klicka på knappen nedan för att signera offerten digitalt.
+                    När du har signerat skickas en bekräftelse till båda parter.
+                  </p>
+                  <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+                    <Button
+                      size="lg"
+                      className={cn(
+                        "h-16 px-10 rounded-2xl text-lg font-black uppercase tracking-widest transition-all hover:scale-105 active:scale-95",
+                        branding?.gradientEnabled ? "jewel-gradient border-none text-white" : "bg-primary text-white shadow-lg shadow-primary/25"
+                      )}
+                      style={!branding?.gradientEnabled ? { backgroundColor: "var(--proposal-accent)" } : {}}
+                      onClick={() => setSignatureModalOpen(true)}
+                    >
+                      Signera & Acceptera
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      className="text-sm font-black uppercase tracking-widest text-on-surface-variant/40 hover:text-error hover:bg-error/5 h-16 px-8 rounded-2xl"
+                      onClick={handleDecline}
+                      disabled={isResponding}
+                    >
+                      Behöver ändras
+                    </Button>
+                  </div>
                 </div>
               </motion.div>
             ) : isAwaitingResponse ? (
@@ -991,10 +1095,40 @@ export default function PublicProposal() {
         Skapad med <span className="font-semibold text-gray-600">Offera</span>
       </div>
 
+      {canRespond && (
+        <motion.div
+          initial={{ y: 100 }}
+          animate={{ y: 0 }}
+          className="fixed bottom-8 left-1/2 -translate-x-1/2 z-50 no-print hidden sm:block"
+        >
+          <div className="glass-card flex items-center gap-6 px-8 py-4 rounded-full border border-primary/20 shadow-2xl">
+            <div className="flex flex-col">
+              <span className="text-[9px] font-black uppercase tracking-widest text-primary/60">
+                Totalt belopp
+              </span>
+              <span className="text-xl font-black tabular-nums">
+                {formatCurrency(proposal.totalValue)}
+              </span>
+            </div>
+            <div className="w-px h-8 bg-primary/10" />
+            <Button
+              className={cn(
+                "rounded-full px-8 h-12 font-black uppercase tracking-widest text-[11px] shadow-lg transition-all hover:scale-110",
+                branding?.gradientEnabled ? "jewel-gradient border-none text-white" : "bg-primary text-white"
+              )}
+              style={!branding?.gradientEnabled ? { backgroundColor: "var(--proposal-accent)" } : {}}
+              onClick={() => setSignatureModalOpen(true)}
+            >
+              Signera nu
+            </Button>
+          </div>
+        </motion.div>
+      )}
+
       <Dialog open={signatureModalOpen} onOpenChange={handleSignatureModalChange}>
-        <DialogContent className="left-0 right-0 top-4 mx-auto w-[calc(100vw-1.5rem)] max-w-[42rem] translate-x-0 translate-y-0 gap-0 overflow-hidden p-0 sm:top-6 sm:w-[calc(100vw-3rem)]">
-          <DialogHeader className="px-6 pt-6 pb-0 sm:px-8">
-            <DialogTitle className="text-2xl font-bold">
+        <DialogContent className="left-0 right-0 top-2 mx-auto flex max-h-[calc(100dvh-1rem)] w-[calc(100vw-1rem)] max-w-[42rem] translate-x-0 translate-y-0 flex-col gap-0 overflow-hidden rounded-[1.75rem] p-0 sm:top-6 sm:w-[calc(100vw-3rem)] sm:rounded-[2rem]">
+          <DialogHeader className="shrink-0 px-5 pt-5 pb-0 sm:px-8 sm:pt-6">
+            <DialogTitle className="text-xl font-bold sm:text-2xl">
               Signera och acceptera offert
             </DialogTitle>
             <DialogDescription className="sr-only">
@@ -1002,10 +1136,10 @@ export default function PublicProposal() {
             </DialogDescription>
           </DialogHeader>
 
-          <div className="max-h-[calc(100dvh-8rem)] overflow-y-auto px-6 py-6 sm:px-8 space-y-6">
-            <div className="rounded-2xl border border-border bg-muted/30 px-5 py-4 flex items-start gap-3">
+          <div className="flex-1 overflow-y-auto px-5 py-5 sm:px-8 sm:py-6 space-y-5 sm:space-y-6">
+            <div className="flex items-start gap-3 rounded-2xl border border-border bg-muted/30 px-4 py-4 sm:px-5">
               <div
-                className="h-11 w-11 rounded-2xl flex items-center justify-center text-white shrink-0"
+                className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl text-white sm:h-11 sm:w-11"
                 style={{ backgroundColor: "var(--proposal-accent)" }}
               >
                 <CheckCircle2 className="w-5 h-5" />
@@ -1019,7 +1153,7 @@ export default function PublicProposal() {
               </div>
             </div>
 
-            <div className="space-y-3">
+            <div className="space-y-2.5 sm:space-y-3">
               <Label htmlFor="signer-name" className="text-sm font-medium">
                 Fullständigt namn
               </Label>
@@ -1033,7 +1167,7 @@ export default function PublicProposal() {
               />
             </div>
 
-            <div className="space-y-3">
+            <div className="space-y-2.5 sm:space-y-3">
               <Label htmlFor="initials" className="text-sm font-medium">
                 Initialer
               </Label>
@@ -1049,14 +1183,14 @@ export default function PublicProposal() {
               />
             </div>
 
-            <div className="space-y-3">
-              <div className="flex items-center justify-between gap-3">
+            <div className="space-y-2.5 sm:space-y-3">
+              <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between sm:gap-3">
                 <Label className="text-sm font-medium">Rita din signatur</Label>
                 <Button
                   type="button"
                   variant="ghost"
                   size="sm"
-                  className="h-8 px-2 text-muted-foreground"
+                  className="h-8 self-start px-2 text-muted-foreground sm:self-auto"
                   onClick={handleClearSignature}
                   disabled={!hasSignature || isResponding}
                 >
@@ -1083,11 +1217,11 @@ export default function PublicProposal() {
                     canvasProps={{
                       width: signatureCanvasWidth,
                       height: SIGNATURE_CANVAS_HEIGHT,
-                      className: "block h-[220px] w-full cursor-crosshair touch-none",
+                      className: "block h-[200px] w-full cursor-crosshair touch-none sm:h-[220px]",
                     }}
                   />
                 ) : (
-                  <div className="h-[220px]" />
+                  <div className="h-[200px] sm:h-[220px]" />
                 )}
               </div>
               <p className="text-xs text-muted-foreground">
@@ -1096,7 +1230,7 @@ export default function PublicProposal() {
               </p>
             </div>
 
-            <div className="flex items-start space-x-3 p-4 bg-muted/50 rounded-lg border border-border">
+            <div className="flex items-start space-x-3 rounded-lg border border-border bg-muted/50 p-4">
               <Checkbox
                 id="terms"
                 checked={termsAccepted}
@@ -1118,7 +1252,7 @@ export default function PublicProposal() {
             </div>
           </div>
 
-          <DialogFooter className="px-6 pb-6 sm:px-8 flex-col sm:flex-row gap-2">
+          <DialogFooter className="shrink-0 gap-2 border-t border-border/70 bg-white px-5 py-4 sm:flex-row sm:px-8 sm:py-5">
             <Button
               variant="outline"
               onClick={() => handleSignatureModalChange(false)}

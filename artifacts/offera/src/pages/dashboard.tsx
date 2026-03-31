@@ -49,7 +49,32 @@ import { Skeleton } from "@/components/ui/skeleton";
 function DashboardSkeleton() {
   return (
     <div className="space-y-6">
-      <div className="overflow-hidden rounded-[2rem] border border-outline-variant/10 bg-white shadow-subtle">
+      <div className="space-y-4 md:hidden">
+        {[...Array(4)].map((_, i) => (
+          <div
+            key={i}
+            className="rounded-[2rem] border border-outline-variant/10 bg-white p-5 shadow-subtle"
+          >
+            <div className="flex items-start justify-between gap-4">
+              <div className="min-w-0 flex-1">
+                <Skeleton className="mb-2 h-5 w-2/3" />
+                <Skeleton className="h-3 w-28" />
+              </div>
+              <Skeleton className="h-6 w-20 rounded-full" />
+            </div>
+            <div className="mt-5 grid grid-cols-2 gap-3">
+              <Skeleton className="h-16 rounded-2xl" />
+              <Skeleton className="h-16 rounded-2xl" />
+            </div>
+            <div className="mt-4 grid grid-cols-2 gap-2">
+              <Skeleton className="h-11 rounded-2xl" />
+              <Skeleton className="h-11 rounded-2xl" />
+            </div>
+          </div>
+        ))}
+      </div>
+
+      <div className="hidden overflow-hidden rounded-[2rem] border border-outline-variant/10 bg-white shadow-subtle md:block">
         <div className="overflow-x-auto">
           <table className="w-full border-collapse text-left min-w-[800px]">
             <thead>
@@ -328,16 +353,16 @@ export default function DashboardPage() {
         </DialogContent>
       </Dialog>
 
-      <div className="mx-auto max-w-6xl space-y-10">
+      <div className="mx-auto max-w-6xl space-y-8 md:space-y-10">
         <header className="mb-8 animate-in fade-in slide-in-from-left-4 duration-500">
           <h2 className="flex items-center gap-2 text-[11px] font-black uppercase tracking-[0.2em] text-primary mb-3">
             <span className="h-1 w-8 bg-primary rounded-full" />
             Överblick
           </h2>
-          <h1 className="text-4xl md:text-5xl font-black tracking-tighter text-on-surface mb-2">
+          <h1 className="mb-2 text-3xl font-black tracking-tighter text-on-surface sm:text-4xl md:text-5xl">
             Välkommen tillbaka
           </h1>
-          <p className="text-on-surface-variant text-lg font-medium max-w-2xl">
+          <p className="max-w-2xl text-base font-medium text-on-surface-variant sm:text-lg">
             Du har{" "}
             <span className="text-primary font-bold">
               {stats.totalCount} offerter
@@ -346,11 +371,11 @@ export default function DashboardPage() {
           </p>
         </header>
 
-        <div className="grid gap-6 md:grid-cols-3">
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 md:gap-6">
           <section
             onClick={() => setStatusFilter("all")}
             className={cn(
-              "bg-surface-container-lowest p-6 rounded-[2.5rem] shadow-subtle border border-outline-variant/10 transition-all cursor-pointer hover:shadow-elevated hover:-translate-y-1 duration-500 animate-in fade-in slide-in-from-bottom-4 delay-75 fill-mode-both group",
+              "group cursor-pointer rounded-[2.25rem] border border-outline-variant/10 bg-surface-container-lowest p-5 shadow-subtle transition-all duration-500 hover:-translate-y-1 hover:shadow-elevated animate-in fade-in slide-in-from-bottom-4 delay-75 fill-mode-both sm:p-6",
               statusFilter === "all" &&
                 "ring-2 ring-primary ring-offset-4 border-primary/20",
             )}
@@ -366,7 +391,7 @@ export default function DashboardPage() {
             <p className="text-on-surface-variant text-sm font-bold mb-1 opacity-60">
               Totala offerter
             </p>
-            <p className="text-4xl font-black tracking-tight text-foreground">
+            <p className="text-3xl font-black tracking-tight text-foreground sm:text-4xl">
               {stats.totalCount}
             </p>
           </section>
@@ -374,7 +399,7 @@ export default function DashboardPage() {
           <section
             onClick={() => setStatusFilter("signed")}
             className={cn(
-              "bg-surface-container-lowest p-6 rounded-[2.5rem] shadow-subtle border border-outline-variant/10 transition-all cursor-pointer hover:shadow-elevated hover:-translate-y-1 duration-500 animate-in fade-in slide-in-from-bottom-4 delay-150 fill-mode-both group",
+              "group cursor-pointer rounded-[2.25rem] border border-outline-variant/10 bg-surface-container-lowest p-5 shadow-subtle transition-all duration-500 hover:-translate-y-1 hover:shadow-elevated animate-in fade-in slide-in-from-bottom-4 delay-150 fill-mode-both sm:p-6",
               statusFilter === "signed" &&
                 "ring-2 ring-primary ring-offset-4 border-primary/20",
             )}
@@ -390,14 +415,14 @@ export default function DashboardPage() {
             <p className="text-on-surface-variant text-sm font-bold mb-1 opacity-60">
               Accepterat värde
             </p>
-            <p className="text-4xl font-black tracking-tight text-foreground">
+            <p className="text-3xl font-black tracking-tight text-foreground sm:text-4xl">
               {formatCurrency(stats.totalValue)}
             </p>
           </section>
 
           <section
             className={cn(
-              "bg-surface-container-lowest p-6 rounded-[2.5rem] shadow-subtle border border-outline-variant/10 transition-all cursor-default animate-in fade-in slide-in-from-bottom-4 delay-300 fill-mode-both group",
+              "group cursor-default rounded-[2.25rem] border border-outline-variant/10 bg-surface-container-lowest p-5 shadow-subtle transition-all duration-500 animate-in fade-in slide-in-from-bottom-4 delay-300 fill-mode-both sm:p-6",
             )}
           >
             <div className="flex justify-between items-start mb-4">
@@ -411,53 +436,53 @@ export default function DashboardPage() {
             <p className="text-on-surface-variant text-sm font-bold mb-1 opacity-60">
               Konverteringsgrad
             </p>
-            <p className="text-4xl font-black tracking-tight text-foreground">
+            <p className="text-3xl font-black tracking-tight text-foreground sm:text-4xl">
               {stats.conversionRate.toFixed(1)}%
             </p>
           </section>
         </div>
 
-        <div className="flex flex-col md:flex-row gap-6 items-center justify-between bg-surface-container-low/30 p-6 rounded-[2.5rem] border border-outline-variant/10">
+        <div className="flex flex-col items-stretch justify-between gap-4 rounded-[2.25rem] border border-outline-variant/10 bg-surface-container-low/30 p-4 sm:gap-6 sm:p-6 md:flex-row md:items-center">
           <Tabs
             value={statusFilter}
             onValueChange={setStatusFilter}
             className="w-full md:w-auto"
           >
-            <TabsList className="bg-white p-1 rounded-2xl shadow-subtle h-14 w-full md:w-auto border border-outline-variant/5">
+            <TabsList className="h-14 w-full flex-nowrap justify-start overflow-x-auto rounded-2xl border border-outline-variant/5 bg-white p-1 shadow-subtle md:w-auto">
               <TabsTrigger
                 value="all"
-                className="rounded-xl px-6 h-12 data-[state=active]:bg-primary data-[state=active]:text-white font-black transition-all"
+                className="h-12 shrink-0 rounded-xl px-4 font-black transition-all data-[state=active]:bg-primary data-[state=active]:text-white sm:px-6"
               >
                 Alla
               </TabsTrigger>
               <TabsTrigger
                 value="draft"
-                className="rounded-xl px-6 h-12 data-[state=active]:bg-primary data-[state=active]:text-white font-black transition-all"
+                className="h-12 shrink-0 rounded-xl px-4 font-black transition-all data-[state=active]:bg-primary data-[state=active]:text-white sm:px-6"
               >
                 Utkast
               </TabsTrigger>
               <TabsTrigger
                 value="awaiting"
-                className="rounded-xl px-6 h-12 data-[state=active]:bg-primary data-[state=active]:text-white font-black transition-all"
+                className="h-12 shrink-0 rounded-xl px-4 font-black transition-all data-[state=active]:bg-primary data-[state=active]:text-white sm:px-6"
               >
                 Väntande
               </TabsTrigger>
               <TabsTrigger
                 value="signed"
-                className="rounded-xl px-6 h-12 data-[state=active]:bg-primary data-[state=active]:text-white font-black transition-all"
+                className="h-12 shrink-0 rounded-xl px-4 font-black transition-all data-[state=active]:bg-primary data-[state=active]:text-white sm:px-6"
               >
                 Signerade
               </TabsTrigger>
               <TabsTrigger
                 value="rejected"
-                className="rounded-xl px-6 h-12 data-[state=active]:bg-primary data-[state=active]:text-white font-black transition-all"
+                className="h-12 shrink-0 rounded-xl px-4 font-black transition-all data-[state=active]:bg-primary data-[state=active]:text-white sm:px-6"
               >
                 Avvisade
               </TabsTrigger>
             </TabsList>
           </Tabs>
 
-          <div className="flex items-center gap-4 w-full md:w-auto">
+          <div className="flex w-full flex-col gap-3 md:w-auto md:flex-row md:items-center md:gap-4">
             <div className="relative w-full md:w-72 group">
               <Search className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-on-surface-variant transition-colors group-focus-within:text-primary" />
               <Input
@@ -468,17 +493,17 @@ export default function DashboardPage() {
               />
             </div>
 
-            <div className="flex items-center gap-3">
+            <div className="grid grid-cols-2 gap-3 md:flex md:items-center">
               <Button
                 variant="outline"
-                size="icon"
-                className="h-14 w-14 rounded-2xl shadow-subtle border-none bg-white hover:bg-primary/5 hover:text-primary transition-all active:scale-95"
+                className="h-14 rounded-2xl border-none bg-white shadow-subtle transition-all active:scale-95 hover:bg-primary/5 hover:text-primary md:w-14 md:px-0"
                 onClick={() => setLocation("/templates")}
               >
-                <Layout size={20} />
+                <Layout size={20} className="md:mr-0 mr-2" />
+                <span className="font-black md:hidden">Mallar</span>
               </Button>
               <Button
-                className="h-14 px-8 rounded-2xl bg-primary-gradient font-black shadow-soft hover:shadow-elevated transition-all active:scale-95"
+                className="h-14 rounded-2xl bg-primary-gradient px-6 font-black shadow-soft transition-all active:scale-95 hover:shadow-elevated md:px-8"
                 onClick={() => setLocation("/templates")}
               >
                 <Plus size={20} className="mr-2" />
@@ -492,23 +517,23 @@ export default function DashboardPage() {
           {isLoading ? (
             <DashboardSkeleton />
           ) : filteredProposals.length === 0 ? (
-            <section className="rounded-[3rem] border border-dashed border-outline-variant/30 bg-white/50 px-6 py-32 text-center animate-in fade-in zoom-in-95 duration-700">
-              <div className="mx-auto mb-10 flex h-32 w-32 items-center justify-center rounded-[2.5rem] bg-primary/5 rotate-12 transition-transform hover:rotate-0 duration-500">
+            <section className="rounded-[2.5rem] border border-dashed border-outline-variant/30 bg-white/50 px-5 py-20 text-center animate-in fade-in zoom-in-95 duration-700 sm:px-6 sm:py-24 md:rounded-[3rem] md:py-32">
+              <div className="mx-auto mb-8 flex h-24 w-24 items-center justify-center rounded-[2rem] bg-primary/5 rotate-12 transition-transform duration-500 hover:rotate-0 sm:mb-10 sm:h-32 sm:w-32 sm:rounded-[2.5rem]">
                 <FileText className="h-16 w-16 text-primary/20" />
               </div>
-              <h2 className="text-4xl font-black tracking-tighter text-on-surface mb-4">
+              <h2 className="mb-4 text-3xl font-black tracking-tighter text-on-surface sm:text-4xl">
                 {search || statusFilter !== "all"
                   ? "Inga träffar"
                   : "Ditt arbetsbord är tomt"}
               </h2>
-              <p className="mx-auto max-w-md text-on-surface-variant/80 text-lg font-medium leading-relaxed mb-12">
+              <p className="mx-auto mb-10 max-w-md text-base font-medium leading-relaxed text-on-surface-variant/80 sm:mb-12 sm:text-lg">
                 {search || statusFilter !== "all"
                   ? "Vi hittade ingen offert som matchar din sökning eller filter. Försök att ändra filterinställningarna."
                   : "Skapa din första offert för att komma igång. Du kan börja från scratch eller använda en färdig mall."}
               </p>
               
               {!search && statusFilter === "all" ? (
-                <div className="flex flex-wrap justify-center gap-4">
+                <div className="flex flex-wrap justify-center gap-3 sm:gap-4">
                   {(Object.keys(TEMPLATE_CATEGORY_LABELS) as Array<keyof typeof TEMPLATE_CATEGORY_LABELS>).filter(k => k !== "alla").map((cat) => (
                     <Button
                       key={cat}
@@ -540,8 +565,85 @@ export default function DashboardPage() {
               )}
             </section>
           ) : (
-            <div className="overflow-hidden rounded-[2.5rem] border border-outline-variant/10 bg-white shadow-subtle animate-in fade-in slide-in-from-bottom-8 duration-1000">
-              <div className="overflow-x-auto">
+            <div className="animate-in fade-in slide-in-from-bottom-8 duration-1000">
+              <div className="space-y-4 md:hidden">
+                {filteredProposals.map((proposal) => (
+                  <section
+                    key={proposal.id}
+                    className="rounded-[2rem] border border-outline-variant/10 bg-white p-5 shadow-subtle"
+                  >
+                    <div className="flex items-start justify-between gap-3">
+                      <button
+                        type="button"
+                        className="min-w-0 flex-1 text-left"
+                        onClick={() => setLocation(`/proposal/${proposal.id}`)}
+                      >
+                        <h3 className="line-clamp-2 text-lg font-black tracking-tight text-on-surface">
+                          {proposal.title}
+                        </h3>
+                        <p className="mt-1 text-[11px] font-black uppercase tracking-[0.18em] text-on-surface-variant/45">
+                          {proposal.clientName || "Namnlös kund"}
+                        </p>
+                      </button>
+                      <StatusBadge status={proposal.status} />
+                    </div>
+
+                    <div className="mt-5 grid grid-cols-2 gap-3">
+                      <div className="rounded-2xl bg-surface-container-low/40 px-4 py-3">
+                        <p className="text-[10px] font-black uppercase tracking-[0.16em] text-on-surface-variant/45">
+                          Värde
+                        </p>
+                        <p className="mt-2 text-base font-black tracking-tight text-on-surface">
+                          {formatCurrency(proposal.totalValue)}
+                        </p>
+                      </div>
+                      <div className="rounded-2xl bg-surface-container-low/40 px-4 py-3">
+                        <p className="text-[10px] font-black uppercase tracking-[0.16em] text-on-surface-variant/45">
+                          Senast ändrad
+                        </p>
+                        <p className="mt-2 text-xs font-black uppercase tracking-[0.14em] text-on-surface-variant/70">
+                          {formatDate(proposal.updatedAt)}
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="mt-4 grid grid-cols-2 gap-2">
+                      <Button
+                        variant="outline"
+                        className="h-11 rounded-2xl border-outline-variant/10 bg-white font-black"
+                        onClick={() => setLocation(`/proposal/${proposal.id}`)}
+                      >
+                        <FileText className="mr-2 h-4 w-4" />
+                        Öppna
+                      </Button>
+                      <Button
+                        variant="outline"
+                        className="h-11 rounded-2xl border-outline-variant/10 bg-white font-black"
+                        onClick={() =>
+                          window.open(
+                            `${import.meta.env.BASE_URL}p/${proposal.publicSlug}`,
+                            "_blank",
+                          )
+                        }
+                      >
+                        <Eye className="mr-2 h-4 w-4" />
+                        Webbvy
+                      </Button>
+                    </div>
+                    <Button
+                      variant="ghost"
+                      className="mt-2 h-11 w-full rounded-2xl font-black text-error hover:bg-error/10 hover:text-error"
+                      onClick={() => deleteProposal(proposal.id)}
+                    >
+                      <Trash2 className="mr-2 h-4 w-4" />
+                      Radera permanent
+                    </Button>
+                  </section>
+                ))}
+              </div>
+
+              <div className="hidden overflow-hidden rounded-[2.5rem] border border-outline-variant/10 bg-white shadow-subtle md:block">
+                <div className="overflow-x-auto">
                 <table className="w-full border-collapse text-left min-w-[800px]">
                   <thead>
                     <tr className="border-b border-outline-variant/5 bg-surface-container-low/30 text-[10px] font-black uppercase tracking-[0.2em] text-on-surface-variant/40">
@@ -637,6 +739,7 @@ export default function DashboardPage() {
                     ))}
                   </tbody>
                 </table>
+                </div>
               </div>
             </div>
           )}

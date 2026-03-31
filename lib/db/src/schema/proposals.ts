@@ -110,12 +110,15 @@ export const proposalsTable = pgTable("proposals", {
   branding: jsonb("branding")
     .notNull()
     .default({
-      accentColor: "#FF5C00",
+      accentColor: "#4e45e4",
       fontPairing: "modern",
       coverEnabled: true,
       coverBackground: "#0F172A",
       logoPosition: "left",
       dividerStyle: "line",
+      glassmorphismEnabled: false,
+      vibePreset: "architectural",
+      gradientEnabled: false,
     }),
   parties: jsonb("parties").$type<ProposalParties>().notNull().default(createDefaultProposalParties()),
   personalMessage: text("personal_message"),

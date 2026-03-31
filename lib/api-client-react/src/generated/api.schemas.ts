@@ -118,6 +118,16 @@ export const ProposalBrandingDividerStyle = {
   decorative: "decorative",
 } as const;
 
+export type ProposalBrandingVibePreset =
+  (typeof ProposalBrandingVibePreset)[keyof typeof ProposalBrandingVibePreset];
+
+export const ProposalBrandingVibePreset = {
+  architectural: "architectural",
+  editorial: "editorial",
+  glass: "glass",
+  minimal: "minimal",
+} as const;
+
 export interface ProposalBranding {
   logoUrl?: string;
   accentColor: string;
@@ -129,6 +139,9 @@ export interface ProposalBranding {
   coverSubheadline?: string;
   logoPosition?: ProposalBrandingLogoPosition;
   dividerStyle?: ProposalBrandingDividerStyle;
+  glassmorphismEnabled?: boolean;
+  vibePreset?: ProposalBrandingVibePreset;
+  gradientEnabled?: boolean;
 }
 
 export type DocumentDesignSettingsFontPairing =
@@ -158,6 +171,16 @@ export const DocumentDesignSettingsDividerStyle = {
   decorative: "decorative",
 } as const;
 
+export type DocumentDesignSettingsVibePreset =
+  (typeof DocumentDesignSettingsVibePreset)[keyof typeof DocumentDesignSettingsVibePreset];
+
+export const DocumentDesignSettingsVibePreset = {
+  architectural: "architectural",
+  editorial: "editorial",
+  glass: "glass",
+  minimal: "minimal",
+} as const;
+
 export interface DocumentDesignSettings {
   logoUrl?: string;
   accentColor: string;
@@ -168,6 +191,9 @@ export interface DocumentDesignSettings {
   coverSubheadline?: string;
   logoPosition: DocumentDesignSettingsLogoPosition;
   dividerStyle: DocumentDesignSettingsDividerStyle;
+  glassmorphismEnabled?: boolean;
+  vibePreset?: DocumentDesignSettingsVibePreset;
+  gradientEnabled?: boolean;
 }
 
 export type TemplateCategory =
@@ -241,6 +267,27 @@ export interface Proposal {
   signingRecipientEmail?: string;
   resendEmailId?: string;
   auditSummary?: ProposalAuditSummary;
+}
+
+export interface PublicProposalView {
+  id: number;
+  title: string;
+  clientName: string;
+  clientEmail?: string;
+  status: ProposalStatus;
+  totalValue: number;
+  publicSlug: string;
+  templateId?: number;
+  sections: ProposalSection[];
+  branding: ProposalBranding;
+  parties: ProposalParties;
+  personalMessage?: string;
+  signedByName?: string;
+  signatureInitials?: string;
+  signedAt?: string;
+  createdAt: string;
+  updatedAt: string;
+  lastActivityAt?: string;
 }
 
 export interface Template {

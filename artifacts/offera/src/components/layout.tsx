@@ -59,8 +59,8 @@ export function Layout({ children }: LayoutProps) {
 
   if (isFocusRoute) {
     return (
-      <div className="min-h-screen bg-background text-on-surface antialiased overflow-hidden">
-        <main className="h-screen w-screen overflow-hidden bg-background">
+      <div className="min-h-[100dvh] bg-background text-on-surface antialiased overflow-hidden">
+        <main className="h-[100dvh] w-screen overflow-hidden bg-background">
           {children}
         </main>
       </div>
@@ -182,9 +182,9 @@ export function Layout({ children }: LayoutProps) {
       </aside>
 
       {/* Main Content & TopNav Wrapper */}
-      <div className="flex-1 flex flex-col h-screen overflow-hidden relative">
+      <div className="relative flex h-[100dvh] flex-1 flex-col overflow-hidden">
         {/* TopNavBar */}
-        <nav className="h-16 shrink-0 flex items-center justify-between px-6 md:px-12 border-b border-outline-variant/15 glassmorphism z-40 transition-all duration-300">
+        <nav className="z-40 flex h-16 shrink-0 items-center justify-between border-b border-outline-variant/15 px-4 glassmorphism transition-all duration-300 sm:px-6 md:px-12">
           <div className="flex items-center gap-4">
             <button
               onClick={() => setIsSidebarOpen(!isSidebarOpen)}
@@ -199,13 +199,13 @@ export function Layout({ children }: LayoutProps) {
 
             <button
               onClick={() => setLocation("/settings")}
-              className="flex items-center gap-3 pl-2 active:scale-95 transition-transform duration-200 group"
+              className="group flex min-w-0 items-center gap-2 pl-1 transition-transform duration-200 active:scale-95 sm:gap-3 sm:pl-2"
             >
-              <div className="text-right hidden sm:block">
-                <p className="text-xs font-bold leading-none mb-0.5 group-hover:text-primary transition-colors">
+              <div className="hidden min-w-0 text-right sm:block">
+                <p className="mb-0.5 truncate text-xs font-bold leading-none transition-colors group-hover:text-primary">
                   {displayName}
                 </p>
-                <p className="text-[10px] text-on-surface-variant">
+                <p className="truncate text-[10px] text-on-surface-variant">
                   {displayMeta}
                 </p>
               </div>
@@ -220,17 +220,17 @@ export function Layout({ children }: LayoutProps) {
         </nav>
 
         {/* Dynamic Page Content */}
-        <main className="flex-1 overflow-y-auto overflow-x-hidden p-6 md:p-12 scroll-smooth bg-surface pb-32 lg:pb-12">
+        <main className="flex-1 scroll-smooth overflow-x-hidden overflow-y-auto bg-surface px-4 py-4 pb-28 sm:px-6 sm:py-6 sm:pb-32 md:px-8 md:py-8 lg:px-12 lg:py-12 lg:pb-12">
           {children}
         </main>
       </div>
 
       {/* Bottom HUD (Mobile Only) */}
-      <div className="fixed bottom-8 left-1/2 -translate-x-1/2 z-50 flex items-center justify-around gap-2 p-2 shadow-elevated md:hidden glassmorphism rounded-full min-w-[280px] max-w-[90vw] animate-in slide-in-from-bottom-10 fade-in duration-500">
+      <div className="fixed bottom-4 left-1/2 z-50 flex w-[calc(100vw-1.25rem)] max-w-[30rem] -translate-x-1/2 items-center justify-around gap-1 rounded-full p-1.5 shadow-elevated glassmorphism animate-in slide-in-from-bottom-10 fade-in duration-500 md:hidden">
         <Link
           href="/"
           className={cn(
-            "flex-1 flex flex-col items-center gap-1 py-3 rounded-full transition-all min-h-[44px]",
+            "flex min-h-[52px] flex-1 flex-col items-center justify-center gap-1 rounded-full px-1 py-2 transition-all",
             location === "/"
               ? "bg-primary text-white"
               : "text-on-surface-variant",
@@ -244,7 +244,7 @@ export function Layout({ children }: LayoutProps) {
         <Link
           href="/templates"
           className={cn(
-            "flex-1 flex flex-col items-center gap-1 py-3 rounded-full transition-all min-h-[44px]",
+            "flex min-h-[52px] flex-1 flex-col items-center justify-center gap-1 rounded-full px-1 py-2 transition-all",
             location === "/templates"
               ? "bg-primary text-white"
               : "text-on-surface-variant",
@@ -256,9 +256,23 @@ export function Layout({ children }: LayoutProps) {
           </span>
         </Link>
         <Link
+          href="/archive"
+          className={cn(
+            "flex min-h-[52px] flex-1 flex-col items-center justify-center gap-1 rounded-full px-1 py-2 transition-all",
+            location === "/archive"
+              ? "bg-primary text-white"
+              : "text-on-surface-variant",
+          )}
+        >
+          <ArchiveIcon size={18} />
+          <span className="text-[8px] font-bold uppercase tracking-widest">
+            Arkiv
+          </span>
+        </Link>
+        <Link
           href="/settings"
           className={cn(
-            "flex-1 flex flex-col items-center gap-1 py-3 rounded-full transition-all min-h-[44px]",
+            "flex min-h-[52px] flex-1 flex-col items-center justify-center gap-1 rounded-full px-1 py-2 transition-all",
             location === "/settings"
               ? "bg-primary text-white"
               : "text-on-surface-variant",

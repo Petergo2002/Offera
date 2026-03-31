@@ -18,6 +18,10 @@ export const HealthCheckResponse = zod.object({
 /**
  * @summary List all proposals
  */
+export const listProposalsResponseBrandingGlassmorphismEnabledDefault = false;
+export const listProposalsResponseBrandingVibePresetDefault = `architectural`;
+export const listProposalsResponseBrandingGradientEnabledDefault = false;
+
 export const ListProposalsResponseItem = zod.object({
   id: zod.number(),
   title: zod.string(),
@@ -72,6 +76,15 @@ export const ListProposalsResponseItem = zod.object({
     coverSubheadline: zod.string().optional(),
     logoPosition: zod.enum(["left", "center", "right"]).optional(),
     dividerStyle: zod.enum(["line", "space", "decorative"]).optional(),
+    glassmorphismEnabled: zod
+      .boolean()
+      .default(listProposalsResponseBrandingGlassmorphismEnabledDefault),
+    vibePreset: zod
+      .enum(["architectural", "editorial", "glass", "minimal"])
+      .default(listProposalsResponseBrandingVibePresetDefault),
+    gradientEnabled: zod
+      .boolean()
+      .default(listProposalsResponseBrandingGradientEnabledDefault),
   }),
   parties: zod.object({
     sender: zod.object({
@@ -142,6 +155,10 @@ export const GetProposalParams = zod.object({
   id: zod.coerce.number(),
 });
 
+export const getProposalResponseBrandingGlassmorphismEnabledDefault = false;
+export const getProposalResponseBrandingVibePresetDefault = `architectural`;
+export const getProposalResponseBrandingGradientEnabledDefault = false;
+
 export const GetProposalResponse = zod.object({
   id: zod.number(),
   title: zod.string(),
@@ -196,6 +213,15 @@ export const GetProposalResponse = zod.object({
     coverSubheadline: zod.string().optional(),
     logoPosition: zod.enum(["left", "center", "right"]).optional(),
     dividerStyle: zod.enum(["line", "space", "decorative"]).optional(),
+    glassmorphismEnabled: zod
+      .boolean()
+      .default(getProposalResponseBrandingGlassmorphismEnabledDefault),
+    vibePreset: zod
+      .enum(["architectural", "editorial", "glass", "minimal"])
+      .default(getProposalResponseBrandingVibePresetDefault),
+    gradientEnabled: zod
+      .boolean()
+      .default(getProposalResponseBrandingGradientEnabledDefault),
   }),
   parties: zod.object({
     sender: zod.object({
@@ -255,6 +281,10 @@ export const UpdateProposalParams = zod.object({
   id: zod.coerce.number(),
 });
 
+export const updateProposalBodyBrandingGlassmorphismEnabledDefault = false;
+export const updateProposalBodyBrandingVibePresetDefault = `architectural`;
+export const updateProposalBodyBrandingGradientEnabledDefault = false;
+
 export const UpdateProposalBody = zod.object({
   title: zod.string().optional(),
   clientName: zod.string().optional(),
@@ -307,6 +337,15 @@ export const UpdateProposalBody = zod.object({
       coverSubheadline: zod.string().optional(),
       logoPosition: zod.enum(["left", "center", "right"]).optional(),
       dividerStyle: zod.enum(["line", "space", "decorative"]).optional(),
+      glassmorphismEnabled: zod
+        .boolean()
+        .default(updateProposalBodyBrandingGlassmorphismEnabledDefault),
+      vibePreset: zod
+        .enum(["architectural", "editorial", "glass", "minimal"])
+        .default(updateProposalBodyBrandingVibePresetDefault),
+      gradientEnabled: zod
+        .boolean()
+        .default(updateProposalBodyBrandingGradientEnabledDefault),
     })
     .optional(),
   parties: zod
@@ -341,6 +380,10 @@ export const UpdateProposalBody = zod.object({
     .optional(),
   totalValue: zod.number().optional(),
 });
+
+export const updateProposalResponseBrandingGlassmorphismEnabledDefault = false;
+export const updateProposalResponseBrandingVibePresetDefault = `architectural`;
+export const updateProposalResponseBrandingGradientEnabledDefault = false;
 
 export const UpdateProposalResponse = zod.object({
   id: zod.number(),
@@ -396,6 +439,15 @@ export const UpdateProposalResponse = zod.object({
     coverSubheadline: zod.string().optional(),
     logoPosition: zod.enum(["left", "center", "right"]).optional(),
     dividerStyle: zod.enum(["line", "space", "decorative"]).optional(),
+    glassmorphismEnabled: zod
+      .boolean()
+      .default(updateProposalResponseBrandingGlassmorphismEnabledDefault),
+    vibePreset: zod
+      .enum(["architectural", "editorial", "glass", "minimal"])
+      .default(updateProposalResponseBrandingVibePresetDefault),
+    gradientEnabled: zod
+      .boolean()
+      .default(updateProposalResponseBrandingGradientEnabledDefault),
   }),
   parties: zod.object({
     sender: zod.object({
@@ -467,6 +519,10 @@ export const SendProposalBody = zod.object({
   personalMessage: zod.string().optional(),
 });
 
+export const sendProposalResponseBrandingGlassmorphismEnabledDefault = false;
+export const sendProposalResponseBrandingVibePresetDefault = `architectural`;
+export const sendProposalResponseBrandingGradientEnabledDefault = false;
+
 export const SendProposalResponse = zod.object({
   id: zod.number(),
   title: zod.string(),
@@ -521,6 +577,15 @@ export const SendProposalResponse = zod.object({
     coverSubheadline: zod.string().optional(),
     logoPosition: zod.enum(["left", "center", "right"]).optional(),
     dividerStyle: zod.enum(["line", "space", "decorative"]).optional(),
+    glassmorphismEnabled: zod
+      .boolean()
+      .default(sendProposalResponseBrandingGlassmorphismEnabledDefault),
+    vibePreset: zod
+      .enum(["architectural", "editorial", "glass", "minimal"])
+      .default(sendProposalResponseBrandingVibePresetDefault),
+    gradientEnabled: zod
+      .boolean()
+      .default(sendProposalResponseBrandingGradientEnabledDefault),
   }),
   parties: zod.object({
     sender: zod.object({
@@ -574,11 +639,15 @@ export const SendProposalResponse = zod.object({
 });
 
 /**
- * @summary Get a proposal by public slug (no auth)
+ * @summary Get a proposal by public slug (requires signing token or workspace auth)
  */
 export const GetPublicProposalParams = zod.object({
   slug: zod.coerce.string(),
 });
+
+export const getPublicProposalResponseBrandingGlassmorphismEnabledDefault = false;
+export const getPublicProposalResponseBrandingVibePresetDefault = `architectural`;
+export const getPublicProposalResponseBrandingGradientEnabledDefault = false;
 
 export const GetPublicProposalResponse = zod.object({
   id: zod.number(),
@@ -634,6 +703,15 @@ export const GetPublicProposalResponse = zod.object({
     coverSubheadline: zod.string().optional(),
     logoPosition: zod.enum(["left", "center", "right"]).optional(),
     dividerStyle: zod.enum(["line", "space", "decorative"]).optional(),
+    glassmorphismEnabled: zod
+      .boolean()
+      .default(getPublicProposalResponseBrandingGlassmorphismEnabledDefault),
+    vibePreset: zod
+      .enum(["architectural", "editorial", "glass", "minimal"])
+      .default(getPublicProposalResponseBrandingVibePresetDefault),
+    gradientEnabled: zod
+      .boolean()
+      .default(getPublicProposalResponseBrandingGradientEnabledDefault),
   }),
   parties: zod.object({
     sender: zod.object({
@@ -666,24 +744,10 @@ export const GetPublicProposalResponse = zod.object({
   personalMessage: zod.string().optional(),
   signedByName: zod.string().optional(),
   signatureInitials: zod.string().optional(),
-  signatureDataUrl: zod.string().optional(),
   signedAt: zod.coerce.date().optional(),
   createdAt: zod.coerce.date(),
   updatedAt: zod.coerce.date(),
   lastActivityAt: zod.coerce.date().optional(),
-  revisionId: zod.number().optional(),
-  snapshotHash: zod.string().optional(),
-  sentAt: zod.coerce.date().optional(),
-  viewedAt: zod.coerce.date().optional(),
-  signingRecipientEmail: zod.string().optional(),
-  resendEmailId: zod.string().optional(),
-  auditSummary: zod
-    .object({
-      eventCount: zod.number(),
-      lastEventAt: zod.coerce.date().optional(),
-      lastEventType: zod.string().optional(),
-    })
-    .optional(),
 });
 
 /**
@@ -736,6 +800,10 @@ export const RespondToProposalBody = zod.object({
     .optional(),
   termsAccepted: zod.boolean().optional(),
 });
+
+export const respondToProposalResponseBrandingGlassmorphismEnabledDefault = false;
+export const respondToProposalResponseBrandingVibePresetDefault = `architectural`;
+export const respondToProposalResponseBrandingGradientEnabledDefault = false;
 
 export const RespondToProposalResponse = zod.object({
   id: zod.number(),
@@ -791,6 +859,15 @@ export const RespondToProposalResponse = zod.object({
     coverSubheadline: zod.string().optional(),
     logoPosition: zod.enum(["left", "center", "right"]).optional(),
     dividerStyle: zod.enum(["line", "space", "decorative"]).optional(),
+    glassmorphismEnabled: zod
+      .boolean()
+      .default(respondToProposalResponseBrandingGlassmorphismEnabledDefault),
+    vibePreset: zod
+      .enum(["architectural", "editorial", "glass", "minimal"])
+      .default(respondToProposalResponseBrandingVibePresetDefault),
+    gradientEnabled: zod
+      .boolean()
+      .default(respondToProposalResponseBrandingGradientEnabledDefault),
   }),
   parties: zod.object({
     sender: zod.object({
@@ -823,29 +900,19 @@ export const RespondToProposalResponse = zod.object({
   personalMessage: zod.string().optional(),
   signedByName: zod.string().optional(),
   signatureInitials: zod.string().optional(),
-  signatureDataUrl: zod.string().optional(),
   signedAt: zod.coerce.date().optional(),
   createdAt: zod.coerce.date(),
   updatedAt: zod.coerce.date(),
   lastActivityAt: zod.coerce.date().optional(),
-  revisionId: zod.number().optional(),
-  snapshotHash: zod.string().optional(),
-  sentAt: zod.coerce.date().optional(),
-  viewedAt: zod.coerce.date().optional(),
-  signingRecipientEmail: zod.string().optional(),
-  resendEmailId: zod.string().optional(),
-  auditSummary: zod
-    .object({
-      eventCount: zod.number(),
-      lastEventAt: zod.coerce.date().optional(),
-      lastEventType: zod.string().optional(),
-    })
-    .optional(),
 });
 
 /**
  * @summary List all templates
  */
+export const listTemplatesResponseDesignSettingsGlassmorphismEnabledDefault = false;
+export const listTemplatesResponseDesignSettingsVibePresetDefault = `architectural`;
+export const listTemplatesResponseDesignSettingsGradientEnabledDefault = false;
+
 export const ListTemplatesResponseItem = zod.object({
   id: zod.number(),
   name: zod.string(),
@@ -861,6 +928,15 @@ export const ListTemplatesResponseItem = zod.object({
     coverSubheadline: zod.string().optional(),
     logoPosition: zod.enum(["left", "center", "right"]),
     dividerStyle: zod.enum(["line", "space", "decorative"]),
+    glassmorphismEnabled: zod
+      .boolean()
+      .default(listTemplatesResponseDesignSettingsGlassmorphismEnabledDefault),
+    vibePreset: zod
+      .enum(["architectural", "editorial", "glass", "minimal"])
+      .default(listTemplatesResponseDesignSettingsVibePresetDefault),
+    gradientEnabled: zod
+      .boolean()
+      .default(listTemplatesResponseDesignSettingsGradientEnabledDefault),
   }),
   isBuiltIn: zod.boolean(),
   usageCount: zod.number(),
@@ -906,6 +982,10 @@ export const ListTemplatesResponse = zod.array(ListTemplatesResponseItem);
 /**
  * @summary Create a new template
  */
+export const createTemplateBodyDesignSettingsGlassmorphismEnabledDefault = false;
+export const createTemplateBodyDesignSettingsVibePresetDefault = `architectural`;
+export const createTemplateBodyDesignSettingsGradientEnabledDefault = false;
+
 export const CreateTemplateBody = zod.object({
   name: zod.string(),
   description: zod.string().optional(),
@@ -957,6 +1037,15 @@ export const CreateTemplateBody = zod.object({
       coverSubheadline: zod.string().optional(),
       logoPosition: zod.enum(["left", "center", "right"]),
       dividerStyle: zod.enum(["line", "space", "decorative"]),
+      glassmorphismEnabled: zod
+        .boolean()
+        .default(createTemplateBodyDesignSettingsGlassmorphismEnabledDefault),
+      vibePreset: zod
+        .enum(["architectural", "editorial", "glass", "minimal"])
+        .default(createTemplateBodyDesignSettingsVibePresetDefault),
+      gradientEnabled: zod
+        .boolean()
+        .default(createTemplateBodyDesignSettingsGradientEnabledDefault),
     })
     .optional(),
   sourceProposalId: zod.number().optional(),
@@ -968,6 +1057,10 @@ export const CreateTemplateBody = zod.object({
 export const GetTemplateParams = zod.object({
   id: zod.coerce.number(),
 });
+
+export const getTemplateResponseDesignSettingsGlassmorphismEnabledDefault = false;
+export const getTemplateResponseDesignSettingsVibePresetDefault = `architectural`;
+export const getTemplateResponseDesignSettingsGradientEnabledDefault = false;
 
 export const GetTemplateResponse = zod.object({
   id: zod.number(),
@@ -984,6 +1077,15 @@ export const GetTemplateResponse = zod.object({
     coverSubheadline: zod.string().optional(),
     logoPosition: zod.enum(["left", "center", "right"]),
     dividerStyle: zod.enum(["line", "space", "decorative"]),
+    glassmorphismEnabled: zod
+      .boolean()
+      .default(getTemplateResponseDesignSettingsGlassmorphismEnabledDefault),
+    vibePreset: zod
+      .enum(["architectural", "editorial", "glass", "minimal"])
+      .default(getTemplateResponseDesignSettingsVibePresetDefault),
+    gradientEnabled: zod
+      .boolean()
+      .default(getTemplateResponseDesignSettingsGradientEnabledDefault),
   }),
   isBuiltIn: zod.boolean(),
   usageCount: zod.number(),
@@ -1031,6 +1133,10 @@ export const GetTemplateResponse = zod.object({
 export const UpdateTemplateParams = zod.object({
   id: zod.coerce.number(),
 });
+
+export const updateTemplateBodyDesignSettingsGlassmorphismEnabledDefault = false;
+export const updateTemplateBodyDesignSettingsVibePresetDefault = `architectural`;
+export const updateTemplateBodyDesignSettingsGradientEnabledDefault = false;
 
 export const UpdateTemplateBody = zod.object({
   name: zod.string().optional(),
@@ -1083,9 +1189,22 @@ export const UpdateTemplateBody = zod.object({
       coverSubheadline: zod.string().optional(),
       logoPosition: zod.enum(["left", "center", "right"]),
       dividerStyle: zod.enum(["line", "space", "decorative"]),
+      glassmorphismEnabled: zod
+        .boolean()
+        .default(updateTemplateBodyDesignSettingsGlassmorphismEnabledDefault),
+      vibePreset: zod
+        .enum(["architectural", "editorial", "glass", "minimal"])
+        .default(updateTemplateBodyDesignSettingsVibePresetDefault),
+      gradientEnabled: zod
+        .boolean()
+        .default(updateTemplateBodyDesignSettingsGradientEnabledDefault),
     })
     .optional(),
 });
+
+export const updateTemplateResponseDesignSettingsGlassmorphismEnabledDefault = false;
+export const updateTemplateResponseDesignSettingsVibePresetDefault = `architectural`;
+export const updateTemplateResponseDesignSettingsGradientEnabledDefault = false;
 
 export const UpdateTemplateResponse = zod.object({
   id: zod.number(),
@@ -1102,6 +1221,15 @@ export const UpdateTemplateResponse = zod.object({
     coverSubheadline: zod.string().optional(),
     logoPosition: zod.enum(["left", "center", "right"]),
     dividerStyle: zod.enum(["line", "space", "decorative"]),
+    glassmorphismEnabled: zod
+      .boolean()
+      .default(updateTemplateResponseDesignSettingsGlassmorphismEnabledDefault),
+    vibePreset: zod
+      .enum(["architectural", "editorial", "glass", "minimal"])
+      .default(updateTemplateResponseDesignSettingsVibePresetDefault),
+    gradientEnabled: zod
+      .boolean()
+      .default(updateTemplateResponseDesignSettingsGradientEnabledDefault),
   }),
   isBuiltIn: zod.boolean(),
   usageCount: zod.number(),

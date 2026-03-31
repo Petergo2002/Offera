@@ -156,7 +156,7 @@ paths:
     get:
       operationId: getPublicProposal
       tags: [proposals]
-      summary: Get a proposal by public slug (no auth)
+      summary: Get a proposal by public slug (requires signing token or workspace auth)
       parameters:
         - name: slug
           in: path
@@ -169,9 +169,15 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Proposal"
+                $ref: "#/components/schemas/PublicProposalView"
         "404":
           description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: Missing or invalid access link
           content:
             application/json:
               schema:
@@ -200,7 +206,19 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Proposal"
+                $ref: "#/components/schemas/PublicProposalView"
+        "403":
+          description: Missing or invalid signing link
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "409":
+          description: Proposal already responded to
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
 
   /templates:
     get:
@@ -448,6 +466,16 @@ components:
         dividerStyle:
           type: string
           enum: [line, space, decorative]
+        glassmorphismEnabled:
+          type: boolean
+          default: false
+        vibePreset:
+          type: string
+          enum: [architectural, editorial, glass, minimal]
+          default: architectural
+        gradientEnabled:
+          type: boolean
+          default: false
       required:
         - accentColor
 
@@ -475,6 +503,16 @@ components:
         dividerStyle:
           type: string
           enum: [line, space, decorative]
+        glassmorphismEnabled:
+          type: boolean
+          default: false
+        vibePreset:
+          type: string
+          enum: [architectural, editorial, glass, minimal]
+          default: architectural
+        gradientEnabled:
+          type: boolean
+          default: false
       required:
         - accentColor
         - fontPairing
@@ -614,6 +652,64 @@ components:
           type: string
         auditSummary:
           $ref: "#/components/schemas/ProposalAuditSummary"
+      required:
+        - id
+        - title
+        - clientName
+        - status
+        - totalValue
+        - publicSlug
+        - sections
+        - branding
+        - parties
+        - createdAt
+        - updatedAt
+
+    PublicProposalView:
+      type: object
+      properties:
+        id:
+          type: integer
+        title:
+          type: string
+        clientName:
+          type: string
+        clientEmail:
+          type: string
+        status:
+          $ref: "#/components/schemas/ProposalStatus"
+        totalValue:
+          type: number
+        publicSlug:
+          type: string
+        templateId:
+          type: integer
+        sections:
+          type: array
+          items:
+            $ref: "#/components/schemas/ProposalSection"
+        branding:
+          $ref: "#/components/schemas/ProposalBranding"
+        parties:
+          $ref: "#/components/schemas/ProposalParties"
+        personalMessage:
+          type: string
+        signedByName:
+          type: string
+        signatureInitials:
+          type: string
+        signedAt:
+          type: string
+          format: date-time
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+        lastActivityAt:
+          type: string
+          format: date-time
       required:
         - id
         - title

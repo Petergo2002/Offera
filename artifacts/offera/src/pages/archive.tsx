@@ -267,7 +267,7 @@ export default function ArchivePage() {
   };
 
   return (
-    <div className="mx-auto max-w-6xl space-y-10 pb-20">
+    <div className="mx-auto max-w-6xl space-y-8 pb-20 md:space-y-10">
       <Dialog
         open={Boolean(selectedProposal)}
         onOpenChange={(open) => {
@@ -276,12 +276,12 @@ export default function ArchivePage() {
           }
         }}
       >
-        <DialogContent className="max-h-[92vh] w-[calc(100vw-2rem)] max-w-6xl overflow-hidden border-none bg-surface p-0 shadow-2xl rounded-[2.5rem] sm:w-full flex flex-col">
+        <DialogContent className="flex max-h-[92vh] w-[calc(100vw-1rem)] max-w-6xl flex-col overflow-hidden rounded-[2rem] border-none bg-surface p-0 shadow-2xl sm:w-[calc(100vw-2rem)] sm:rounded-[2.5rem]">
           {selectedProposal ? (
             <div className="flex flex-col h-full bg-[#F8FAFC] overflow-hidden">
               {/* Premium Glass Header */}
-              <div className="relative border-b border-slate-200/60 bg-white/70 backdrop-blur-xl px-8 py-8 z-10">
-                <div className="flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between">
+              <div className="relative z-10 border-b border-slate-200/60 bg-white/70 px-5 py-5 backdrop-blur-xl sm:px-8 sm:py-8">
+                <div className="flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
                   <div className="space-y-1.5">
                     <div className="flex items-center gap-2.5">
                       <div 
@@ -294,13 +294,13 @@ export default function ArchivePage() {
                         Arkiverad Offert
                       </p>
                     </div>
-                    <h2 className="text-3xl font-black tracking-tight text-slate-900 font-display">
+                    <h2 className="font-display text-2xl font-black tracking-tight text-slate-900 sm:text-3xl">
                       {selectedProposal.title}
                     </h2>
                   </div>
                   
-                  <div className="flex items-center gap-5">
-                    <div className="text-right">
+                  <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-5">
+                    <div className="text-left sm:text-right">
                       <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1">
                         Totalvärde
                       </p>
@@ -308,7 +308,7 @@ export default function ArchivePage() {
                         {formatCurrency(selectedProposal.totalValue)}
                       </p>
                     </div>
-                    <div className="h-10 w-px bg-slate-200 mx-1" />
+                    <div className="mx-1 hidden h-10 w-px bg-slate-200 sm:block" />
                     <StatusBadge status={selectedProposal.status} />
                   </div>
                 </div>
@@ -316,13 +316,13 @@ export default function ArchivePage() {
 
               {/* Main Contents - Two Column Layout */}
               <div className="flex-1 overflow-y-auto custom-scrollbar">
-                <div className="grid grid-cols-1 lg:grid-cols-12 gap-0 min-h-full">
+                <div className="grid min-h-full grid-cols-1 gap-0 lg:grid-cols-12">
                   
                   {/* LEFT COLUMN: Proposal Data (60%) */}
-                  <div className="lg:col-span-7 p-8 lg:p-12 space-y-10">
+                  <div className="space-y-8 p-5 sm:p-6 lg:col-span-7 lg:space-y-10 lg:p-12">
                     
                     {/* Parties Section */}
-                    <div className="grid gap-8 md:grid-cols-2">
+                    <div className="grid gap-6 md:grid-cols-2 lg:gap-8">
                       <div className="space-y-4">
                         <div className="flex items-center gap-3 text-slate-900 mb-2">
                           <div className="w-9 h-9 rounded-xl bg-white shadow-sm border border-slate-100 flex items-center justify-center text-slate-500">
@@ -331,7 +331,7 @@ export default function ArchivePage() {
                           <h3 className="font-bold tracking-tight">Mottagare</h3>
                         </div>
                         
-                        <div className="bg-white rounded-3xl p-6 shadow-sm border border-slate-100 space-y-4 text-sm">
+                        <div className="space-y-4 rounded-3xl border border-slate-100 bg-white p-5 text-sm shadow-sm sm:p-6">
                           <div className="space-y-1">
                             <Label className="text-[9px] font-black uppercase tracking-wider text-slate-400">Företag / Namn</Label>
                             <p className="font-bold text-slate-900">{detailValue(selectedProposal.parties.recipient.companyName)}</p>
@@ -367,7 +367,7 @@ export default function ArchivePage() {
                           <h3 className="font-bold tracking-tight">Avsändare</h3>
                         </div>
                         
-                        <div className="bg-white rounded-3xl p-6 shadow-sm border border-slate-100 space-y-4 text-sm">
+                        <div className="space-y-4 rounded-3xl border border-slate-100 bg-white p-5 text-sm shadow-sm sm:p-6">
                           <div className="space-y-1">
                             <Label className="text-[9px] font-black uppercase tracking-wider text-slate-400">Ditt företag</Label>
                             <p className="font-bold text-slate-900">{detailValue(selectedProposal.parties.sender.companyName)}</p>
@@ -395,7 +395,7 @@ export default function ArchivePage() {
                         <h3 className="font-bold tracking-tight">Säkerhetsbevis</h3>
                       </div>
                       
-                      <div className="bg-white rounded-3xl p-8 shadow-sm border border-slate-100 flex flex-col md:flex-row gap-8">
+                      <div className="flex flex-col gap-6 rounded-3xl border border-slate-100 bg-white p-5 shadow-sm sm:p-6 md:flex-row md:gap-8 lg:p-8">
                         <div className="flex-1 space-y-4">
                           <div>
                             <p className="text-[9px] font-black uppercase tracking-widest text-slate-400 mb-1.5">Signeringsmetod</p>
@@ -415,7 +415,7 @@ export default function ArchivePage() {
 
                         <div className="md:w-px md:h-24 bg-slate-100 self-center hidden md:block" />
 
-                        <div className="flex flex-col items-center justify-center p-4 bg-slate-50/50 rounded-2xl border border-slate-100 border-dashed min-w-[140px]">
+                        <div className="flex min-w-0 flex-col items-center justify-center rounded-2xl border border-dashed border-slate-100 bg-slate-50/50 p-4 md:min-w-[140px]">
                            {selectedProposal.signatureDataUrl ? (
                              <img src={selectedProposal.signatureDataUrl} alt="Signatur" className="max-h-16 w-auto grayscale" />
                            ) : (
@@ -430,16 +430,16 @@ export default function ArchivePage() {
                   </div>
 
                   {/* RIGHT COLUMN: Activity Timeline (40%) */}
-                  <div className="lg:col-span-5 bg-white border-l border-slate-200/60 p-8 lg:p-12 relative">
-                    <div className="sticky top-0 space-y-8">
-                       <div className="flex items-center justify-between gap-4">
+                  <div className="relative border-t border-slate-200/60 bg-white p-5 sm:p-6 lg:col-span-5 lg:border-l lg:border-t-0 lg:p-12">
+                    <div className="space-y-6 lg:sticky lg:top-0 lg:space-y-8">
+                       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                         <div className="flex items-center gap-3">
                           <div className="w-9 h-9 rounded-xl bg-slate-900 flex items-center justify-center text-white">
                             <Clock size={16} />
                           </div>
                           <h3 className="font-bold tracking-tight text-slate-900">Händelseförlopp</h3>
                         </div>
-                        <div className="flex items-center gap-2">
+                        <div className="flex flex-wrap items-center gap-2">
                           <Button 
                             variant="ghost" 
                             size="sm" 
@@ -465,7 +465,7 @@ export default function ArchivePage() {
                           <p className="text-xs font-bold text-slate-400 animate-pulse uppercase tracking-widest">Läser in historik...</p>
                         </div>
                       ) : (
-                        <div className="relative pl-6 space-y-10 group/timeline">
+                        <div className="group/timeline relative space-y-8 pl-6 sm:space-y-10">
                           {/* Timeline Line */}
                           <div className="absolute left-0 top-2 bottom-2 w-[2px] bg-slate-100 group-hover/timeline:bg-slate-200 transition-colors" />
 
@@ -511,11 +511,11 @@ export default function ArchivePage() {
               </div>
 
               {/* Action Footer */}
-              <div className="border-t border-slate-200/60 bg-white p-8 px-10 flex flex-col-reverse gap-4 sm:flex-row sm:items-center sm:justify-between">
-                <div className="flex flex-wrap gap-2.5">
+              <div className="flex flex-col-reverse gap-4 border-t border-slate-200/60 bg-white p-5 sm:px-8 sm:py-6 lg:flex-row lg:items-center lg:justify-between lg:px-10 lg:py-8">
+                <div className="grid gap-2.5 sm:grid-cols-2 lg:flex lg:flex-wrap">
                   <Button
                     variant="outline"
-                    className="rounded-2xl font-black text-[10px] uppercase tracking-widest h-12 px-6 border-slate-200 hover:bg-slate-50 hover:border-slate-300 transition-all active:scale-95"
+                    className="h-12 rounded-2xl border-slate-200 px-4 text-[10px] font-black uppercase tracking-widest transition-all active:scale-95 hover:border-slate-300 hover:bg-slate-50 sm:px-6"
                     onClick={() => openPublicProposal(selectedProposal)}
                   >
                     <Eye className="mr-2.5 h-4 w-4" />
@@ -523,7 +523,7 @@ export default function ArchivePage() {
                   </Button>
                   <Button
                     variant="outline"
-                    className="rounded-2xl font-black text-[10px] uppercase tracking-widest h-12 px-6 border-slate-200 hover:bg-slate-50 hover:border-slate-300 transition-all active:scale-95 text-emerald-600 hover:text-emerald-700"
+                    className="h-12 rounded-2xl border-slate-200 px-4 text-[10px] font-black uppercase tracking-widest text-emerald-600 transition-all active:scale-95 hover:border-slate-300 hover:bg-slate-50 hover:text-emerald-700 sm:px-6"
                     onClick={() => downloadPdf(selectedProposal)}
                   >
                     <Download className="mr-2.5 h-4 w-4" />
@@ -531,23 +531,23 @@ export default function ArchivePage() {
                   </Button>
                   <Button
                     variant="outline"
-                    className="rounded-2xl font-black text-[10px] uppercase tracking-widest h-12 px-6 border-slate-200 hover:bg-slate-50 hover:border-slate-300 transition-all active:scale-95"
+                    className="h-12 rounded-2xl border-slate-200 px-4 text-[10px] font-black uppercase tracking-widest transition-all active:scale-95 hover:border-slate-300 hover:bg-slate-50 sm:px-6"
                     onClick={() => void openEvidenceReport(selectedProposal, evidence)}
                   >
                     <ShieldCheck className="mr-2.5 h-4 w-4" />
                     Bevisrapport
                   </Button>
                 </div>
-                <div className="flex gap-3">
+                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:flex">
                   <Button 
                     variant="ghost" 
-                    className="rounded-2xl font-black text-[10px] uppercase tracking-widest h-12 px-8 text-slate-400 hover:text-slate-900 transition-all"
+                    className="h-12 rounded-2xl px-6 text-[10px] font-black uppercase tracking-widest text-slate-400 transition-all hover:text-slate-900 sm:px-8"
                     onClick={() => setSelectedProposal(null)}
                   >
                     Stäng
                   </Button>
                   <Button 
-                    className="rounded-2xl font-black text-[10px] uppercase tracking-widest h-12 px-10 text-white shadow-lg hover:shadow-xl transition-all active:scale-95"
+                    className="h-12 rounded-2xl px-6 text-[10px] font-black uppercase tracking-widest text-white shadow-lg transition-all active:scale-95 hover:shadow-xl sm:px-10"
                     style={{ backgroundColor: "var(--proposal-accent)" }}
                     onClick={() => setSelectedProposal(null)}
                   >
@@ -565,18 +565,18 @@ export default function ArchivePage() {
           <div className="p-2 bg-primary/10 text-primary rounded-xl">
             <History size={20} />
           </div>
-          <h1 className="text-4xl font-extrabold tracking-tight text-on-surface">
+          <h1 className="text-3xl font-extrabold tracking-tight text-on-surface sm:text-4xl">
             Arkiv
           </h1>
         </div>
-        <p className="text-on-surface-variant max-w-2xl">
+        <p className="max-w-2xl text-sm text-on-surface-variant sm:text-base">
           Här samlas alla dina skickade, visade och signerade offerter. Du kan
           enkelt ladda ner historiska PDF:er och se status på dina affärer.
         </p>
       </header>
 
-      <div className="flex flex-col md:flex-row gap-6 items-center justify-between bg-surface-container-lowest/50 p-6 rounded-[2.5rem] border border-outline-variant/10 shadow-sm">
-        <div className="relative w-full md:min-w-[400px] group">
+      <div className="flex flex-col items-stretch justify-between gap-4 rounded-[2.25rem] border border-outline-variant/10 bg-surface-container-lowest/50 p-4 shadow-sm sm:gap-6 sm:p-6 md:flex-row md:items-center">
+        <div className="group relative w-full md:min-w-[400px]">
           <Search className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-on-surface-variant transition-colors group-focus-within:text-primary" />
           <Input
             value={search}
@@ -586,8 +586,8 @@ export default function ArchivePage() {
           />
         </div>
 
-        <div className="flex items-center gap-0 bg-white p-1 rounded-2xl shadow-subtle border border-slate-100">
-          <div className="px-5 py-2.5 flex flex-col items-center">
+        <div className="grid grid-cols-2 gap-0 rounded-2xl border border-slate-100 bg-white p-1 shadow-subtle md:flex md:items-center">
+          <div className="flex flex-col items-center px-4 py-2.5 sm:px-5">
             <span className="text-[10px] font-black tracking-widest text-slate-400 uppercase leading-none mb-1.5">Signerade</span>
             <div className="flex items-center gap-2">
               <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
@@ -596,8 +596,8 @@ export default function ArchivePage() {
               </span>
             </div>
           </div>
-          <div className="w-px h-8 bg-slate-100" />
-          <div className="px-5 py-2.5 flex flex-col items-center text-center">
+          <div className="hidden h-8 w-px bg-slate-100 md:block" />
+          <div className="flex flex-col items-center px-4 py-2.5 text-center sm:px-5">
             <span className="text-[10px] font-black tracking-widest text-slate-400 uppercase leading-none mb-1.5">Totalt</span>
             <span className="text-lg font-black text-slate-900 leading-none tabular-nums">
               {archivedProposals.length} <span className="text-[10px] text-slate-400 font-bold ml-0.5">ST</span>
@@ -615,22 +615,100 @@ export default function ArchivePage() {
             </p>
           </div>
         ) : archivedProposals.length === 0 ? (
-          <section className="rounded-[2.5rem] border border-dashed border-outline-variant/30 bg-white/50 px-6 py-32 text-center animate-in fade-in zoom-in-95 duration-700">
-            <div className="mx-auto mb-8 flex h-28 w-28 items-center justify-center rounded-3xl bg-primary/5 -rotate-6">
+          <section className="rounded-[2.5rem] border border-dashed border-outline-variant/30 bg-white/50 px-5 py-20 text-center animate-in fade-in zoom-in-95 duration-700 sm:px-6 sm:py-24 md:py-32">
+            <div className="mx-auto mb-8 flex h-24 w-24 items-center justify-center rounded-3xl bg-primary/5 -rotate-6 sm:h-28 sm:w-28">
               <History className="h-14 w-14 text-primary/30" />
             </div>
             <h2 className="text-3xl font-black tracking-tight text-on-surface">
               Arkivet är tomt
             </h2>
-            <p className="mx-auto mt-4 max-w-md text-on-surface-variant/80 text-lg leading-relaxed">
+            <p className="mx-auto mt-4 max-w-md text-base leading-relaxed text-on-surface-variant/80 sm:text-lg">
               Skickade och slutförda offerter kommer att dyka upp här
               automatiskt. Genom att arkivera håller du ditt arbetsbord rent och
               fokuserat.
             </p>
           </section>
         ) : (
-          <div className="overflow-hidden rounded-[2.5rem] border border-outline-variant/10 bg-white shadow-subtle animate-in fade-in slide-in-from-bottom-8 duration-1000">
-            <div className="overflow-x-auto">
+          <div className="animate-in fade-in slide-in-from-bottom-8 duration-1000">
+            <div className="space-y-4 md:hidden">
+              {archivedProposals.map((proposal) => (
+                <section
+                  key={proposal.id}
+                  className="rounded-[2rem] border border-outline-variant/10 bg-white p-5 shadow-subtle"
+                >
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="min-w-0 flex-1">
+                      <h3 className="line-clamp-2 text-lg font-black tracking-tight text-on-surface">
+                        {proposal.title}
+                      </h3>
+                      <p className="mt-1 text-[11px] font-black uppercase tracking-[0.16em] text-on-surface-variant/45">
+                        {proposal.clientName || "Namnlös mottagare"}
+                      </p>
+                    </div>
+                    <StatusBadge status={proposal.status} />
+                  </div>
+
+                  <div className="mt-5 grid grid-cols-2 gap-3">
+                    <div className="rounded-2xl bg-surface-container-low/40 px-4 py-3">
+                      <p className="text-[10px] font-black uppercase tracking-[0.16em] text-on-surface-variant/45">
+                        Värde
+                      </p>
+                      <p className="mt-2 text-base font-black tracking-tight text-on-surface">
+                        {formatCurrency(proposal.totalValue)}
+                      </p>
+                    </div>
+                    <div className="rounded-2xl bg-surface-container-low/40 px-4 py-3">
+                      <p className="text-[10px] font-black uppercase tracking-[0.16em] text-on-surface-variant/45">
+                        Senast uppdaterad
+                      </p>
+                      <p className="mt-2 text-xs font-black uppercase tracking-[0.14em] text-on-surface-variant/70">
+                        {formatDate(proposal.updatedAt)}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="mt-4 grid grid-cols-2 gap-2">
+                    <Button
+                      variant="outline"
+                      className="h-11 rounded-2xl border-outline-variant/10 bg-white font-black"
+                      onClick={() => setSelectedProposal(proposal)}
+                    >
+                      <Eye className="mr-2 h-4 w-4" />
+                      Detaljer
+                    </Button>
+                    <Button
+                      variant="outline"
+                      className="h-11 rounded-2xl border-outline-variant/10 bg-white font-black"
+                      onClick={() => openPublicProposal(proposal)}
+                    >
+                      <Eye className="mr-2 h-4 w-4" />
+                      Visa
+                    </Button>
+                  </div>
+                  <div className="mt-2 grid grid-cols-2 gap-2">
+                    <Button
+                      variant="ghost"
+                      className="h-11 rounded-2xl font-black text-emerald-600 hover:bg-emerald-50 hover:text-emerald-700"
+                      onClick={() => downloadPdf(proposal)}
+                    >
+                      <Download className="mr-2 h-4 w-4" />
+                      PDF
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      className="h-11 rounded-2xl font-black text-sky-700 hover:bg-sky-50 hover:text-sky-800"
+                      onClick={() => void openEvidenceReport(proposal)}
+                    >
+                      <Link2 className="mr-2 h-4 w-4" />
+                      Rapport
+                    </Button>
+                  </div>
+                </section>
+              ))}
+            </div>
+
+            <div className="hidden overflow-hidden rounded-[2.5rem] border border-outline-variant/10 bg-white shadow-subtle md:block">
+              <div className="overflow-x-auto">
               <table className="w-full border-collapse text-left min-w-[900px]">
                 <thead>
                   <tr className="border-b border-outline-variant/5 bg-surface-container-low/30 text-[10px] font-bold uppercase tracking-[0.15em] text-on-surface-variant/60">
@@ -716,6 +794,7 @@ export default function ArchivePage() {
                   ))}
                 </tbody>
               </table>
+              </div>
             </div>
           </div>
         )}

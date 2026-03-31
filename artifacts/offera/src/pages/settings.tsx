@@ -96,10 +96,10 @@ export default function SettingsPage() {
             Inställningar
           </p>
         </div>
-        <h1 className="text-4xl md:text-5xl font-black tracking-tighter text-on-surface">
+        <h1 className="text-3xl font-black tracking-tighter text-on-surface sm:text-4xl md:text-5xl">
           Företagsprofil
         </h1>
-        <p className="mt-4 max-w-xl text-lg text-on-surface-variant/70 leading-relaxed font-medium">
+        <p className="mt-4 max-w-xl text-base font-medium leading-relaxed text-on-surface-variant/70 sm:text-lg">
           Dessa uppgifter kommer att användas som standard för alla dina
           offerter. Din logotyp och kontaktinformation syns direkt för dina
           kunder.
@@ -110,7 +110,7 @@ export default function SettingsPage() {
         {/* Left Column: Branding */}
         <div className="md:col-span-4 space-y-8">
           <Card className="rounded-[2.5rem] overflow-hidden border-none shadow-subtle bg-white">
-            <CardHeader className="bg-surface-container-low p-8">
+            <CardHeader className="bg-surface-container-low p-6 sm:p-8">
               <CardTitle className="text-xl font-black tracking-tight">
                 Varumärke
               </CardTitle>
@@ -118,7 +118,7 @@ export default function SettingsPage() {
                 Sätt din visuella identitet
               </CardDescription>
             </CardHeader>
-            <CardContent className="p-8 space-y-6">
+            <CardContent className="space-y-6 p-5 sm:p-8">
               <div className="flex flex-col items-center gap-6">
                 <div
                   className={cn(
@@ -176,7 +176,7 @@ export default function SettingsPage() {
             </CardContent>
           </Card>
 
-          <div className="p-8 rounded-[2rem] bg-surface-container-low/50 border border-outline-variant/10 border-dashed">
+          <div className="rounded-[2rem] border border-dashed border-outline-variant/10 bg-surface-container-low/50 p-5 sm:p-8">
             <div className="flex items-center gap-3 mb-4">
               <div className="h-8 w-8 rounded-xl bg-on-surface text-surface flex items-center justify-center">
                 <Zap size={16} />
@@ -195,7 +195,7 @@ export default function SettingsPage() {
         {/* Right Column: Forms */}
         <div className="md:col-span-8 space-y-8">
           <Card className="rounded-[2.5rem] border-none shadow-subtle overflow-hidden bg-white">
-            <CardHeader className="bg-surface-container-low p-8">
+            <CardHeader className="bg-surface-container-low p-6 sm:p-8">
               <CardTitle className="text-xl font-black tracking-tight">
                 Företagsinformation
               </CardTitle>
@@ -203,7 +203,7 @@ export default function SettingsPage() {
                 Vem är avsändaren?
               </CardDescription>
             </CardHeader>
-            <CardContent className="p-8 grid gap-8 md:grid-cols-2">
+            <CardContent className="grid gap-6 p-5 sm:gap-8 sm:p-8 md:grid-cols-2">
               <div className="space-y-2">
                 <Label htmlFor="companyName" className="text-[11px] font-black uppercase tracking-widest text-on-surface-variant/50 ml-1">
                   Företagsnamn

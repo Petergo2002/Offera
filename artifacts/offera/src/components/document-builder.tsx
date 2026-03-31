@@ -25,6 +25,7 @@ import {
   Table,
   Tablet,
   Type,
+  Upload,
 } from "lucide-react";
 import type {
   ContentBlock,
@@ -113,6 +114,8 @@ type SelectedBlock =
   | { type: "block"; sectionId: string; blockId: string }
   | null;
 
+type PreviewDevice = "desktop" | "tablet" | "mobile";
+
 function HighlightedText({
   value,
   className,
@@ -148,6 +151,9 @@ function SectionDivider({
 }: {
   designSettings: DocumentDesignSettings;
 }) {
+  const isGlass = designSettings.glassmorphismEnabled || designSettings.vibePreset === "glass";
+  const isMinimal = designSettings.vibePreset === "minimal";
+
   if (designSettings.dividerStyle === "space") {
     return <div className="h-12" />;
   }
@@ -182,6 +188,49 @@ function getHeadingTypography(level: number | undefined) {
 
 function getBodyTypography() {
   return "text-[1.02rem] leading-8 font-normal text-muted-foreground";
+}
+
+function getPreviewHeadingTypography(
+  level: number | undefined,
+  previewDevice: PreviewDevice,
+) {
+  if (previewDevice === "mobile") {
+    if (level === 1) {
+      return "text-[2.45rem] leading-[0.96] font-semibold tracking-[-0.045em]";
+    }
+
+    if (level === 3) {
+      return "text-[1.18rem] leading-[1.22] font-semibold tracking-[-0.02em]";
+    }
+
+    return "text-[1.7rem] leading-[1.06] font-semibold tracking-[-0.03em]";
+  }
+
+  if (previewDevice === "tablet") {
+    if (level === 1) {
+      return "text-[3.25rem] leading-[0.97] font-semibold tracking-[-0.04em]";
+    }
+
+    if (level === 3) {
+      return "text-[1.35rem] leading-[1.18] font-semibold tracking-[-0.02em]";
+    }
+
+    return "text-[2.1rem] leading-[1.04] font-semibold tracking-[-0.03em]";
+  }
+
+  return getHeadingTypography(level);
+}
+
+function getPreviewBodyTypography(previewDevice: PreviewDevice) {
+  if (previewDevice === "mobile") {
+    return "text-[0.98rem] leading-7 font-normal text-muted-foreground";
+  }
+
+  if (previewDevice === "tablet") {
+    return "text-[1rem] leading-8 font-normal text-muted-foreground";
+  }
+
+  return getBodyTypography();
 }
 
 function AutoGrowTextarea({
@@ -245,12 +294,22 @@ function AutoGrowTextarea({
   );
 }
 
+async function readImageAsDataUrl(file: File) {
+  return await new Promise<string>((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result as string);
+    reader.onerror = () => reject(new Error("Kunde inte läsa bildfilen."));
+    reader.readAsDataURL(file);
+  });
+}
+
 function BlockEditor({
   block,
   isPreview,
   isTemplateMode,
   designSettings,
   placeholderContext,
+  previewDevice = "desktop",
   onChange,
   onDelete,
 }: {
@@ -259,14 +318,18 @@ function BlockEditor({
   isTemplateMode: boolean;
   designSettings: DocumentDesignSettings;
   placeholderContext: Parameters<typeof resolveDynamicText>[1];
+  previewDevice?: PreviewDevice;
   onChange: (updates: Partial<ContentBlock>) => void;
   onDelete: () => void;
 }) {
+  const isCompactPreview = isPreview && previewDevice === "mobile";
+  const isTabletPreview = isPreview && previewDevice === "tablet";
+
   if (block.type === "heading") {
     const headingClass = getHeadingTypography(block.level);
 
     if (isPreview) {
-      const className = `${headingClass} text-foreground`;
+      const className = `${getPreviewHeadingTypography(block.level, previewDevice)} text-foreground`;
       const style = {
         fontFamily: "var(--proposal-heading-font)",
       } as React.CSSProperties;
@@ -339,7 +402,10 @@ function BlockEditor({
         <HighlightedText
           value={resolveDynamicText(block.content || "", placeholderContext)}
           as="div"
-          className={cn("whitespace-pre-wrap", getBodyTypography())}
+          className={cn(
+            "whitespace-pre-wrap",
+            getPreviewBodyTypography(previewDevice),
+          )}
         />
       );
     }
@@ -376,11 +442,50 @@ function BlockEditor({
             Radera
           </Button>
         </div>
-        <Input
-          value={block.imageUrl || ""}
-          onChange={(event) => onChange({ imageUrl: event.target.value })}
-          placeholder="Klistra in bild-URL..."
-        />
+        <div className="flex flex-col gap-3">
+          <div className="flex flex-wrap gap-2">
+            <Label
+              htmlFor={`image-upload-${block.id}`}
+              className="inline-flex h-10 cursor-pointer items-center rounded-xl bg-primary px-4 text-[11px] font-black uppercase tracking-widest text-white transition-all hover:opacity-90"
+            >
+              <Upload className="mr-2 h-4 w-4" />
+              Ladda upp bild
+            </Label>
+            <input
+              id={`image-upload-${block.id}`}
+              type="file"
+              accept="image/*"
+              className="hidden"
+              onChange={(event) => {
+                const file = event.target.files?.[0];
+                if (!file) {
+                  return;
+                }
+
+                void readImageAsDataUrl(file).then((imageUrl) => {
+                  onChange({ imageUrl });
+                });
+                event.target.value = "";
+              }}
+            />
+            {block.imageUrl ? (
+              <Button
+                type="button"
+                variant="outline"
+                className="h-10 rounded-xl border-outline-variant/10 text-[11px] font-black uppercase tracking-widest"
+                onClick={() => onChange({ imageUrl: "" })}
+              >
+                Ta bort bild
+              </Button>
+            ) : null}
+          </div>
+
+          <Input
+            value={block.imageUrl || ""}
+            onChange={(event) => onChange({ imageUrl: event.target.value })}
+            placeholder="Klistra in bild-URL om du vill..."
+          />
+        </div>
         {block.imageUrl ? (
           <img
             src={block.imageUrl}
@@ -420,6 +525,7 @@ function BlockEditor({
       <PackageAndPricingEditor
         block={block}
         isPreview={isPreview}
+        previewDevice={previewDevice}
         designSettings={designSettings}
         onChange={onChange}
         onDelete={onDelete}
@@ -528,18 +634,22 @@ function TextBlockEditor({
 function PackageAndPricingEditor({
   block,
   isPreview,
+  previewDevice = "desktop",
   designSettings,
   onChange,
   onDelete,
 }: {
   block: ContentBlock;
   isPreview: boolean;
+  previewDevice?: PreviewDevice;
   designSettings: DocumentDesignSettings;
   onChange: (updates: Partial<ContentBlock>) => void;
   onDelete: () => void;
 }) {
   const totals = calculatePricingTotals(block);
   const rows = totals.rows;
+  const isCompactPreview = isPreview && previewDevice === "mobile";
+  const isTabletPreview = isPreview && previewDevice === "tablet";
 
   const updateRow = (rowId: string, updates: Partial<PricingRow>) => {
     const nextRows = rows.map((row) =>
@@ -667,7 +777,16 @@ function PackageAndPricingEditor({
                 )}
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-4">
+              <div
+                className={cn(
+                  "grid gap-y-4",
+                  isCompactPreview
+                    ? "grid-cols-1 gap-x-0"
+                    : isTabletPreview
+                      ? "grid-cols-2 gap-x-6"
+                      : "grid-cols-1 md:grid-cols-2 gap-x-12",
+                )}
+              >
                 {(block.features || []).map((feature, index) => (
                   <div key={index} className="group/feature flex items-start gap-3">
                     <div className="mt-1 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
@@ -720,6 +839,81 @@ function PackageAndPricingEditor({
             Prisspecifikation
           </h4>
         </div>
+        {isCompactPreview ? (
+          <div className="divide-y divide-outline-variant/5">
+            {rows.map((row) => (
+              <div key={row.id} className="space-y-4 px-6 py-5">
+                <div className="flex flex-wrap items-start justify-between gap-3">
+                  <div className="min-w-0 flex-1">
+                    <p className="text-lg font-bold tracking-tight text-on-surface">
+                      {row.description}
+                    </p>
+                    <div className="mt-2 flex flex-wrap gap-2">
+                      <Badge
+                        variant="outline"
+                        className={cn(
+                          "text-[10px] font-black uppercase tracking-tighter rounded-full px-2 py-0.5",
+                          row.type === "one_time"
+                            ? "border-amber-500/20 text-amber-600 bg-amber-50"
+                            : "border-primary/20 text-primary bg-primary/5",
+                        )}
+                      >
+                        {row.type === "one_time" ? "Engångs" : "Löpande"}
+                      </Badge>
+                      {row.type === "recurring" && row.bindingPeriod ? (
+                        <Badge
+                          variant="secondary"
+                          className="bg-primary/10 text-primary text-[9px] font-black uppercase tracking-tighter"
+                        >
+                          {row.bindingPeriod} mån bindning
+                        </Badge>
+                      ) : null}
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-lg font-black tabular-nums text-on-surface">
+                      {formatCurrency(row.total)}
+                    </p>
+                    <p className="mt-1 text-[10px] font-black uppercase tracking-widest text-on-surface-variant/40">
+                      totalt
+                    </p>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-3 gap-3 rounded-2xl bg-surface-container-low/35 p-4">
+                  <div>
+                    <p className="text-[9px] font-black uppercase tracking-widest text-on-surface-variant/40">
+                      Antal
+                    </p>
+                    <p className="mt-1 text-sm font-bold text-on-surface">
+                      {row.quantity} {row.unit || "st"}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-[9px] font-black uppercase tracking-widest text-on-surface-variant/40">
+                      A-pris
+                    </p>
+                    <p className="mt-1 text-sm font-bold text-on-surface">
+                      {formatCurrency(row.unitPrice)}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-[9px] font-black uppercase tracking-widest text-on-surface-variant/40">
+                      Intervall
+                    </p>
+                    <p className="mt-1 text-sm font-bold text-on-surface">
+                      {row.type === "recurring"
+                        ? row.interval === "yearly"
+                          ? "Per år"
+                          : "Per mån"
+                        : "Engång"}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : (
         <table className="w-full text-left text-sm border-collapse">
           <thead>
             <tr
@@ -931,6 +1125,7 @@ function PackageAndPricingEditor({
             ))}
           </tbody>
         </table>
+        )}
 
         {!isPreview && (
           <div className="border-t border-outline-variant/10 bg-surface-container-low/30 px-8 py-4 flex items-center justify-between">
@@ -978,11 +1173,11 @@ function PackageAndPricingEditor({
           className={cn(
             "p-10 border-t border-outline-variant/10 font-sans transition-all",
             isPreview
-              ? "bg-surface-container-lowest"
+              ? ((designSettings.glassmorphismEnabled || designSettings.vibePreset === "glass") ? "glass-card bg-primary/5" : "bg-surface-container-lowest")
               : "bg-surface-container-low/50",
           )}
         >
-          <div className="ml-auto w-full max-w-md space-y-4">
+          <div className={cn("ml-auto w-full space-y-4", isCompactPreview ? "max-w-full" : "max-w-md")}>
             <div className="flex items-center justify-between">
               <span className="uppercase tracking-widest text-[11px] font-black text-on-surface-variant/40">
                 Initial investering
@@ -1053,17 +1248,33 @@ function PackageAndPricingEditor({
               </span>
             </div>
 
-            <div className="pt-4 mt-4 border-t-2 border-dashed border-outline-variant/20">
-              <div className="flex items-center justify-between">
+            <div className={cn(
+              "pt-6 mt-4 border-t-2 border-dashed border-outline-variant/20",
+              isPreview && designSettings.gradientEnabled && "relative"
+            )}>
+              {isPreview && designSettings.gradientEnabled && (
+                <div className="absolute inset-0 jewel-gradient opacity-5 rounded-2xl -m-4 pointer-events-none" />
+              )}
+              <div className="flex items-center justify-between relative">
                 <div className="flex flex-col">
-                  <span className="uppercase tracking-widest text-[12px] font-black text-on-surface">
+                  <span className={cn(
+                    "uppercase tracking-widest text-[12px] font-black",
+                    isPreview && designSettings.gradientEnabled ? "text-primary" : "text-on-surface"
+                  )}>
                     {totals.totalLabel}
                   </span>
                   <span className="text-[10px] font-bold text-on-surface-variant/40 uppercase tracking-tighter">
                     {totals.totalSubtitle}
                   </span>
                 </div>
-                <span className="font-black text-3xl tabular-nums text-on-surface tracking-tighter">
+                <span
+                  className={cn(
+                    "font-black tabular-nums tracking-tighter transition-all duration-500",
+                    isCompactPreview ? "text-[2.2rem]" : "text-4xl",
+                    isPreview && designSettings.gradientEnabled ? "text-primary scale-110" : "text-on-surface"
+                  )}
+                  style={isPreview && !designSettings.gradientEnabled ? { color: "var(--proposal-accent)" } : {}}
+                >
                   {formatCurrency(
                     totals.hasRecurring ? totals.contractTotal : totals.total,
                   )}
@@ -1300,14 +1511,17 @@ function PartyCover({
   parties,
   designSettings,
   className,
+  isCompact,
 }: {
   parties: ProposalParties;
   designSettings: DocumentDesignSettings;
   className?: string;
+  isCompact?: boolean;
 }) {
   return (
     <div className={cn(
-      "px-12 py-14 rounded-[2.5rem] border border-outline-variant/10 bg-surface-container-lowest/50 shadow-subtle relative overflow-hidden flex flex-col md:flex-row justify-between gap-12 font-sans",
+      "relative flex flex-col justify-between gap-8 overflow-hidden rounded-[2.25rem] border border-outline-variant/10 bg-surface-container-lowest/50 px-4 py-8 font-sans shadow-subtle sm:px-6 md:gap-12 md:px-12 md:py-14",
+      !isCompact && "md:flex-row",
       className,
     )}>
       <div
@@ -1321,19 +1535,19 @@ function PartyCover({
             Avsändare
           </p>
         </div>
-        <div>
-          <h3 className="text-2xl font-black text-on-surface tracking-tight mb-2">
+        <div className="break-words">
+          <h3 className="mb-2 text-xl font-black tracking-tight text-on-surface sm:text-2xl">
             {parties.sender.companyName}
           </h3>
           {parties.sender.orgNumber && (
-            <p className="text-xs font-black uppercase tracking-widest text-on-surface-variant/40 mb-4">
+            <p className="text-[10px] font-black uppercase tracking-widest text-on-surface-variant/40 mb-4">
               Org: {parties.sender.orgNumber}
             </p>
           )}
           <p className="text-sm font-medium text-on-surface-variant/70 leading-relaxed">
             {parties.sender.contactName}
             <br />
-            {parties.sender.email}
+            <span className="text-xs sm:text-sm">{parties.sender.email}</span>
             <br />
             {parties.sender.phone}
           </p>
@@ -1352,15 +1566,15 @@ function PartyCover({
             Mottagare
           </p>
         </div>
-        <div>
-          <h3 className="text-2xl font-black text-on-surface tracking-tight mb-2">
+        <div className="break-words">
+          <h3 className="mb-2 text-xl font-black tracking-tight text-on-surface sm:text-2xl">
             {parties.recipient.kind === "company"
               ? parties.recipient.companyName
               : parties.recipient.contactName}
           </h3>
           {parties.recipient.kind === "company" &&
             parties.recipient.orgNumber && (
-              <p className="text-xs font-black uppercase tracking-widest text-on-surface-variant/40 mb-4">
+              <p className="text-[10px] font-black uppercase tracking-widest text-on-surface-variant/40 mb-4">
                 Org: {parties.recipient.orgNumber}
               </p>
             )}
@@ -1372,7 +1586,7 @@ function PartyCover({
                 <br />
               </>
             ) : null}
-            {parties.recipient.email}
+            <span className="text-xs sm:text-sm">{parties.recipient.email}</span>
             <br />
             {parties.recipient.phone}
           </p>
@@ -1394,11 +1608,11 @@ function PartiesInlineCard({
   return (
     <button
       type="button"
-      className="group/parties w-full rounded-[2.5rem] border border-outline-variant/10 bg-surface-container-lowest/60 p-8 text-left shadow-subtle transition-all hover:border-primary/15 hover:bg-surface-container-lowest"
+      className="group/parties w-full rounded-[2.25rem] border border-outline-variant/10 bg-surface-container-lowest/60 p-5 text-left shadow-subtle transition-all hover:border-primary/15 hover:bg-surface-container-lowest sm:p-8"
       onClick={onOpen}
     >
-      <div className="mb-6 flex items-center justify-between gap-4">
-        <div className="flex items-center gap-3">
+      <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex items-start gap-3 sm:items-center">
           <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-primary/10 text-primary">
             <Building2 className="h-5 w-5" />
           </div>
@@ -1406,7 +1620,7 @@ function PartiesInlineCard({
             <p className="text-[10px] font-black uppercase tracking-[0.22em] text-primary">
               Juridiska parter
             </p>
-            <h3 className="mt-1 text-2xl font-black tracking-tight text-on-surface">
+            <h3 className="mt-1 text-xl font-black tracking-tight text-on-surface sm:text-2xl">
               Klicka för att redigera avtalets parter
             </h3>
           </div>
@@ -1423,6 +1637,7 @@ function PartiesInlineCard({
         parties={parties}
         designSettings={designSettings}
         className="mb-0"
+        isCompact={false}
       />
     </button>
   );
@@ -1621,9 +1836,9 @@ export function DocumentBuilder({
   onPartiesChange,
   createdAt,
 }: DocumentBuilderProps) {
-  const [previewDevice, setPreviewDevice] = React.useState<
-    "desktop" | "tablet" | "mobile"
-  >("desktop");
+  const [previewDevice, setPreviewDevice] = React.useState<PreviewDevice>(
+    "desktop",
+  );
 
   const [activeTab, setActiveTab] = React.useState<"content" | "design">(
     "content",
@@ -1649,6 +1864,8 @@ export function DocumentBuilder({
     parties?.recipient.companyName.trim() &&
     parties?.recipient.email.trim(),
   );
+  const isCompactPreview = isPreview && previewDevice === "mobile";
+  const isTabletPreview = isPreview && previewDevice === "tablet";
   const placeholderContext = React.useMemo(
     () => ({
       clientName: clientName || parties?.recipient.companyName || "",
@@ -2024,19 +2241,65 @@ export function DocumentBuilder({
                       </div>
                       <div className="space-y-1.5">
                         <Label className="text-[9px] font-black uppercase tracking-widest opacity-40 ml-1">
-                          Logotyp URL
+                          Logotyp
                         </Label>
-                        <Input
-                          value={designSettings.logoUrl || ""}
-                          onChange={(event) =>
-                            onDesignSettingsChange({
-                              ...designSettings,
-                              logoUrl: event.target.value,
-                            })
-                          }
-                          className="bg-surface-container-low/50 border-outline-variant/10 rounded-xl text-xs font-bold"
-                          placeholder="https://..."
-                        />
+                        <div className="space-y-3">
+                          <div className="flex flex-wrap gap-2">
+                            <Label
+                              htmlFor="cover-logo-upload"
+                              className="inline-flex h-10 cursor-pointer items-center rounded-xl bg-primary px-4 text-[10px] font-black uppercase tracking-widest text-white transition-all hover:opacity-90"
+                            >
+                              <Upload className="mr-2 h-4 w-4" />
+                              Ladda upp logga
+                            </Label>
+                            <input
+                              id="cover-logo-upload"
+                              type="file"
+                              accept="image/*"
+                              className="hidden"
+                              onChange={(event) => {
+                                const file = event.target.files?.[0];
+                                if (!file) {
+                                  return;
+                                }
+
+                                void readImageAsDataUrl(file).then((logoUrl) => {
+                                  onDesignSettingsChange({
+                                    ...designSettings,
+                                    logoUrl,
+                                  });
+                                });
+                                event.target.value = "";
+                              }}
+                            />
+                            {designSettings.logoUrl ? (
+                              <Button
+                                type="button"
+                                variant="outline"
+                                className="h-10 rounded-xl border-outline-variant/10 text-[10px] font-black uppercase tracking-widest"
+                                onClick={() =>
+                                  onDesignSettingsChange({
+                                    ...designSettings,
+                                    logoUrl: "",
+                                  })
+                                }
+                              >
+                                Ta bort
+                              </Button>
+                            ) : null}
+                          </div>
+                          <Input
+                            value={designSettings.logoUrl || ""}
+                            onChange={(event) =>
+                              onDesignSettingsChange({
+                                ...designSettings,
+                                logoUrl: event.target.value,
+                              })
+                            }
+                            className="bg-surface-container-low/50 border-outline-variant/10 rounded-xl text-xs font-bold"
+                            placeholder="Klistra in logotyp-URL om du vill..."
+                          />
+                        </div>
                       </div>
                       <div className="space-y-1.5">
                         <Label className="text-[9px] font-black uppercase tracking-widest opacity-40 ml-1">
@@ -2073,6 +2336,87 @@ export function DocumentBuilder({
                     </div>
                   )}
                 </div>
+
+                <div className="space-y-4">
+                  <span className="text-[10px] font-black uppercase tracking-[0.2em] text-on-surface-variant/40">
+                    Vibe & Effekter
+                  </span>
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between p-4 rounded-2xl bg-surface-container-low/50 border border-outline-variant/5">
+                      <div className="space-y-0.5">
+                        <Label className="text-xs font-black text-on-surface">Glassmorphism</Label>
+                        <p className="text-[9px] font-bold text-on-surface-variant/40 uppercase tracking-widest">Suddig bakgrund (Blur)</p>
+                      </div>
+                      <Switch
+                        checked={designSettings.glassmorphismEnabled}
+                        onCheckedChange={(checked) =>
+                          onDesignSettingsChange({
+                            ...designSettings,
+                            glassmorphismEnabled: checked,
+                          })
+                        }
+                        className="scale-75"
+                      />
+                    </div>
+
+                    <div className="flex items-center justify-between p-4 rounded-2xl bg-surface-container-low/50 border border-outline-variant/5">
+                      <div className="space-y-0.5">
+                        <Label className="text-xs font-black text-on-surface">Gradient Buttons</Label>
+                        <p className="text-[9px] font-bold text-on-surface-variant/40 uppercase tracking-widest">Premium-gradienter</p>
+                      </div>
+                      <Switch
+                        checked={designSettings.gradientEnabled}
+                        onCheckedChange={(checked) =>
+                          onDesignSettingsChange({
+                            ...designSettings,
+                            gradientEnabled: checked,
+                          })
+                        }
+                        className="scale-75"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                <div className="space-y-4">
+                  <span className="text-[10px] font-black uppercase tracking-[0.2em] text-on-surface-variant/40">
+                    Design-presets
+                  </span>
+                  <div className="grid gap-2">
+                    {[
+                      { id: "architectural", label: "Architectural", desc: "Clean & Geometrisk" },
+                      { id: "editorial", label: "Editorial", desc: "Serif & Elegans" },
+                      { id: "glass", label: "Jewel Glass", desc: "Ljusbrytande & Mjuk" },
+                      { id: "minimal", label: "Pure Minimal", desc: "Spaciös & Subtil" },
+                    ].map((preset) => (
+                      <button
+                        key={preset.id}
+                        type="button"
+                        className={cn(
+                          "rounded-2xl border p-4 text-left transition-all duration-300",
+                          designSettings.vibePreset === preset.id
+                            ? "border-primary/20 bg-primary/[0.03] shadow-inner-primary scale-[1.02]"
+                            : "border-outline-variant/5 bg-surface-container-low/50 hover:bg-surface-container-low",
+                        )}
+                        onClick={() =>
+                          onDesignSettingsChange({
+                            ...designSettings,
+                            vibePreset: preset.id as any,
+                            ...(preset.id === "glass" ? { glassmorphismEnabled: true, gradientEnabled: true } : {}),
+                            ...(preset.id === "editorial" ? { fontPairing: "editorial" as any } : {}),
+                          })
+                        }
+                      >
+                        <p className="text-xs font-black text-on-surface uppercase tracking-tight">
+                          {preset.label}
+                        </p>
+                        <p className="mt-1 text-[9px] font-bold text-on-surface-variant/40 uppercase tracking-widest">
+                          {preset.desc}
+                        </p>
+                      </button>
+                    ))}
+                  </div>
+                </div>
               </div>
             </div>
           )}
@@ -2082,110 +2426,122 @@ export function DocumentBuilder({
       {/* Main Canvas Stage */}
       <div className="relative flex flex-1 flex-col overflow-hidden">
         {/* Superior Header - Invisible on scroll, minimal info */}
-        <header className="px-10 py-8 flex items-center justify-between shrink-0">
-          <div className="flex items-center gap-6">
-            <Button
-              variant="ghost"
-              onClick={() => void onBack()}
-              className="h-10 w-10 sm:w-auto px-0 sm:px-4 rounded-xl bg-white shadow-subtle text-on-surface-variant/60 hover:text-on-surface hover:bg-white shrink-0"
-            >
-              <ArrowLeft className="sm:mr-2 h-4 w-4" />
-              <span className="hidden xl:inline">Gå tillbaka</span>
-            </Button>
+        <header className="shrink-0 px-4 py-4 sm:px-6 sm:py-5 xl:px-10 xl:py-8">
+          <div className="relative flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
+            <div className="flex min-w-0 items-center gap-3 sm:gap-6">
+              <Button
+                variant="ghost"
+                onClick={() => void onBack()}
+                className="h-10 w-10 shrink-0 rounded-xl bg-white px-0 text-on-surface-variant/60 shadow-subtle hover:bg-white hover:text-on-surface sm:w-auto sm:px-4"
+              >
+                <ArrowLeft className="h-4 w-4 sm:mr-2" />
+                <span className="hidden xl:inline">Gå tillbaka</span>
+              </Button>
 
-            <div className="h-4 w-[1px] bg-outline-variant/10 mx-2 hidden sm:block" />
+              <div className="mx-1 hidden h-4 w-[1px] bg-outline-variant/10 sm:mx-2 sm:block" />
 
-            <div className="min-w-0 max-w-[180px] sm:max-w-[280px]">
-              <div className="flex items-center gap-3">
-                <Input
-                  value={title}
-                  onChange={(event) => onTitleChange(event.target.value)}
-                  className="h-auto border-none bg-transparent p-0 text-xl md:text-2xl font-black tracking-tighter shadow-none focus-visible:ring-0 placeholder:text-on-surface-variant/20 truncate"
-                />
-                {status && (
-                  <div className="scale-75 sm:scale-90 shrink-0">
-                    <StatusBadge status={status} />
-                  </div>
-                )}
+              <div className="min-w-0 flex-1 xl:max-w-[320px]">
+                <div className="flex items-center gap-2 sm:gap-3">
+                  <Input
+                    value={title}
+                    onChange={(event) => onTitleChange(event.target.value)}
+                    className="h-auto truncate border-none bg-transparent p-0 text-xl font-black tracking-tighter shadow-none placeholder:text-on-surface-variant/20 focus-visible:ring-0 md:text-2xl"
+                  />
+                  {status && (
+                    <div className="shrink-0 scale-75 sm:scale-90">
+                      <StatusBadge status={status} />
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
-          </div>
 
-          {/* Central Device Switcher - Centered absolutely or via flex */}
-          {isPreview && (
-            <div className="absolute left-1/2 -translate-x-1/2 flex items-center gap-1 p-1 rounded-2xl bg-surface-container-low border border-outline-variant/5 shadow-sm scale-90 sm:scale-100">
-              {[
-                { id: "mobile", icon: Smartphone, label: "Mobil" },
-                { id: "tablet", icon: Tablet, label: "Padda" },
-                { id: "desktop", icon: Monitor, label: "Dator" },
-              ].map((device) => {
-                const Icon = device.icon;
-                const isActive = previewDevice === device.id;
-                return (
-                  <button
-                    key={device.id}
-                    type="button"
-                    onClick={() =>
-                      setPreviewDevice(
-                        device.id as "desktop" | "tablet" | "mobile",
-                      )
-                    }
-                    className={cn(
-                      "flex h-9 w-12 items-center justify-center rounded-xl transition-all duration-300",
-                      isActive
-                        ? "bg-white text-primary shadow-subtle"
-                        : "text-on-surface-variant/30 hover:text-on-surface-variant hover:bg-white/50",
-                    )}
-                    title={device.label}
-                  >
-                    <Icon
-                      className={cn(
-                        "h-4 w-4",
-                        isActive ? "scale-110" : "scale-100",
-                      )}
-                    />
-                  </button>
-                );
-              })}
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between xl:justify-end">
+              {isPreview && (
+                <div className="mx-auto flex items-center gap-1 rounded-2xl border border-outline-variant/5 bg-surface-container-low p-1 shadow-sm sm:mx-0 xl:absolute xl:left-1/2 xl:-translate-x-1/2">
+                  {[
+                    { id: "mobile", icon: Smartphone, label: "Mobil" },
+                    { id: "tablet", icon: Tablet, label: "Padda" },
+                    { id: "desktop", icon: Monitor, label: "Dator" },
+                  ].map((device) => {
+                    const Icon = device.icon;
+                    const isActive = previewDevice === device.id;
+
+                    return (
+                      <button
+                        key={device.id}
+                        type="button"
+                        onClick={() =>
+                          setPreviewDevice(
+                            device.id as "desktop" | "tablet" | "mobile",
+                          )
+                        }
+                        className={cn(
+                          "flex h-9 w-11 items-center justify-center rounded-xl transition-all duration-300 sm:w-12",
+                          isActive
+                            ? "bg-white text-primary shadow-subtle"
+                            : "text-on-surface-variant/30 hover:bg-white/50 hover:text-on-surface-variant",
+                        )}
+                        title={device.label}
+                      >
+                        <Icon
+                          className={cn(
+                            "h-4 w-4",
+                            isActive ? "scale-110" : "scale-100",
+                          )}
+                        />
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
+
+              <div className="flex w-full items-center gap-2 rounded-2xl border border-outline-variant/5 bg-white/50 p-1 shadow-sm sm:w-auto">
+                <button
+                  onClick={() => setIsPreview(false)}
+                  className={cn(
+                    "flex-1 rounded-xl px-4 py-2 text-[11px] font-black uppercase tracking-[0.15em] transition-all sm:flex-none sm:px-5",
+                    !isPreview
+                      ? "bg-white text-on-surface shadow-subtle"
+                      : "text-on-surface-variant/40 hover:text-on-surface",
+                  )}
+                >
+                  Editor
+                </button>
+                <button
+                  onClick={() => setIsPreview(true)}
+                  className={cn(
+                    "flex flex-1 items-center justify-center gap-2 rounded-xl px-4 py-2 text-[11px] font-black uppercase tracking-[0.15em] transition-all sm:flex-none sm:px-5",
+                    isPreview
+                      ? "bg-white text-on-surface shadow-subtle"
+                      : "text-on-surface-variant/40 hover:text-on-surface",
+                  )}
+                >
+                  <Eye className="h-3 w-3" />
+                  Preview
+                </button>
+              </div>
             </div>
-          )}
-
-          <div className="flex items-center gap-2 bg-white/50 p-1 rounded-2xl border border-outline-variant/5 shadow-sm scale-90 sm:scale-100">
-
-            <button
-              onClick={() => setIsPreview(false)}
-              className={cn(
-                "px-5 py-2 rounded-xl text-[11px] font-black uppercase tracking-[0.15em] transition-all",
-                !isPreview
-                  ? "bg-white text-on-surface shadow-subtle"
-                  : "text-on-surface-variant/40 hover:text-on-surface",
-              )}
-            >
-              Editor
-            </button>
-            <button
-              onClick={() => setIsPreview(true)}
-              className={cn(
-                "px-5 py-2 rounded-xl text-[11px] font-black uppercase tracking-[0.15em] transition-all flex items-center gap-2",
-                isPreview
-                  ? "bg-white text-on-surface shadow-subtle"
-                  : "text-on-surface-variant/40 hover:text-on-surface",
-              )}
-            >
-              <Eye className="h-3 w-3" />
-              Preview
-            </button>
           </div>
         </header>
 
         {/* Scrollable Canvas Area */}
-        <main className="flex-1 overflow-y-auto px-0 sm:px-6 md:px-10 py-12 custom-scrollbar bg-surface-container-low/20">
+        <main
+          className={cn(
+            "flex-1 overflow-y-auto custom-scrollbar bg-surface-container-low/20",
+            isCompactPreview ? "px-0 py-6" : "px-0 py-8 sm:px-6 md:px-10 md:py-12",
+          )}
+        >
           <div
             className={cn(
               "mx-auto transition-all duration-700 ease-in-out relative",
-              isPreview && previewDevice === "mobile" && "max-w-[390px] w-full",
+              isPreview && previewDevice === "mobile" && "max-w-[430px] w-full px-3",
               isPreview && previewDevice === "tablet" && "max-w-[820px] w-full",
               (!isPreview || previewDevice === "desktop") && "max-w-[1280px] w-full",
+              designSettings.vibePreset === "editorial" && "vibe-editorial",
+              designSettings.vibePreset === "architectural" && "vibe-architectural",
+              designSettings.vibePreset === "minimal" && "vibe-minimal",
+              (designSettings.glassmorphismEnabled || designSettings.vibePreset === "glass") && "vibe-glass",
             )}
           >
             {notice}
@@ -2194,14 +2550,14 @@ export function DocumentBuilder({
               open={isPartiesDialogOpen}
               onOpenChange={setIsPartiesDialogOpen}
             >
-              <DialogContent className="max-h-[88vh] w-[calc(100vw-2rem)] max-w-6xl overflow-y-auto rounded-[2rem] border-none bg-surface p-0 shadow-2xl">
-                <DialogHeader className="border-b border-outline-variant/10 px-8 py-6">
+              <DialogContent className="max-h-[88vh] w-[calc(100vw-1rem)] max-w-6xl overflow-y-auto rounded-[2rem] border-none bg-surface p-0 shadow-2xl sm:w-[calc(100vw-2rem)]">
+                <DialogHeader className="border-b border-outline-variant/10 px-5 py-5 sm:px-8 sm:py-6">
                   <DialogTitle className="text-2xl font-black tracking-tight text-on-surface">
                     Redigera parter
                   </DialogTitle>
                 </DialogHeader>
                 {parties && onPartiesChange ? (
-                  <div className="p-6 md:p-8">
+                  <div className="p-5 sm:p-6 md:p-8">
                     <PartiesPanel parties={parties} onChange={onPartiesChange} />
                   </div>
                 ) : null}
@@ -2222,7 +2578,7 @@ export function DocumentBuilder({
                 isPreview
                   ? "scale-100 shadow-none sm:shadow-elevated"
                   : "scale-[0.99] ring-1 ring-outline-variant/20 shadow-elevated",
-                isPreview && previewDevice === "mobile" && "rounded-[3.5rem] ring-[12px] ring-on-surface ring-offset-2 shadow-[0_0_0_1px_rgba(0,0,0,0.1),0_40px_80px_-20px_rgba(0,0,0,0.3)] mt-8 mb-20",
+                isPreview && previewDevice === "mobile" && "rounded-[3rem] ring-[10px] ring-on-surface ring-offset-2 shadow-[0_0_0_1px_rgba(0,0,0,0.1),0_32px_56px_-18px_rgba(0,0,0,0.28)] mt-6 mb-14",
                 isPreview && previewDevice === "tablet" && "rounded-[2.5rem] ring-[16px] ring-on-surface ring-offset-2 shadow-[0_0_0_1px_rgba(0,0,0,0.1),0_40px_80px_-20px_rgba(0,0,0,0.3)] mt-8 mb-20",
               )}
               style={{ fontFamily: styles.fontFamily }}
@@ -2231,7 +2587,14 @@ export function DocumentBuilder({
                 {designSettings.coverEnabled && (
                   <section
                     id="cover-section"
-                    className="relative overflow-hidden px-6 md:px-14 py-24 md:py-32 group cursor-pointer"
+                    className={cn(
+                      "relative overflow-hidden group cursor-pointer",
+                      isCompactPreview
+                        ? "px-5 py-14"
+                        : isTabletPreview
+                          ? "px-10 py-20"
+                          : "px-6 py-24 md:px-14 md:py-32",
+                    )}
                     style={{
                       background:
                         designSettings.coverBackground ||
@@ -2264,11 +2627,13 @@ export function DocumentBuilder({
                         )}
                       >
                         {designSettings.logoUrl ? (
-                          <img
-                            src={designSettings.logoUrl}
-                            alt="Logo"
-                            className="h-16 w-auto object-contain brightness-0 invert"
-                          />
+                          <div className="rounded-[1.35rem] bg-white/96 px-4 py-3 shadow-[0_14px_32px_-18px_rgba(0,0,0,0.55)] backdrop-blur">
+                            <img
+                              src={designSettings.logoUrl}
+                              alt="Logo"
+                              className="h-10 w-auto max-w-[180px] object-contain md:h-14 md:max-w-[240px]"
+                            />
+                          </div>
                         ) : (
                           <div className="h-12 w-12 rounded-2xl bg-white/10 backdrop-blur-md flex items-center justify-center border border-white/10">
                             <Palette className="h-6 w-6 text-white/40" />
@@ -2277,7 +2642,14 @@ export function DocumentBuilder({
                       </div>
 
                       <h1
-                        className="max-w-4xl text-5xl font-black md:text-8xl leading-[0.9] tracking-[-0.04em] font-display"
+                        className={cn(
+                          "max-w-4xl font-black leading-[0.9] tracking-[-0.04em] font-display",
+                          isCompactPreview
+                            ? "text-[2.7rem]"
+                            : isTabletPreview
+                              ? "text-6xl"
+                              : "text-5xl md:text-8xl",
+                        )}
                         style={{ fontFamily: "var(--proposal-heading-font)" }}
                       >
                         {resolveDynamicText(
@@ -2293,7 +2665,16 @@ export function DocumentBuilder({
                         style={{ backgroundColor: designSettings.accentColor }}
                       />
 
-                      <p className="mt-12 max-w-2xl text-xl md:text-2xl font-medium text-white/70 leading-relaxed">
+                      <p
+                        className={cn(
+                          "mt-12 max-w-2xl font-medium text-white/70 leading-relaxed",
+                          isCompactPreview
+                            ? "text-base"
+                            : isTabletPreview
+                              ? "text-lg"
+                              : "text-xl md:text-2xl",
+                        )}
+                      >
                         {resolveDynamicText(
                           designSettings.coverSubheadline ||
                             (mode === "template"
@@ -2303,7 +2684,14 @@ export function DocumentBuilder({
                         )}
                       </p>
 
-                      <div className="mt-20 flex flex-wrap gap-x-12 gap-y-6 pt-12 border-t border-white/10">
+                      <div
+                        className={cn(
+                          "mt-20 flex flex-wrap gap-y-6 border-t border-white/10",
+                          isCompactPreview
+                            ? "gap-x-6 pt-8"
+                            : "gap-x-12 pt-12",
+                        )}
+                      >
                         <div className="space-y-1">
                           <p className="text-[10px] font-black uppercase tracking-widest text-white/30">
                             Mottagare
@@ -2340,7 +2728,16 @@ export function DocumentBuilder({
                   </section>
                 )}
 
-                <div className="px-6 md:px-14 py-16 md:py-24 space-y-20">
+                <div
+                  className={cn(
+                    "space-y-20",
+                    isCompactPreview
+                      ? "px-5 py-10"
+                      : isTabletPreview
+                        ? "px-10 py-14"
+                        : "px-6 py-16 md:px-14 md:py-24",
+                  )}
+                >
                   {canvasSections.map((section, sectionIndex) => (
                     <div key={section.id} id={`section-${section.id}`}>
                       {sectionIndex > 0 && (
@@ -2365,6 +2762,7 @@ export function DocumentBuilder({
                                 parties={parties}
                                 designSettings={designSettings}
                                 className="mb-0"
+                                isCompact={isCompactPreview}
                               />
                             ) : (
                               <PartiesInlineCard
@@ -2466,6 +2864,7 @@ export function DocumentBuilder({
                                   isTemplateMode={mode === "template"}
                                   designSettings={designSettings}
                                   placeholderContext={placeholderContext}
+                                  previewDevice={previewDevice}
                                   onDelete={() =>
                                     updateSections((current) =>
                                       current.map((entry) =>

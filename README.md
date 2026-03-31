@@ -1,113 +1,107 @@
-# Offera Quote Builder Pro
+# Offera
 
-Offera is a pnpm workspace monorepo for building, sending, previewing, and digitally accepting sales proposals. The current workspace contains a React/Vite frontend, an Express API, shared OpenAPI-generated client/schema packages, and a Drizzle/PostgreSQL data layer with a JSON-file fallback for local development without a database.
+Offera är en `pnpm`-monorepo för att skapa, skicka, signera och arkivera B2B-offerter. Produkten består av en React/Vite-app, en Express-API-server, Supabase Auth, PostgreSQL via Drizzle och en beviskedja för signerade dokument.
+
+## Vad som finns idag
+
+- inloggning med Supabase Auth
+- workspace-bunden data med RLS
+- offert- och mallbyggare
+- publika offertlänkar
+- personlig signeringslänk via Resend
+- revisionskedja, audit trail och evidence export
+- företagsprofil och cover-branding
+- lokal JSON-fallback när `DATABASE_URL` saknas
 
 ## Stack
 
-- Frontend: React 19, Vite 7, Wouter, TanStack Query, Tailwind CSS 4, Radix UI, Framer Motion
-- Backend: Express 5, Pino, Drizzle ORM, PostgreSQL
-- Shared contracts: OpenAPI 3.1, Orval-generated React Query client and Zod schemas
-- Tooling: pnpm workspaces, TypeScript project references, esbuild, Replit artifact config
+- Frontend: React 19, Vite 7, Wouter, TanStack Query, Tailwind CSS 4, Radix UI
+- Backend: Express 5, Pino, Drizzle ORM
+- Auth/DB: Supabase Auth + PostgreSQL
+- Mail: Resend
+- Contracts: OpenAPI 3.1 + Orval + Zod
 
-## Workspace Layout
+## Repository
 
 ```text
 .
 ├── artifacts/
-│   ├── api-server/        # Express API artifact
-│   ├── offera/            # Main proposal builder web app
-│   └── mockup-sandbox/    # Isolated component/mockup preview app
+│   ├── api-server/        # Express API
+│   ├── offera/            # Huvudappen
+│   └── mockup-sandbox/    # Isolerad preview-sandbox
 ├── lib/
-│   ├── api-client-react/  # Generated React Query client
-│   ├── api-spec/          # OpenAPI source and Orval config
-│   ├── api-zod/           # Generated Zod schemas and TS types
-│   └── db/                # Drizzle schema and PostgreSQL access
-├── scripts/               # Workspace orchestration scripts
-├── docs/                  # Architecture and codebase documentation
-├── stitch 2/              # Design reference HTML/screenshots
-└── attached_assets/       # Imported prompt/reference material
+│   ├── api-client-react/  # Genererad klient + custom fetch
+│   ├── api-spec/          # OpenAPI-kontrakt
+│   ├── api-zod/           # Genererade Zod-scheman och typer
+│   └── db/                # Drizzle-schema och DB-klient
+├── supabase/migrations/   # SQL-migreringar
+├── scripts/               # Dev- och buildskript
+└── docs/                  # Underhållen dokumentation
 ```
 
-## Run Locally
+## Kom igång
 
-1. Install dependencies:
+1. Installera beroenden:
 
 ```bash
 pnpm install
 ```
 
-2. Start the full stack:
+2. Lägg in din `.env`.
+
+Minimikrav för full app:
+
+```bash
+DATABASE_URL=postgresql://...
+VITE_SUPABASE_URL=https://YOUR_PROJECT.supabase.co
+VITE_SUPABASE_PUBLISHABLE_KEY=sb_publishable_...
+APP_ORIGIN=http://localhost:5173
+RESEND_API_KEY=re_...
+RESEND_FROM_EMAIL="Offera <signing@yourdomain.com>"
+```
+
+3. Starta lokalt:
 
 ```bash
 pnpm run dev
 ```
 
-3. Or run individual apps:
+Standardportar:
+
+- Web: `5173`
+- API: `3001`
+
+## Nyttiga kommandon
 
 ```bash
-pnpm run dev:api
-pnpm run dev:web
-```
-
-Default local ports:
-
-- Web app: `5173`
-- API server: `3001`
-- Mockup sandbox: `4173` when run directly
-
-### Database Modes
-
-- With `DATABASE_URL` set, the API uses PostgreSQL through Drizzle.
-- Without `DATABASE_URL`, proposal and template data fall back to `.local/offera-dev-data.json`.
-
-## Typecheck and Build
-
-```bash
+pnpm run dev
 pnpm run typecheck
 pnpm run build
-```
-
-## Generate API Contracts
-
-If you update [`lib/api-spec/openapi.yaml`](lib/api-spec/openapi.yaml), regenerate the client and Zod packages with:
-
-```bash
 pnpm --filter @workspace/api-spec run codegen
 ```
 
-## Database Push
+## Driftlägen
 
-```bash
-pnpm --filter @workspace/db run push
-```
+### Fullt Supabase/Postgres-läge
 
-## Deployment
+När `DATABASE_URL` finns använder API:t PostgreSQL via Drizzle.
 
-The repository is configured for Replit deployments:
+### Lokal fallback
 
-- Root deployment metadata: `.replit`
-- Web artifact: `artifacts/offera/.replit-artifact/artifact.toml`
-- API artifact: `artifacts/api-server/.replit-artifact/artifact.toml`
+När `DATABASE_URL` saknas använder API:t `.local/offera-dev-data.json` för offerter och mallar. Auth, workspace-säkerhet och evidence-kedjan är däremot byggda för databasläge.
 
-Production behavior inferred from the artifact configs:
+## Dokumentation
 
-- Build the web app into `artifacts/offera/dist/public`
-- Build the API bundle into `artifacts/api-server/dist/index.mjs`
-- Serve the API on port `8080`
-- Expose health at `/api/healthz`
+- [Docs index](docs/README.md)
+- [Arkitektur](docs/ARCHITECTURE.md)
+- [API](docs/API.md)
+- [Kodbas](docs/CODEBASE.md)
+- [Komponenter](docs/COMPONENTS.md)
+- [Datamodeller](docs/DATA_MODELS.md)
+- [Miljövariabler](docs/ENVIRONMENT.md)
+- [Integrationer](docs/INTEGRATIONS.md)
+- [Dokumentbevarande](docs/DOCUMENT_RETENTION_POLICY.md)
 
-## Documentation
+## Status
 
-- [Architecture](docs/ARCHITECTURE.md)
-- [Codebase Guide](docs/CODEBASE.md)
-- [API Reference](docs/API.md)
-- [Component Inventory](docs/COMPONENTS.md)
-- [Data Models](docs/DATA_MODELS.md)
-- [Integrations](docs/INTEGRATIONS.md)
-- [Environment Variables](docs/ENVIRONMENT.md)
-
-## Current Notes
-
-> ⚠️ Unclear: `replit.md` still documents `/api/health`, while the actual implementation and deployment config use `/api/healthz`.
-
-> ⚠️ Unclear: The API package includes `cookie-parser`, but `artifacts/api-server/src/app.ts` does not mount it yet.
+Dokumentationen i `docs/` beskriver nu current state. Äldre arbetsplaner har tagits bort från huvudstrukturen för att minska brus.

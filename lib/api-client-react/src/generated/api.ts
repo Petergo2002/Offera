@@ -23,6 +23,7 @@ import type {
   ErrorResponse,
   HealthStatus,
   Proposal,
+  PublicProposalView,
   RespondToProposalRequest,
   SendProposalRequest,
   Template,
@@ -622,7 +623,7 @@ export const useSendProposal = <
 };
 
 /**
- * @summary Get a proposal by public slug (no auth)
+ * @summary Get a proposal by public slug (requires signing token or workspace auth)
  */
 export const getGetPublicProposalUrl = (slug: string) => {
   return `/api/proposals/public/${slug}`;
@@ -631,8 +632,8 @@ export const getGetPublicProposalUrl = (slug: string) => {
 export const getPublicProposal = async (
   slug: string,
   options?: RequestInit,
-): Promise<Proposal> => {
-  return customFetch<Proposal>(getGetPublicProposalUrl(slug), {
+): Promise<PublicProposalView> => {
+  return customFetch<PublicProposalView>(getGetPublicProposalUrl(slug), {
     ...options,
     method: "GET",
   });
@@ -682,7 +683,7 @@ export type GetPublicProposalQueryResult = NonNullable<
 export type GetPublicProposalQueryError = ErrorType<ErrorResponse>;
 
 /**
- * @summary Get a proposal by public slug (no auth)
+ * @summary Get a proposal by public slug (requires signing token or workspace auth)
  */
 
 export function useGetPublicProposal<
@@ -719,8 +720,8 @@ export const respondToProposal = async (
   slug: string,
   respondToProposalRequest: RespondToProposalRequest,
   options?: RequestInit,
-): Promise<Proposal> => {
-  return customFetch<Proposal>(getRespondToProposalUrl(slug), {
+): Promise<PublicProposalView> => {
+  return customFetch<PublicProposalView>(getRespondToProposalUrl(slug), {
     ...options,
     method: "POST",
     headers: { "Content-Type": "application/json", ...options?.headers },
@@ -729,7 +730,7 @@ export const respondToProposal = async (
 };
 
 export const getRespondToProposalMutationOptions = <
-  TError = ErrorType<unknown>,
+  TError = ErrorType<ErrorResponse>,
   TContext = unknown,
 >(options?: {
   mutation?: UseMutationOptions<
@@ -770,13 +771,13 @@ export type RespondToProposalMutationResult = NonNullable<
   Awaited<ReturnType<typeof respondToProposal>>
 >;
 export type RespondToProposalMutationBody = BodyType<RespondToProposalRequest>;
-export type RespondToProposalMutationError = ErrorType<unknown>;
+export type RespondToProposalMutationError = ErrorType<ErrorResponse>;
 
 /**
  * @summary Accept or decline a proposal (client action)
  */
 export const useRespondToProposal = <
-  TError = ErrorType<unknown>,
+  TError = ErrorType<ErrorResponse>,
   TContext = unknown,
 >(options?: {
   mutation?: UseMutationOptions<
