@@ -1251,15 +1251,7 @@ router.get("/public/:slug", async (req, res) => {
     }
 
     let signingToken: ProposalSigningTokenRecord | undefined;
-    if (!internalViewer) {
-      if (!signingTokenParam) {
-        res.status(403).json({
-          error:
-            "Den här offerten kräver den personliga länken från e-posten som skickades till motparten.",
-        });
-        return;
-      }
-
+    if (!internalViewer && signingTokenParam) {
       signingToken = await findPublicViewSigningToken(
         dbModule,
         proposal.id,
@@ -1325,7 +1317,7 @@ router.get("/public/:slug", async (req, res) => {
     }
 
     let currentRevision = activeRevision;
-    if (activeRevision.status === "sent" && !internalViewer) {
+    if (activeRevision.status === "sent" && signingToken && !internalViewer) {
       const viewedAt = new Date();
       const [updatedRevision] = await dbModule.db
         .update(dbModule.proposalRevisionsTable)
