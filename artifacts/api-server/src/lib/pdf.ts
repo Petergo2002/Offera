@@ -1,4 +1,5 @@
-import { chromium } from "playwright";
+import { createRequire } from "node:module";
+import serverlessChromium from "@sparticuz/chromium";
 import type {
   ContentBlock,
   PricingRow,
@@ -6,6 +7,8 @@ import type {
   ProposalBranding,
   ProposalParties,
 } from "@workspace/api-zod";
+
+const require = createRequire(import.meta.url);
 
 const DEFAULT_BRANDING: ProposalBranding = {
   accentColor: "#FF5C00",
@@ -687,8 +690,38 @@ function renderHtml(proposal: Proposal) {
   `;
 }
 
+async function launchPdfBrowser() {
+  const isServerlessRuntime = Boolean(
+    process.env.VERCEL ||
+      process.env.AWS_REGION ||
+      process.env.AWS_EXECUTION_ENV,
+  );
+
+  if (isServerlessRuntime) {
+    const { chromium } = require("playwright-core") as typeof import("playwright-core");
+    const executablePath =
+      typeof (serverlessChromium as { executablePath?: unknown }).executablePath ===
+      "function"
+        ? await (
+            serverlessChromium as unknown as { executablePath: () => Promise<string> }
+          ).executablePath()
+        : await (
+            serverlessChromium as unknown as { executablePath: Promise<string> }
+          ).executablePath;
+
+    return chromium.launch({
+      args: serverlessChromium.args,
+      executablePath,
+      headless: true,
+    });
+  }
+
+  const { chromium } = require("playwright") as typeof import("playwright");
+  return chromium.launch({ headless: true });
+}
+
 export async function generateProposalPdf(proposal: Proposal): Promise<Buffer> {
-  const browser = await chromium.launch({ headless: true });
+  const browser = await launchPdfBrowser();
 
   try {
     const page = await browser.newPage();
