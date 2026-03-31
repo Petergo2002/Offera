@@ -5,8 +5,8 @@
  * Offera Proposal Builder API
  * OpenAPI spec version: 0.1.0
  */
-import type { ContentBlockType } from "./contentBlockType";
-import type { PricingRow } from "./pricingRow";
+import type { ContentBlockType } from "./contentBlockType.js";
+import type { PricingRow } from "./pricingRow.js";
 
 export interface ContentBlock {
   id: string;

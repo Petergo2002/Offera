@@ -1,6 +1,6 @@
 import { z } from "zod";
-import { MeResponse } from "./auth";
-import { GetProposalResponse } from "./generated/api";
+import { MeResponse } from "./auth.js";
+import { GetProposalResponse } from "./generated/api.js";
 
 export const ProposalEvidenceRevisionSchema = z.object({
   id: z.number(),

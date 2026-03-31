@@ -4,16 +4,16 @@ export {
   MeResponse,
   MeWorkspaceSchema,
   UpdateCompanyProfileBody,
-} from "./auth";
-export { ProposalEvidenceResponse } from "./evidence";
+} from "./auth.js";
+export { ProposalEvidenceResponse } from "./evidence.js";
 export type {
   CompanyProfile,
   Me,
   MeProfile,
   MeWorkspace,
   UpdateCompanyProfileRequest,
-} from "./auth";
-export type { ProposalEvidence } from "./evidence";
+} from "./auth.js";
+export type { ProposalEvidence } from "./evidence.js";
 export {
   CopyTemplateBody,
   CreateProposalBody,
@@ -23,7 +23,7 @@ export {
   SendProposalBody,
   UpdateProposalBody,
   UpdateTemplateBody,
-} from "./generated/api";
+} from "./generated/api.js";
 export type {
   CopyTemplateRequest,
   CreateProposalRequest,
@@ -42,6 +42,6 @@ export type {
   TemplateCategory,
   UpdateProposalRequest,
   UpdateTemplateRequest,
-} from "./generated/types";
-export * from "./generated/api";
-export * from "./generated/types";
+} from "./generated/types/index.js";
+export * from "./generated/api.js";
+export * from "./generated/types/index.js";

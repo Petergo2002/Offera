@@ -4,7 +4,7 @@ import type {
   ProposalParties,
   ProposalRevisionSnapshot,
 } from "@workspace/db/schema";
-import { normalizeProposalSections } from "./legacy-content";
+import { normalizeProposalSections } from "./legacy-content.js";
 
 type SnapshotInput = {
   proposalId: number;

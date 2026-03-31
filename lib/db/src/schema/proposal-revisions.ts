@@ -13,7 +13,7 @@ import {
 import type {
   ProposalAcceptanceEvidence,
   ProposalParties,
-} from "./proposals";
+} from "./proposals.js";
 
 export type ProposalRevisionSnapshot = {
   version: 1;

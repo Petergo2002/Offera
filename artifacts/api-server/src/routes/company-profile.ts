@@ -5,7 +5,7 @@ import {
   UpdateCompanyProfileBody,
   type CompanyProfile,
 } from "@workspace/api-zod";
-import { requireAuth } from "../lib/auth";
+import { requireAuth } from "../lib/auth.js";
 
 const router: IRouter = Router();
 

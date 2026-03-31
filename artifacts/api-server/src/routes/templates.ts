@@ -19,9 +19,9 @@ import {
   makeDefaultSections,
   sanitizeSectionsForTemplate,
   updateTemplate as updateLocalTemplate,
-} from "../lib/local-store";
-import { requireAuth } from "../lib/auth";
-import { normalizeProposalSections } from "../lib/legacy-content";
+} from "../lib/local-store.js";
+import { requireAuth } from "../lib/auth.js";
+import { normalizeProposalSections } from "../lib/legacy-content.js";
 
 const router: IRouter = Router();
 const hasDatabase = Boolean(process.env.DATABASE_URL);

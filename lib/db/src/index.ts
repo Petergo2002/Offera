@@ -1,6 +1,6 @@
 import { drizzle } from "drizzle-orm/node-postgres";
 import pg from "pg";
-import * as schema from "./schema";
+import * as schema from "./schema/index.js";
 
 const { Pool } = pg;
 
@@ -33,5 +33,5 @@ export {
   templatesTable,
   type ProposalAcceptanceEvidence,
   workspacesTable,
-} from "./schema";
-export * from "./schema";
+} from "./schema/index.js";
+export * from "./schema/index.js";

@@ -5,7 +5,7 @@
  * Offera Proposal Builder API
  * OpenAPI spec version: 0.1.0
  */
-import type { RespondToProposalRequestAction } from "./respondToProposalRequestAction";
+import type { RespondToProposalRequestAction } from "./respondToProposalRequestAction.js";
 
 export interface RespondToProposalRequest {
   action: RespondToProposalRequestAction;

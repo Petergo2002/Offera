@@ -18,7 +18,7 @@ import {
   respondToProposal as respondToLocalProposal,
   sendProposal as sendLocalProposal,
   updateProposal as updateLocalProposal,
-} from "../lib/local-store";
+} from "../lib/local-store.js";
 import {
   normalizeProposalParties,
   type ProposalAuditActorType,
@@ -31,7 +31,7 @@ import {
   buildProposalRevisionSnapshot,
   buildPublicProposalFromRevision,
   hashProposalSnapshot,
-} from "../lib/proposal-evidence";
+} from "../lib/proposal-evidence.js";
 import {
   buildSigningLink,
   createSigningToken,
@@ -39,10 +39,10 @@ import {
   hashSigningToken,
   normalizeEmail,
   requireAppOrigin,
-} from "../lib/proposal-signing";
-import { requireResendFromEmail, sendEmail } from "../lib/resend";
-import { requireAuth, resolveAuthContextFromToken } from "../lib/auth";
-import { normalizeProposalSections } from "../lib/legacy-content";
+} from "../lib/proposal-signing.js";
+import { requireResendFromEmail, sendEmail } from "../lib/resend.js";
+import { requireAuth, resolveAuthContextFromToken } from "../lib/auth.js";
+import { normalizeProposalSections } from "../lib/legacy-content.js";
 
 const router: IRouter = Router();
 const hasDatabase = Boolean(process.env.DATABASE_URL);

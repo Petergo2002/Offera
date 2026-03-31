@@ -1,6 +1,6 @@
 import { Router, type IRouter } from "express";
 import { MeResponse } from "@workspace/api-zod";
-import { getMePayload, requireAuth } from "../lib/auth";
+import { getMePayload, requireAuth } from "../lib/auth.js";
 
 const router: IRouter = Router();
 
