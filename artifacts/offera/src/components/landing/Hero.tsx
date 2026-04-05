@@ -67,7 +67,7 @@ export function Hero() {
                   <div className="w-3 h-3 rounded-full bg-primary/20" />
                 </div>
                 <div className="px-10 py-2.5 rounded-2xl bg-surface-container-low/50 text-[10px] text-on-surface-variant font-black tracking-[0.2em] uppercase opacity-40 italic border border-outline-variant/5">
-                  preview.offera.se/proposal/mod-2026
+                  offera.agentergroup.com/p/mod-2026
                 </div>
                 <div className="w-12 h-1" />
               </div>

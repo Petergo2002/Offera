@@ -737,7 +737,7 @@ function buildSigningEmail({
                 <td align="center" style="padding-top: 80px;">
                   <div style="color: #94A3B8; font-size: 12px; line-height: 1.6;">
                     &copy; ${new Date().getFullYear()} ${escapedSender} genom 
-                    <a href="https://offera.se" style="color: #64748B; text-decoration: none; font-weight: 700;">Offera</a>
+                    <a href="https://offera.agentergroup.com" style="color: #64748B; text-decoration: none; font-weight: 700;">Offera</a>
                   </div>
                 </td>
               </tr>
@@ -902,7 +902,7 @@ function buildSignedConfirmationEmail({
                 <td align="center" style="padding: 40px 0 0; border-top: 1px solid #F1F5F9;">
                   <div style="color: #94A3B8; font-size: 12px; line-height: 1.6;">
                     &copy; ${new Date().getFullYear()} ${escapedSender} genom 
-                    <a href="https://offera.se" style="color: #64748B; text-decoration: none; font-weight: 700;">Offera</a><br>
+                    <a href="https://offera.agentergroup.com" style="color: #64748B; text-decoration: none; font-weight: 700;">Offera</a><br>
                     Säker digital signering drivs av Offera.
                   </div>
                 </td>
