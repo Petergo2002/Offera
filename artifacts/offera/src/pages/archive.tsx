@@ -25,6 +25,7 @@ import { formatCurrency, formatDate } from "@/lib/document";
 import { buildPublicProposalUrl } from "@/lib/post-send-summary";
 import { useAuth } from "@/components/auth-provider";
 import { ProposalQuickView } from "@/components/proposal-quick-view";
+import { cn } from "@/lib/utils";
 
 export default function ArchivePage() {
   const [, setLocation] = useLocation();
@@ -35,6 +36,7 @@ export default function ArchivePage() {
 
   const [search, setSearch] = React.useState("");
   const [selectedProposalId, setSelectedProposalId] = React.useState<number | null>(null);
+  const [deletingProposalId, setDeletingProposalId] = React.useState<number | null>(null);
 
   const {
     data: proposals = [],
@@ -82,6 +84,10 @@ export default function ArchivePage() {
   };
 
   const deleteProposal = async (proposal: Proposal) => {
+    if (deletingProposalId === proposal.id) {
+      return;
+    }
+
     const ok = await confirm({
       title: "Ta bort offerten permanent?",
       description:
@@ -94,7 +100,11 @@ export default function ArchivePage() {
     if (!ok) return;
 
     try {
+      setDeletingProposalId(proposal.id);
       await api.deleteProposal(proposal.id);
+      queryClient.setQueryData<Proposal[]>(["proposals"], (current = []) =>
+        current.filter((entry) => entry.id !== proposal.id),
+      );
       if (selectedProposalId === proposal.id) {
         setSelectedProposalId(null);
       }
@@ -109,6 +119,8 @@ export default function ArchivePage() {
         title: "Kunde inte ta bort offerten",
         description: err instanceof Error ? err.message : "Försök igen.",
       });
+    } finally {
+      setDeletingProposalId(null);
     }
   };
 
@@ -214,7 +226,11 @@ export default function ArchivePage() {
               {archivedProposals.map((proposal) => (
                 <section
                   key={proposal.id}
-                  className="rounded-[2rem] border border-outline-variant/10 bg-white p-5 shadow-subtle"
+                  className={cn(
+                    "rounded-[2rem] border border-outline-variant/10 bg-white p-5 shadow-subtle transition-all",
+                    deletingProposalId === proposal.id &&
+                      "pointer-events-none opacity-55 saturate-0",
+                  )}
                 >
                   <div className="flex items-start justify-between gap-3">
                     <div className="min-w-0 flex-1">
@@ -270,9 +286,14 @@ export default function ArchivePage() {
                       variant="ghost"
                       className="h-11 rounded-2xl font-black text-red-600 hover:bg-red-50"
                       onClick={() => deleteProposal(proposal)}
+                      disabled={deletingProposalId === proposal.id}
                     >
-                      <Trash2 className="mr-2 h-4 w-4" />
-                      Ta bort
+                      {deletingProposalId === proposal.id ? (
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      ) : (
+                        <Trash2 className="mr-2 h-4 w-4" />
+                      )}
+                      {deletingProposalId === proposal.id ? "Tar bort..." : "Ta bort"}
                     </Button>
                   </div>
                 </section>
@@ -298,7 +319,11 @@ export default function ArchivePage() {
                         initial={{ opacity: 0, y: 10 }}
                         animate={{ opacity: 1, y: 0 }}
                         whileHover={{ backgroundColor: "rgba(0, 0, 0, 0.02)" }}
-                        className="group transition-all duration-500 cursor-pointer"
+                        className={cn(
+                          "group transition-all duration-500 cursor-pointer",
+                          deletingProposalId === proposal.id &&
+                            "pointer-events-none opacity-55 saturate-0",
+                        )}
                         onClick={() => setSelectedProposalId(proposal.id)}
                       >
                         <td className="px-10 py-7">
@@ -339,8 +364,13 @@ export default function ArchivePage() {
                               size="icon"
                               className="rounded-xl h-10 w-10 text-red-500 hover:bg-red-50 transition-all"
                               onClick={() => deleteProposal(proposal)}
+                              disabled={deletingProposalId === proposal.id}
                             >
-                              <Trash2 className="h-5 w-5" />
+                              {deletingProposalId === proposal.id ? (
+                                <Loader2 className="h-5 w-5 animate-spin" />
+                              ) : (
+                                <Trash2 className="h-5 w-5" />
+                              )}
                             </Button>
                           </div>
 

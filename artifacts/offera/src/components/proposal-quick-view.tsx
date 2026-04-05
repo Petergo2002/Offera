@@ -243,6 +243,9 @@ export function ProposalQuickView({
 
     try {
       await api.deleteProposal(currentProposal.id);
+      queryClient.setQueryData<Proposal[]>(["proposals"], (current = []) =>
+        current.filter((proposal) => proposal.id !== currentProposal.id),
+      );
       await queryClient.invalidateQueries({ queryKey: ["proposals"] });
       toast({
         title: "Offert borttagen",

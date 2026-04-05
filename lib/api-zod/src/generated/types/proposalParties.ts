@@ -5,8 +5,8 @@
  * Offera Proposal Builder API
  * OpenAPI spec version: 0.1.0
  */
-import type { ProposalParty } from "./proposalParty.js";
-import type { ProposalRecipient } from "./proposalRecipient.js";
+import type { ProposalParty } from "./proposalParty";
+import type { ProposalRecipient } from "./proposalRecipient";
 
 export interface ProposalParties {
   sender: ProposalParty;

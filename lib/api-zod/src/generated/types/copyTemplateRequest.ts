@@ -5,7 +5,7 @@
  * Offera Proposal Builder API
  * OpenAPI spec version: 0.1.0
  */
-import type { TemplateCategory } from "./templateCategory.js";
+import type { TemplateCategory } from "./templateCategory";
 
 export interface CopyTemplateRequest {
   name?: string;

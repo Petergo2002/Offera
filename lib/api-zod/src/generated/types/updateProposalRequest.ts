@@ -5,9 +5,9 @@
  * Offera Proposal Builder API
  * OpenAPI spec version: 0.1.0
  */
-import type { ProposalBranding } from "./proposalBranding.js";
-import type { ProposalParties } from "./proposalParties.js";
-import type { ProposalSection } from "./proposalSection.js";
+import type { ProposalBranding } from "./proposalBranding";
+import type { ProposalParties } from "./proposalParties";
+import type { ProposalSection } from "./proposalSection";
 
 export interface UpdateProposalRequest {
   title?: string;

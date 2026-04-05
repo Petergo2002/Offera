@@ -645,6 +645,10 @@ export const GetPublicProposalParams = zod.object({
   slug: zod.coerce.string(),
 });
 
+export const GetPublicProposalQueryParams = zod.object({
+  token: zod.coerce.string().optional(),
+});
+
 export const getPublicProposalResponseBrandingGlassmorphismEnabledDefault = false;
 export const getPublicProposalResponseBrandingVibePresetDefault = `architectural`;
 export const getPublicProposalResponseBrandingGradientEnabledDefault = false;
@@ -746,6 +750,7 @@ export const GetPublicProposalResponse = zod.object({
   personalMessage: zod.string().optional(),
   signedByName: zod.string().optional(),
   signatureInitials: zod.string().optional(),
+  signatureDataUrl: zod.string().optional(),
   signedAt: zod.coerce.date().optional(),
   createdAt: zod.coerce.date(),
   updatedAt: zod.coerce.date(),
@@ -757,6 +762,10 @@ export const GetPublicProposalResponse = zod.object({
  */
 export const RespondToProposalParams = zod.object({
   slug: zod.coerce.string(),
+});
+
+export const RespondToProposalQueryParams = zod.object({
+  token: zod.coerce.string().optional(),
 });
 
 export const respondToProposalBodySignerEmailMax = 320;
@@ -904,6 +913,7 @@ export const RespondToProposalResponse = zod.object({
   personalMessage: zod.string().optional(),
   signedByName: zod.string().optional(),
   signatureInitials: zod.string().optional(),
+  signatureDataUrl: zod.string().optional(),
   signedAt: zod.coerce.date().optional(),
   createdAt: zod.coerce.date(),
   updatedAt: zod.coerce.date(),

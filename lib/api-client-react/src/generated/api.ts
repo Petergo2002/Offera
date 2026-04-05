@@ -21,9 +21,11 @@ import type {
   CreateProposalRequest,
   CreateTemplateRequest,
   ErrorResponse,
+  GetPublicProposalParams,
   HealthStatus,
   Proposal,
   PublicProposalView,
+  RespondToProposalParams,
   RespondToProposalRequest,
   SendProposalRequest,
   Template,
@@ -625,22 +627,47 @@ export const useSendProposal = <
 /**
  * @summary Get a proposal by public slug (requires signing token or workspace auth)
  */
-export const getGetPublicProposalUrl = (slug: string) => {
-  return `/api/proposals/public/${slug}`;
+export const getGetPublicProposalUrl = (
+  slug: string,
+  params?: GetPublicProposalParams,
+) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? "null" : value.toString());
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0
+    ? `/api/proposals/public/${slug}?${stringifiedParams}`
+    : `/api/proposals/public/${slug}`;
 };
 
 export const getPublicProposal = async (
   slug: string,
+  params?: GetPublicProposalParams,
   options?: RequestInit,
 ): Promise<PublicProposalView> => {
-  return customFetch<PublicProposalView>(getGetPublicProposalUrl(slug), {
-    ...options,
-    method: "GET",
-  });
+  return customFetch<PublicProposalView>(
+    getGetPublicProposalUrl(slug, params),
+    {
+      ...options,
+      method: "GET",
+    },
+  );
 };
 
-export const getGetPublicProposalQueryKey = (slug: string) => {
-  return [`/api/proposals/public/${slug}`] as const;
+export const getGetPublicProposalQueryKey = (
+  slug: string,
+  params?: GetPublicProposalParams,
+) => {
+  return [
+    `/api/proposals/public/${slug}`,
+    ...(params ? [params] : []),
+  ] as const;
 };
 
 export const getGetPublicProposalQueryOptions = <
@@ -648,6 +675,7 @@ export const getGetPublicProposalQueryOptions = <
   TError = ErrorType<ErrorResponse>,
 >(
   slug: string,
+  params?: GetPublicProposalParams,
   options?: {
     query?: UseQueryOptions<
       Awaited<ReturnType<typeof getPublicProposal>>,
@@ -659,11 +687,13 @@ export const getGetPublicProposalQueryOptions = <
 ) => {
   const { query: queryOptions, request: requestOptions } = options ?? {};
 
-  const queryKey = queryOptions?.queryKey ?? getGetPublicProposalQueryKey(slug);
+  const queryKey =
+    queryOptions?.queryKey ?? getGetPublicProposalQueryKey(slug, params);
 
   const queryFn: QueryFunction<
     Awaited<ReturnType<typeof getPublicProposal>>
-  > = ({ signal }) => getPublicProposal(slug, { signal, ...requestOptions });
+  > = ({ signal }) =>
+    getPublicProposal(slug, params, { signal, ...requestOptions });
 
   return {
     queryKey,
@@ -691,6 +721,7 @@ export function useGetPublicProposal<
   TError = ErrorType<ErrorResponse>,
 >(
   slug: string,
+  params?: GetPublicProposalParams,
   options?: {
     query?: UseQueryOptions<
       Awaited<ReturnType<typeof getPublicProposal>>,
@@ -700,7 +731,7 @@ export function useGetPublicProposal<
     request?: SecondParameter<typeof customFetch>;
   },
 ): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
-  const queryOptions = getGetPublicProposalQueryOptions(slug, options);
+  const queryOptions = getGetPublicProposalQueryOptions(slug, params, options);
 
   const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
     queryKey: QueryKey;
@@ -712,21 +743,40 @@ export function useGetPublicProposal<
 /**
  * @summary Accept or decline a proposal (client action)
  */
-export const getRespondToProposalUrl = (slug: string) => {
-  return `/api/proposals/public/${slug}/respond`;
+export const getRespondToProposalUrl = (
+  slug: string,
+  params?: RespondToProposalParams,
+) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? "null" : value.toString());
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0
+    ? `/api/proposals/public/${slug}/respond?${stringifiedParams}`
+    : `/api/proposals/public/${slug}/respond`;
 };
 
 export const respondToProposal = async (
   slug: string,
   respondToProposalRequest: RespondToProposalRequest,
+  params?: RespondToProposalParams,
   options?: RequestInit,
 ): Promise<PublicProposalView> => {
-  return customFetch<PublicProposalView>(getRespondToProposalUrl(slug), {
-    ...options,
-    method: "POST",
-    headers: { "Content-Type": "application/json", ...options?.headers },
-    body: JSON.stringify(respondToProposalRequest),
-  });
+  return customFetch<PublicProposalView>(
+    getRespondToProposalUrl(slug, params),
+    {
+      ...options,
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...options?.headers },
+      body: JSON.stringify(respondToProposalRequest),
+    },
+  );
 };
 
 export const getRespondToProposalMutationOptions = <
@@ -736,14 +786,22 @@ export const getRespondToProposalMutationOptions = <
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof respondToProposal>>,
     TError,
-    { slug: string; data: BodyType<RespondToProposalRequest> },
+    {
+      slug: string;
+      data: BodyType<RespondToProposalRequest>;
+      params?: RespondToProposalParams;
+    },
     TContext
   >;
   request?: SecondParameter<typeof customFetch>;
 }): UseMutationOptions<
   Awaited<ReturnType<typeof respondToProposal>>,
   TError,
-  { slug: string; data: BodyType<RespondToProposalRequest> },
+  {
+    slug: string;
+    data: BodyType<RespondToProposalRequest>;
+    params?: RespondToProposalParams;
+  },
   TContext
 > => {
   const mutationKey = ["respondToProposal"];
@@ -757,11 +815,15 @@ export const getRespondToProposalMutationOptions = <
 
   const mutationFn: MutationFunction<
     Awaited<ReturnType<typeof respondToProposal>>,
-    { slug: string; data: BodyType<RespondToProposalRequest> }
+    {
+      slug: string;
+      data: BodyType<RespondToProposalRequest>;
+      params?: RespondToProposalParams;
+    }
   > = (props) => {
-    const { slug, data } = props ?? {};
+    const { slug, data, params } = props ?? {};
 
-    return respondToProposal(slug, data, requestOptions);
+    return respondToProposal(slug, data, params, requestOptions);
   };
 
   return { mutationFn, ...mutationOptions };
@@ -783,14 +845,22 @@ export const useRespondToProposal = <
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof respondToProposal>>,
     TError,
-    { slug: string; data: BodyType<RespondToProposalRequest> },
+    {
+      slug: string;
+      data: BodyType<RespondToProposalRequest>;
+      params?: RespondToProposalParams;
+    },
     TContext
   >;
   request?: SecondParameter<typeof customFetch>;
 }): UseMutationResult<
   Awaited<ReturnType<typeof respondToProposal>>,
   TError,
-  { slug: string; data: BodyType<RespondToProposalRequest> },
+  {
+    slug: string;
+    data: BodyType<RespondToProposalRequest>;
+    params?: RespondToProposalParams;
+  },
   TContext
 > => {
   return useMutation(getRespondToProposalMutationOptions(options));

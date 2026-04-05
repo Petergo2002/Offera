@@ -1,11 +1,8 @@
 import React from "react";
 import { Link, useLocation } from "wouter";
 import {
-  Bell,
-  HelpCircle,
   LayoutDashboard,
   LogOut,
-  Search,
   Settings,
   User,
   Menu,
@@ -13,8 +10,6 @@ import {
   Sparkles,
   Archive as ArchiveIcon,
 } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/components/auth-provider";
 
@@ -139,25 +134,7 @@ export function Layout({ children }: LayoutProps) {
           })}
         </nav>
 
-        <div className="mt-auto px-2 space-y-6">
-          {isSidebarOpen && (
-            <div className="bg-primary/5 p-5 rounded-2xl border border-primary/10 animate-in fade-in slide-in-from-bottom-4 duration-500">
-              <p className="text-primary font-bold text-sm mb-1">
-                Uppgradera Plan
-              </p>
-              <p className="text-[11px] text-primary/70 mb-4 leading-relaxed line-clamp-2">
-                Lås upp obegränsade mallar och djupare kundanalys.
-              </p>
-              <Button
-                size="sm"
-                variant="outline"
-                className="w-full bg-white text-[11px] font-bold shadow-sm h-8 border-primary/20 hover:bg-primary hover:text-white transition-colors"
-              >
-                Utforska Pro
-              </Button>
-            </div>
-          )}
-
+        <div className="mt-auto px-2">
           <div className="flex flex-col gap-1">
             <button
               onClick={() => {

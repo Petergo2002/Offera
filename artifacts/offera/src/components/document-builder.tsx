@@ -18,6 +18,7 @@ import {
   Loader2,
   Minus,
   Monitor,
+  Lock,
   Palette,
   Plus,
   Save,
@@ -1886,6 +1887,8 @@ export function DocumentBuilder({
   const [selectedBlock, setSelectedBlock] = React.useState<SelectedBlock>(null);
   const [isPreview, setIsPreview] = React.useState(false);
   const [isPartiesDialogOpen, setIsPartiesDialogOpen] = React.useState(false);
+  const isDisplayPreview = readOnly || isPreview;
+  const canEditCanvas = !readOnly && !isPreview;
 
   const totalValue = React.useMemo(
     () => calculateDocumentTotal(sections),
@@ -1904,9 +1907,9 @@ export function DocumentBuilder({
     parties?.recipient.companyName.trim() &&
     parties?.recipient.email.trim(),
   );
-  const isCompactPreview = isPreview && previewDevice === "mobile";
-  const isTabletPreview = isPreview && previewDevice === "tablet";
-  const isProposalPreview = isPreview && mode === "proposal";
+  const isCompactPreview = isDisplayPreview && previewDevice === "mobile";
+  const isTabletPreview = isDisplayPreview && previewDevice === "tablet";
+  const isProposalPreview = isDisplayPreview && mode === "proposal";
   const isAcceptedProposal = status === "accepted";
   const isDeclinedProposal = status === "declined";
   const isAwaitingProposalResponse = status === "sent" || status === "viewed";
@@ -1967,7 +1970,9 @@ export function DocumentBuilder({
       <aside
         className={cn(
           "shrink-0 border-r border-outline-variant/10 bg-white shadow-[1px_0_10px_rgba(0,0,0,0.02)] transition-all duration-500",
-          isPreview ? "hidden w-0" : "w-[280px] xl:w-[340px] hidden lg:flex lg:flex-col",
+          isDisplayPreview
+            ? "hidden w-0"
+            : "w-[280px] xl:w-[340px] hidden lg:flex lg:flex-col",
         )}
       >
         <div className="px-8 pt-10 pb-6">
@@ -2489,6 +2494,7 @@ export function DocumentBuilder({
                   <Input
                     value={title}
                     onChange={(event) => onTitleChange(event.target.value)}
+                    readOnly={readOnly}
                     className="h-auto truncate border-none bg-transparent p-0 text-xl font-black tracking-tighter shadow-none placeholder:text-on-surface-variant/20 focus-visible:ring-0 md:text-2xl"
                   />
                   {status && (
@@ -2540,31 +2546,38 @@ export function DocumentBuilder({
                 </div>
               )}
 
-              <div className="flex w-full items-center gap-2 rounded-2xl border border-outline-variant/5 bg-white/50 p-1 shadow-sm sm:w-auto">
-                <button
-                  onClick={() => setIsPreview(false)}
-                  className={cn(
-                    "flex-1 rounded-xl px-4 py-2 text-[11px] font-black uppercase tracking-[0.15em] transition-all sm:flex-none sm:px-5",
-                    !isPreview
-                      ? "bg-white text-on-surface shadow-subtle"
-                      : "text-on-surface-variant/40 hover:text-on-surface",
-                  )}
-                >
-                  Editor
-                </button>
-                <button
-                  onClick={() => setIsPreview(true)}
-                  className={cn(
-                    "flex flex-1 items-center justify-center gap-2 rounded-xl px-4 py-2 text-[11px] font-black uppercase tracking-[0.15em] transition-all sm:flex-none sm:px-5",
-                    isPreview
-                      ? "bg-white text-on-surface shadow-subtle"
-                      : "text-on-surface-variant/40 hover:text-on-surface",
-                  )}
-                >
-                  <Eye className="h-3 w-3" />
-                  Preview
-                </button>
-              </div>
+              {readOnly ? (
+                <div className="inline-flex items-center gap-2 rounded-2xl border border-emerald-200 bg-emerald-50/80 px-4 py-3 text-[10px] font-black uppercase tracking-[0.18em] text-emerald-700 shadow-sm">
+                  <Lock className="h-3.5 w-3.5" />
+                  Låst läsläge
+                </div>
+              ) : (
+                <div className="flex w-full items-center gap-2 rounded-2xl border border-outline-variant/5 bg-white/50 p-1 shadow-sm sm:w-auto">
+                  <button
+                    onClick={() => setIsPreview(false)}
+                    className={cn(
+                      "flex-1 rounded-xl px-4 py-2 text-[11px] font-black uppercase tracking-[0.15em] transition-all sm:flex-none sm:px-5",
+                      !isPreview
+                        ? "bg-white text-on-surface shadow-subtle"
+                        : "text-on-surface-variant/40 hover:text-on-surface",
+                    )}
+                  >
+                    Editor
+                  </button>
+                  <button
+                    onClick={() => setIsPreview(true)}
+                    className={cn(
+                      "flex flex-1 items-center justify-center gap-2 rounded-xl px-4 py-2 text-[11px] font-black uppercase tracking-[0.15em] transition-all sm:flex-none sm:px-5",
+                      isPreview
+                        ? "bg-white text-on-surface shadow-subtle"
+                        : "text-on-surface-variant/40 hover:text-on-surface",
+                    )}
+                  >
+                    <Eye className="h-3 w-3" />
+                    Preview
+                  </button>
+                </div>
+              )}
             </div>
           </div>
         </header>
@@ -2579,9 +2592,14 @@ export function DocumentBuilder({
           <div
             className={cn(
               "mx-auto transition-all duration-700 ease-in-out relative",
-              isPreview && previewDevice === "mobile" && "max-w-[430px] w-full px-3",
-              isPreview && previewDevice === "tablet" && "max-w-[820px] w-full",
-              (!isPreview || previewDevice === "desktop") && "max-w-[1280px] w-full",
+              isDisplayPreview &&
+                previewDevice === "mobile" &&
+                "max-w-[430px] w-full px-3",
+              isDisplayPreview &&
+                previewDevice === "tablet" &&
+                "max-w-[820px] w-full",
+              (!isDisplayPreview || previewDevice === "desktop") &&
+                "max-w-[1280px] w-full",
               designSettings.vibePreset === "editorial" && "vibe-editorial",
               designSettings.vibePreset === "architectural" && "vibe-architectural",
               designSettings.vibePreset === "minimal" && "vibe-minimal",
@@ -2608,7 +2626,8 @@ export function DocumentBuilder({
               </DialogContent>
             </Dialog>
 
-            {isPreview && (previewDevice === "mobile" || previewDevice === "tablet") && (
+            {isDisplayPreview &&
+              (previewDevice === "mobile" || previewDevice === "tablet") && (
               <div className="absolute top-4 left-1/2 -translate-x-1/2 w-32 h-6 bg-on-surface rounded-full z-50 flex items-center justify-center gap-1.5 opacity-20 pointer-events-none">
                 <div className="w-1.5 h-1.5 rounded-full bg-surface/20" />
                 <div className="w-10 h-1 bg-surface/20 rounded-full" />
@@ -2619,11 +2638,15 @@ export function DocumentBuilder({
               className={cn(
                 "overflow-hidden transition-all duration-700",
                 "rounded-none sm:rounded-[3rem] border border-outline-variant/10 bg-white",
-                isPreview
+                isDisplayPreview
                   ? "scale-100 shadow-none sm:shadow-elevated"
                   : "scale-[0.99] ring-1 ring-outline-variant/20 shadow-elevated",
-                isPreview && previewDevice === "mobile" && "rounded-[3rem] ring-[10px] ring-on-surface ring-offset-2 shadow-[0_0_0_1px_rgba(0,0,0,0.1),0_32px_56px_-18px_rgba(0,0,0,0.28)] mt-6 mb-14",
-                isPreview && previewDevice === "tablet" && "rounded-[2.5rem] ring-[16px] ring-on-surface ring-offset-2 shadow-[0_0_0_1px_rgba(0,0,0,0.1),0_40px_80px_-20px_rgba(0,0,0,0.3)] mt-8 mb-20",
+                isDisplayPreview &&
+                  previewDevice === "mobile" &&
+                  "rounded-[3rem] ring-[10px] ring-on-surface ring-offset-2 shadow-[0_0_0_1px_rgba(0,0,0,0.1),0_32px_56px_-18px_rgba(0,0,0,0.28)] mt-6 mb-14",
+                isDisplayPreview &&
+                  previewDevice === "tablet" &&
+                  "rounded-[2.5rem] ring-[16px] ring-on-surface ring-offset-2 shadow-[0_0_0_1px_rgba(0,0,0,0.1),0_40px_80px_-20px_rgba(0,0,0,0.3)] mt-8 mb-20",
               )}
               style={{ fontFamily: styles.fontFamily }}
               onClick={() => setSelectedBlock(null)}
@@ -2797,11 +2820,11 @@ export function DocumentBuilder({
                             className={cn(
                               "rounded-[2.5rem] transition-all duration-300",
                               selectedBlock?.type === "parties" &&
-                                !isPreview &&
+                                canEditCanvas &&
                                 "ring-4 ring-primary/10 shadow-elevated",
                             )}
                           >
-                            {isPreview ? (
+                            {isDisplayPreview ? (
                               <PartyCover
                                 parties={parties}
                                 designSettings={designSettings}
@@ -2819,7 +2842,7 @@ export function DocumentBuilder({
                               />
                             )}
                           </div>
-                        ) : isPreview ? (
+                        ) : isDisplayPreview ? (
                           section.title && (
                             <h2
                               className={cn(
@@ -2890,11 +2913,11 @@ export function DocumentBuilder({
                                 className={cn(
                                   "rounded-[2.5rem] transition-all duration-300",
                                   isSelected &&
-                                    !isPreview &&
+                                    canEditCanvas &&
                                     "ring-4 ring-primary/10 shadow-elevated",
                                 )}
                                 onClick={() =>
-                                  !isPreview &&
+                                  canEditCanvas &&
                                   setSelectedBlock({
                                     type: "block",
                                     sectionId: section.id,
@@ -2904,7 +2927,7 @@ export function DocumentBuilder({
                               >
                                 <BlockEditor
                                   block={block}
-                                  isPreview={isPreview}
+                                  isPreview={isDisplayPreview}
                                   isTemplateMode={mode === "template"}
                                   designSettings={designSettings}
                                   placeholderContext={placeholderContext}
@@ -2934,7 +2957,7 @@ export function DocumentBuilder({
                           </div>
                         ) : null}
 
-                        {!isPreview && !isPartiesSection(section) && (
+                        {canEditCanvas && !isPartiesSection(section) && (
                           <div className="mt-12 flex flex-wrap gap-2.5 p-6 rounded-[2.5rem] bg-surface-container-low/30 border border-dashed border-outline-variant/10">
                             {[
                               {

@@ -5,10 +5,10 @@
  * Offera Proposal Builder API
  * OpenAPI spec version: 0.1.0
  */
-import type { DocumentDesignSettingsDividerStyle } from "./documentDesignSettingsDividerStyle.js";
-import type { DocumentDesignSettingsFontPairing } from "./documentDesignSettingsFontPairing.js";
-import type { DocumentDesignSettingsLogoPosition } from "./documentDesignSettingsLogoPosition.js";
-import type { DocumentDesignSettingsVibePreset } from "./documentDesignSettingsVibePreset.js";
+import type { DocumentDesignSettingsDividerStyle } from "./documentDesignSettingsDividerStyle";
+import type { DocumentDesignSettingsFontPairing } from "./documentDesignSettingsFontPairing";
+import type { DocumentDesignSettingsLogoPosition } from "./documentDesignSettingsLogoPosition";
+import type { DocumentDesignSettingsVibePreset } from "./documentDesignSettingsVibePreset";
 
 export interface DocumentDesignSettings {
   logoUrl?: string;

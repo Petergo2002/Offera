@@ -26,9 +26,11 @@ export {
 } from "./generated/api.js";
 export type {
   CopyTemplateRequest,
+  ContentBlock,
   CreateProposalRequest,
   CreateTemplateRequest,
   DocumentDesignSettings,
+  PricingRow,
   Proposal,
   ProposalBranding,
   ProposalParties,
@@ -36,6 +38,8 @@ export type {
   ProposalRecipient,
   ProposalRecipientKind,
   ProposalSection,
+  ProposalStatus,
+  PublicProposalView,
   RespondToProposalRequest,
   SendProposalRequest,
   Template,
@@ -44,4 +48,3 @@ export type {
   UpdateTemplateRequest,
 } from "./generated/types/index.js";
 export * from "./generated/api.js";
-export * from "./generated/types/index.js";

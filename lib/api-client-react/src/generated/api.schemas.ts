@@ -269,6 +269,11 @@ export interface Proposal {
   auditSummary?: ProposalAuditSummary;
 }
 
+export type PublicProposalViewParties = {
+  sender: ProposalParty;
+  recipient?: ProposalRecipient;
+};
+
 export interface PublicProposalView {
   id: number;
   title: string;
@@ -281,12 +286,11 @@ export interface PublicProposalView {
   templateId?: number;
   sections: ProposalSection[];
   branding: ProposalBranding;
-  parties: Omit<ProposalParties, "recipient"> & {
-    recipient?: ProposalParties["recipient"];
-  };
+  parties: PublicProposalViewParties;
   personalMessage?: string;
   signedByName?: string;
   signatureInitials?: string;
+  signatureDataUrl?: string;
   signedAt?: string;
   createdAt: string;
   updatedAt: string;
@@ -385,3 +389,11 @@ export interface CopyTemplateRequest {
   description?: string;
   category?: TemplateCategory;
 }
+
+export type GetPublicProposalParams = {
+  token?: string;
+};
+
+export type RespondToProposalParams = {
+  token?: string;
+};

@@ -6,8 +6,9 @@
  * OpenAPI spec version: 0.1.0
  */
 import type { ProposalParty } from "./proposalParty";
-import type { ProposalRecipientKind } from "./proposalRecipientKind";
+import type { ProposalRecipient } from "./proposalRecipient";
 
-export type ProposalRecipient = ProposalParty & {
-  kind: ProposalRecipientKind;
+export type PublicProposalViewParties = {
+  sender: ProposalParty;
+  recipient?: ProposalRecipient;
 };

@@ -1141,7 +1141,9 @@ export default function PublicProposal() {
                   Offert signerad ✓
                 </h3>
 
-                {(proposal.signedByName || proposal.signatureInitials) && (
+                {(proposal.signedByName ||
+                  proposal.signatureInitials ||
+                  proposal.signatureDataUrl) && (
                   <div className="my-8 max-w-md mx-auto p-8 border border-border bg-white rounded-2xl shadow-sm text-left space-y-5">
                     <div>
                       <p className="text-sm text-muted-foreground uppercase tracking-widest mb-2">
@@ -1159,12 +1161,30 @@ export default function PublicProposal() {
                       ) : null}
                     </div>
 
-                    {proposal.signatureInitials ? (
-                      <div
-                        className="text-5xl font-serif italic text-foreground"
-                        style={{ color: "var(--proposal-accent)" }}
-                      >
-                        {proposal.signatureInitials}
+                    {proposal.signatureDataUrl ? (
+                      <div className="space-y-3">
+                        <p className="text-sm text-muted-foreground uppercase tracking-widest">
+                          Signatur
+                        </p>
+                        <div className="rounded-2xl border border-dashed border-border bg-muted/30 p-4">
+                          <img
+                            src={proposal.signatureDataUrl}
+                            alt="Din signerade signatur"
+                            className="max-h-36 w-full rounded-xl bg-white object-contain p-3"
+                          />
+                        </div>
+                      </div>
+                    ) : proposal.signatureInitials ? (
+                      <div className="space-y-3">
+                        <p className="text-sm text-muted-foreground uppercase tracking-widest">
+                          Signaturmarkering
+                        </p>
+                        <div
+                          className="text-5xl font-serif italic text-foreground"
+                          style={{ color: "var(--proposal-accent)" }}
+                        >
+                          {proposal.signatureInitials}
+                        </div>
                       </div>
                     ) : null}
 

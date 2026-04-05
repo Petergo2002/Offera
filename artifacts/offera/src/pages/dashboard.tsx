@@ -39,7 +39,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useConfirm } from "@/components/ui/custom-confirm";
 import { useAuth } from "@/components/auth-provider";
 import { cn } from "@/lib/utils";
-import { api } from "@/lib/api";
+import { api, type Proposal } from "@/lib/api";
 import {
   consumePostSendSummary,
   type PostSendSummaryPayload,
@@ -131,6 +131,7 @@ export default function DashboardPage() {
     React.useState<PostSendSummaryPayload | null>(null);
   const [postSendDialogOpen, setPostSendDialogOpen] = React.useState(false);
   const [selectedProposalId, setSelectedProposalId] = React.useState<number | null>(null);
+  const [deletingProposalId, setDeletingProposalId] = React.useState<number | null>(null);
 
   const {
     data: proposals = [],
@@ -203,6 +204,10 @@ export default function DashboardPage() {
   }, [proposals, search, statusFilter]);
 
   const deleteProposal = async (proposalId: number) => {
+    if (deletingProposalId === proposalId) {
+      return;
+    }
+
     const ok = await confirm({
       title: "Radera offert permanent?",
       description:
@@ -214,7 +219,14 @@ export default function DashboardPage() {
     if (!ok) return;
 
     try {
+      setDeletingProposalId(proposalId);
       await api.deleteProposal(proposalId);
+      queryClient.setQueryData<Proposal[]>(["proposals"], (current = []) =>
+        current.filter((proposal) => proposal.id !== proposalId),
+      );
+      if (selectedProposalId === proposalId) {
+        setSelectedProposalId(null);
+      }
       await queryClient.invalidateQueries({ queryKey: ["proposals"] });
       toast({ title: "Offert raderad" });
     } catch (error) {
@@ -223,6 +235,8 @@ export default function DashboardPage() {
         title: "Kunde inte radera offerten",
         description: error instanceof Error ? error.message : "Försök igen.",
       });
+    } finally {
+      setDeletingProposalId(null);
     }
   };
 
@@ -626,7 +640,11 @@ export default function DashboardPage() {
                         initial={{ opacity: 0, y: 10 }}
                         animate={{ opacity: 1, y: 0 }}
                         whileHover={{ backgroundColor: "rgba(var(--primary), 0.03)" }}
-                        className="group transition-all duration-500 cursor-pointer"
+                        className={cn(
+                          "group transition-all duration-500 cursor-pointer",
+                          deletingProposalId === proposal.id &&
+                            "pointer-events-none opacity-55 saturate-0",
+                        )}
                         onClick={() => setSelectedProposalId(proposal.id)}
                       >
                         <td className="px-10 py-8">
@@ -636,8 +654,16 @@ export default function DashboardPage() {
                             <div className="font-black text-on-surface text-lg tracking-tight transition-colors group-hover:text-primary leading-tight">
                               {proposal.title}
                             </div>
-                            <div className="mt-1.5 text-xs font-bold text-on-surface-variant/50 uppercase tracking-widest text-ellipsis overflow-hidden whitespace-nowrap">
-                              {proposal.clientName || "Namnlös kund"}
+                            <div className="mt-1.5 flex items-center gap-2">
+                              <div className="text-xs font-bold text-on-surface-variant/50 uppercase tracking-widest text-ellipsis overflow-hidden whitespace-nowrap">
+                                {proposal.clientName || "Namnlös kund"}
+                              </div>
+                              {deletingProposalId === proposal.id ? (
+                                <span className="inline-flex items-center gap-1 rounded-full border border-red-200 bg-red-50 px-2 py-1 text-[9px] font-black uppercase tracking-[0.16em] text-red-600">
+                                  <Loader2 className="h-3 w-3 animate-spin" />
+                                  Tar bort
+                                </span>
+                              ) : null}
                             </div>
                           </div>
                         </td>
@@ -662,9 +688,14 @@ export default function DashboardPage() {
                               <Button
                                 variant="ghost"
                                 size="icon"
+                                disabled={deletingProposalId === proposal.id}
                                 className="h-12 w-12 rounded-2xl hover:bg-white hover:shadow-subtle transition-all active:scale-95"
                               >
-                                <MoreHorizontal className="h-6 w-6 text-on-surface-variant" />
+                                {deletingProposalId === proposal.id ? (
+                                  <Loader2 className="h-5 w-5 animate-spin text-on-surface-variant" />
+                                ) : (
+                                  <MoreHorizontal className="h-6 w-6 text-on-surface-variant" />
+                                )}
                               </Button>
                             </DropdownMenuTrigger>
                             <DropdownMenuContent
@@ -688,9 +719,12 @@ export default function DashboardPage() {
                               <DropdownMenuItem
                                 className="text-error focus:text-error bg-error/[0.03] focus:bg-error/[0.08] rounded-xl py-4 px-4 font-black"
                                 onClick={() => deleteProposal(proposal.id)}
+                                disabled={deletingProposalId === proposal.id}
                               >
                                 <Trash2 className="mr-3 h-5 w-5" />
-                                Radera permanent
+                                {deletingProposalId === proposal.id
+                                  ? "Tar bort..."
+                                  : "Radera permanent"}
                               </DropdownMenuItem>
                             </DropdownMenuContent>
                           </DropdownMenu>

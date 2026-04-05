@@ -57,6 +57,17 @@ function formatDate(value: Date | undefined) {
   }).format(value);
 }
 
+function formatDateTime(value: Date | undefined) {
+  if (!value || Number.isNaN(value.getTime())) {
+    return "";
+  }
+
+  return new Intl.DateTimeFormat("sv-SE", {
+    dateStyle: "long",
+    timeStyle: "short",
+  }).format(value);
+}
+
 function resolvePlaceholderValue(key: string, context: PlaceholderContext) {
   const normalizedKey = key.trim().toLowerCase();
 
@@ -324,6 +335,65 @@ function renderSections(
       `;
     })
     .join("");
+}
+
+function renderAcceptanceSummary(proposal: Proposal) {
+  if (proposal.status !== "accepted") {
+    return "";
+  }
+
+  const signerName = proposal.signedByName?.trim() || proposal.clientName?.trim() || "Signerad";
+  const signedAt = formatDateTime(proposal.signedAt);
+
+  return `
+    <section class="signature-card">
+      <div class="signature-card-header">
+        <div>
+          <p class="eyebrow">Elektronisk signering</p>
+          <h2 class="signature-card-title">Offerten är signerad</h2>
+        </div>
+        ${
+          signedAt
+            ? `<div class="signature-status-chip">Signerad ${escapeHtml(signedAt)}</div>`
+            : ""
+        }
+      </div>
+      <div class="signature-grid">
+        <div class="signature-details">
+          <div class="signature-detail">
+            <span class="signature-label">Signerad av</span>
+            <strong>${escapeHtml(signerName)}</strong>
+          </div>
+          ${
+            proposal.signatureInitials
+              ? `<div class="signature-detail">
+                  <span class="signature-label">Initialer</span>
+                  <strong>${escapeHtml(proposal.signatureInitials)}</strong>
+                </div>`
+              : ""
+          }
+          ${
+            proposal.clientEmail
+              ? `<div class="signature-detail">
+                  <span class="signature-label">E-post</span>
+                  <strong>${escapeHtml(proposal.clientEmail)}</strong>
+                </div>`
+              : ""
+          }
+        </div>
+        <div class="signature-mark">
+          <span class="signature-label">Signatur</span>
+          ${
+            proposal.signatureDataUrl
+              ? `<img class="signature-image" src="${escapeHtml(proposal.signatureDataUrl)}" alt="Underskrift av ${escapeHtml(signerName)}" />`
+              : proposal.signatureInitials
+                ? `<div class="signature-fallback">${escapeHtml(proposal.signatureInitials)}</div>`
+                : `<div class="signature-fallback">${escapeHtml(signerName)}</div>`
+          }
+        </div>
+      </div>
+    </section>
+  `;
 }
 
 function renderHtml(proposal: Proposal) {
@@ -627,6 +697,90 @@ function renderHtml(proposal: Proposal) {
             font-size: 18px;
             color: var(--accent);
           }
+          .signature-card {
+            margin-top: 40px;
+            padding: 28px;
+            border: 1px solid var(--line);
+            border-radius: 28px;
+            background: linear-gradient(180deg, rgba(248,250,252,0.96), #ffffff);
+          }
+          .signature-card-header {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 20px;
+            margin-bottom: 24px;
+          }
+          .signature-card-title {
+            margin: 0;
+            font-size: 26px;
+            font-weight: 800;
+            letter-spacing: -0.03em;
+          }
+          .signature-status-chip {
+            padding: 8px 12px;
+            border-radius: 999px;
+            background: rgba(15,23,42,0.05);
+            color: var(--muted);
+            font-size: 12px;
+            font-weight: 700;
+            white-space: nowrap;
+          }
+          .signature-grid {
+            display: grid;
+            grid-template-columns: minmax(0, 1.1fr) minmax(240px, 0.9fr);
+            gap: 24px;
+          }
+          .signature-details {
+            display: grid;
+            gap: 14px;
+          }
+          .signature-detail {
+            padding: 16px 18px;
+            border-radius: 20px;
+            background: var(--panel);
+            border: 1px solid var(--line);
+          }
+          .signature-label {
+            display: block;
+            margin-bottom: 8px;
+            font-size: 11px;
+            font-weight: 800;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            color: var(--muted);
+          }
+          .signature-detail strong {
+            font-size: 16px;
+            color: var(--text);
+          }
+          .signature-mark {
+            min-height: 180px;
+            padding: 18px;
+            border-radius: 24px;
+            border: 1px dashed rgba(15,23,42,0.14);
+            background: #ffffff;
+          }
+          .signature-image {
+            display: block;
+            width: 100%;
+            height: 120px;
+            object-fit: contain;
+            object-position: left center;
+          }
+          .signature-fallback {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 120px;
+            border-radius: 18px;
+            background: var(--panel-soft);
+            font-size: 26px;
+            font-weight: 800;
+            letter-spacing: 0.08em;
+            color: var(--text);
+            text-transform: uppercase;
+          }
           .footer {
             padding: 0 48px 40px;
             color: var(--muted);
@@ -677,6 +831,7 @@ function renderHtml(proposal: Proposal) {
                 : ""
             }
             ${renderSections(proposal, context)}
+            ${renderAcceptanceSummary(proposal)}
           </section>
 
           <footer class="footer">
