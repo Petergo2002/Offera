@@ -35,6 +35,7 @@ export interface Proposal {
   snapshotHash?: string;
   sentAt?: Date;
   viewedAt?: Date;
+  customerId?: string;
   signingRecipientEmail?: string;
   resendEmailId?: string;
   auditSummary?: ProposalAuditSummary;

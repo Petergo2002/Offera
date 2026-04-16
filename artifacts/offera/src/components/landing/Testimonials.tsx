@@ -36,7 +36,6 @@ export function Testimonials() {
                 <div key={i} className="w-10 h-10 rounded-full border-4 border-surface bg-on-surface/5" />
               ))}
             </div>
-            <span className="text-xs font-black uppercase tracking-[0.2em] text-on-surface-variant opacity-60">Wall of Love</span>
           </div>
           <h3 className="font-headline text-5xl lg:text-7xl font-black tracking-tighter text-on-surface leading-[0.9]">
             Vad de <span className="text-primary italic">bästa</span> säger.

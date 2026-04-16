@@ -126,6 +126,7 @@ export const ListProposalsResponseItem = zod.object({
   snapshotHash: zod.string().optional(),
   sentAt: zod.coerce.date().optional(),
   viewedAt: zod.coerce.date().optional(),
+  customerId: zod.string().uuid().optional(),
   signingRecipientEmail: zod.string().optional(),
   resendEmailId: zod.string().optional(),
   auditSummary: zod
@@ -146,6 +147,7 @@ export const CreateProposalBody = zod.object({
   clientName: zod.string().optional(),
   clientEmail: zod.string().optional(),
   templateId: zod.number().optional(),
+  customerId: zod.string().uuid().optional(),
 });
 
 /**
@@ -263,6 +265,7 @@ export const GetProposalResponse = zod.object({
   snapshotHash: zod.string().optional(),
   sentAt: zod.coerce.date().optional(),
   viewedAt: zod.coerce.date().optional(),
+  customerId: zod.string().uuid().optional(),
   signingRecipientEmail: zod.string().optional(),
   resendEmailId: zod.string().optional(),
   auditSummary: zod
@@ -379,6 +382,7 @@ export const UpdateProposalBody = zod.object({
     })
     .optional(),
   totalValue: zod.number().optional(),
+  customerId: zod.string().uuid().optional().nullable(),
 });
 
 export const updateProposalResponseBrandingGlassmorphismEnabledDefault = false;
@@ -489,6 +493,7 @@ export const UpdateProposalResponse = zod.object({
   snapshotHash: zod.string().optional(),
   sentAt: zod.coerce.date().optional(),
   viewedAt: zod.coerce.date().optional(),
+  customerId: zod.string().uuid().optional(),
   signingRecipientEmail: zod.string().optional(),
   resendEmailId: zod.string().optional(),
   auditSummary: zod
@@ -627,6 +632,7 @@ export const SendProposalResponse = zod.object({
   snapshotHash: zod.string().optional(),
   sentAt: zod.coerce.date().optional(),
   viewedAt: zod.coerce.date().optional(),
+  customerId: zod.string().uuid().optional(),
   signingRecipientEmail: zod.string().optional(),
   resendEmailId: zod.string().optional(),
   auditSummary: zod

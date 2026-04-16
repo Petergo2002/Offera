@@ -4,6 +4,7 @@ import healthRouter from "./health.js";
 import meRouter from "./me.js";
 import proposalsRouter from "./proposals.js";
 import templatesRouter from "./templates.js";
+import customersRouter from "./customers.js";
 
 const router: IRouter = Router();
 
@@ -12,5 +13,6 @@ router.use("/me", meRouter);
 router.use("/company-profile", companyProfileRouter);
 router.use("/proposals", proposalsRouter);
 router.use("/templates", templatesRouter);
+router.use("/customers", customersRouter);
 
 export default router;

@@ -17,4 +17,5 @@ export interface UpdateProposalRequest {
   branding?: ProposalBranding;
   parties?: ProposalParties;
   totalValue?: number;
+  customerId?: string | null;
 }

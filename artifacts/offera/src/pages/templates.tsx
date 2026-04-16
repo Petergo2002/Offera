@@ -106,10 +106,14 @@ export default function TemplatesPage() {
   const handleCreateProposal = async (templateId?: number) => {
     setIsCreating(true);
     try {
+      const searchParams = new URLSearchParams(window.location.search);
+      const customerId = searchParams.get("customer_id") || undefined;
+
       const proposal = await api.createProposal({
         title: templateId ? "Ny offert från mall" : "Ny offert",
         clientName: "",
         templateId,
+        customerId,
       });
 
       await queryClient.invalidateQueries({ queryKey: ["proposals"] });

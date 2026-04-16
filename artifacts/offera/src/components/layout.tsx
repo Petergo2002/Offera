@@ -9,6 +9,7 @@ import {
   FileText,
   Sparkles,
   Archive as ArchiveIcon,
+  Users,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/components/auth-provider";
@@ -20,6 +21,7 @@ interface LayoutProps {
 const navLinks = [
   { href: "/", label: "Dashboard", icon: LayoutDashboard },
   { href: "/templates", label: "Skapa", icon: Sparkles },
+  { href: "/customers", label: "Kunder", icon: Users },
   { href: "/archive", label: "Arkiv", icon: ArchiveIcon },
   { href: "/settings", label: "Inställningar", icon: Settings },
 ];

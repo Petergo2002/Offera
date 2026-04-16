@@ -48,3 +48,4 @@ export type {
   UpdateTemplateRequest,
 } from "./generated/types/index.js";
 export * from "./generated/api.js";
+export * from "./customers.js";

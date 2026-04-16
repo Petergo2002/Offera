@@ -74,6 +74,7 @@ type ProposalRecord = {
   sections: unknown;
   branding: unknown;
   parties?: ProposalParties | null;
+  customerId?: string | null;
   personalMessage?: string | null;
   signedByName?: string | null;
   signatureInitials?: string | null;
@@ -332,6 +333,7 @@ async function getDbModule() {
       proposalSigningTokensTable,
       proposalsTable,
       templatesTable,
+      customersTable,
     },
   ] =
     await Promise.all([
@@ -346,6 +348,7 @@ async function getDbModule() {
     proposalSigningTokensTable,
     proposalsTable,
     templatesTable,
+    customersTable,
   };
 }
 
@@ -1285,20 +1288,64 @@ router.post("/", async (req, res) => {
       }
     }
 
+    let customerId: string | null = body.customerId || null;
+    let clientName = body.clientName ?? "";
+    let clientEmail = body.clientEmail ?? null;
+    let recipientData: any = {
+      companyName: clientName,
+      email: clientEmail ?? "",
+    };
+
+    if (body.customerId) {
+      const dbModule = await getDbModule();
+      const [customer] = await dbModule.db
+        .select()
+        .from(dbModule.customersTable)
+        .where(
+          and(
+            eq(dbModule.customersTable.id, body.customerId),
+            eq(dbModule.customersTable.workspaceId, workspaceId)
+          )
+        );
+      
+      if (customer) {
+        clientName = customer.name;
+        clientEmail = customer.email;
+        recipientData = {
+          companyName: customer.name,
+          orgNumber: customer.orgNumber || "",
+          contactName: customer.contactPerson || "",
+          email: customer.email || "",
+          phone: customer.phone || "",
+          address: customer.address || "",
+          postalCode: customer.postalCode || "",
+          city: customer.city || "",
+        };
+      }
+    }
+
     const [proposal] = await dbModule.db
       .insert(dbModule.proposalsTable)
       .values({
         workspaceId,
         title: body.title?.trim() || (templateId ? "Ny offert från mall" : "Ny offert"),
-        clientName: body.clientName ?? "",
-        clientEmail: body.clientEmail ?? null,
+        clientName,
+        clientEmail,
         status: "draft",
         publicSlug: slug,
         templateId,
+        customerId,
         activeRevisionId: null,
         parties: buildProposalParties(undefined, {
-          clientName: body.clientName ?? "",
-          clientEmail: body.clientEmail ?? "",
+          parties: {
+            sender: {} as any, // buildProposalParties handles merging
+            recipient: {
+              ...recipientData,
+              kind: "company",
+            },
+          } as any,
+          clientName,
+          clientEmail: clientEmail ?? "",
         }) as typeof dbModule.proposalsTable.$inferInsert["parties"],
         sections:
           sections as unknown as typeof dbModule.proposalsTable.$inferInsert["sections"],
@@ -1703,6 +1750,52 @@ router.post("/public/:slug/respond", async (req, res) => {
     });
 
     if (body.action === "accept") {
+      // CRM Integration: Ensure a customer exists for this proposal
+      try {
+        const workspaceId = (proposal as ProposalRecord).workspaceId;
+        const clientEmail = normalizeEmail((proposal as ProposalRecord).clientEmail);
+        const clientName = (proposal as ProposalRecord).clientName;
+
+        if (workspaceId && clientEmail) {
+          // 1. Check if proposal already has a customerLink
+          if (!(proposal as any).customerId) {
+            // 2. Find existing customer by email in this workspace
+            const [existingCustomer] = await dbModule.db
+              .select()
+              .from(dbModule.customersTable)
+              .where(
+                and(
+                  eq(dbModule.customersTable.workspaceId, workspaceId),
+                  eq(dbModule.customersTable.email, clientEmail)
+                )
+              );
+
+            let customerId = existingCustomer?.id;
+
+            // 3. Create if not found
+            if (!customerId) {
+              const [newCustomer] = await dbModule.db
+                .insert(dbModule.customersTable)
+                .values({
+                  workspaceId,
+                  name: clientName || "Okänd kund",
+                  email: clientEmail,
+                })
+                .returning();
+              customerId = newCustomer.id;
+            }
+
+            // 4. Link proposal to customer
+            await dbModule.db
+              .update(dbModule.proposalsTable)
+              .set({ customerId })
+              .where(eq(dbModule.proposalsTable.id, proposal.id));
+          }
+        }
+      } catch (crmError) {
+        req.log.error({ err: crmError, proposalId: proposal.id }, "Failed to auto-create CRM customer");
+      }
+
       try {
         const appOrigin = requireAppOrigin();
         const resendFrom = requireResendFromEmail();
@@ -2099,6 +2192,52 @@ router.put("/:id", async (req, res) => {
       updatedAt: new Date(),
       lastActivityAt: new Date(),
     };
+
+    if (body.customerId !== undefined) {
+      updates.customerId = body.customerId;
+      
+      // Smart Auto-sync: If linking to a customer and parties/names weren't explicitly provided,
+      // update them to match the customer's data for consistency.
+      if (body.customerId && body.parties === undefined && body.clientName === undefined) {
+        const [customer] = await dbModule.db
+          .select()
+          .from(dbModule.customersTable)
+          .where(
+            and(
+              eq(dbModule.customersTable.id, body.customerId),
+              eq(dbModule.customersTable.workspaceId, workspaceId)
+            )
+          );
+        
+        if (customer) {
+          const nextParties = buildProposalParties(
+            (existing as ProposalRecord).parties,
+            {
+              parties: {
+                sender: {} as any,
+                recipient: {
+                  companyName: customer.name,
+                  orgNumber: customer.orgNumber || "",
+                  contactName: customer.contactPerson || "",
+                  email: customer.email || "",
+                  phone: customer.phone || "",
+                  address: customer.address || "",
+                  postalCode: customer.postalCode || "",
+                  city: customer.city || "",
+                  kind: "company"
+                } as any
+              } as any,
+              clientName: customer.name,
+              clientEmail: customer.email || ""
+            }
+          );
+          
+          updates.parties = nextParties as unknown as typeof dbModule.proposalsTable.$inferInsert["parties"];
+          updates.clientName = nextParties.recipient.companyName;
+          updates.clientEmail = nextParties.recipient.email || null;
+        }
+      }
+    }
 
     if (
       body.parties !== undefined ||

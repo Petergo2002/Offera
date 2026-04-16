@@ -6,3 +6,4 @@ export * from "./proposals.js";
 export * from "./signing-tokens.js";
 export * from "./templates.js";
 export * from "./workspaces.js";
+export * from "./customers.js";

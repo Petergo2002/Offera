@@ -12,8 +12,9 @@ import {
   Search,
   Trash2,
   PieChart,
+  Unlink,
 } from "lucide-react";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { motion, AnimatePresence } from "framer-motion";
 
 import { StatusBadge } from "@/components/status-badge";
@@ -239,6 +240,21 @@ export default function DashboardPage() {
       setDeletingProposalId(null);
     }
   };
+
+  const unlinkProposalMutation = useMutation({
+    mutationFn: (proposalId: number) => api.updateProposal(proposalId, { customerId: null }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["proposals"] });
+      toast({ title: "Offert bortkopplad från kund" });
+    },
+    onError: (error) => {
+      toast({
+        variant: "destructive",
+        title: "Kunde inte koppla loss",
+        description: error instanceof Error ? error.message : "Försök igen.",
+      });
+    },
+  });
 
   if (isAuthLoading) {
     return (
@@ -716,6 +732,24 @@ export default function DashboardPage() {
                                 <FileText className="mr-3 h-5 w-5 text-on-surface-variant" />
                                 Redigera
                               </DropdownMenuItem>
+                              {proposal.customerId && (
+                                <DropdownMenuItem
+                                  className="rounded-xl py-4 px-4 font-black transition-colors"
+                                  onClick={() => {
+                                    if (window.confirm("Vill du koppla loss offerten från kunden? Den kommer fortfarande finnas kvar på din dashboard.")) {
+                                      unlinkProposalMutation.mutate(proposal.id);
+                                    }
+                                  }}
+                                  disabled={unlinkProposalMutation.isPending}
+                                >
+                                  {unlinkProposalMutation.isPending ? (
+                                    <Loader2 className="mr-3 h-5 w-5 animate-spin" />
+                                  ) : (
+                                    <Unlink className="mr-3 h-5 w-5 text-on-surface-variant" />
+                                  )}
+                                  Avkoppla från kund
+                                </DropdownMenuItem>
+                              )}
                               <DropdownMenuItem
                                 className="text-error focus:text-error bg-error/[0.03] focus:bg-error/[0.08] rounded-xl py-4 px-4 font-black"
                                 onClick={() => deleteProposal(proposal.id)}

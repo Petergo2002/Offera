@@ -106,6 +106,7 @@ export const proposalsTable = pgTable("proposals", {
   publicSlug: text("public_slug").notNull().unique(),
   templateId: integer("template_id"),
   activeRevisionId: integer("active_revision_id"),
+  customerId: uuid("customer_id"),
   sections: jsonb("sections").notNull().default([]),
   branding: jsonb("branding")
     .notNull()

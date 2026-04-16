@@ -11,4 +11,5 @@ export interface CreateProposalRequest {
   clientName?: string;
   clientEmail?: string;
   templateId?: number;
+  customerId?: string;
 }

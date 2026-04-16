@@ -6,6 +6,7 @@ import {
   MeResponse,
   ProposalEvidenceResponse,
   GetProposalResponse,
+  GetCustomerResponse,
   GetPublicProposalResponse,
   GetTemplateResponse,
   ListProposalsResponse,
@@ -164,6 +165,31 @@ export const api = {
     ),
   deleteTemplate: async (id: number) =>
     request<void>(`/api/templates/${id}`, { method: "DELETE" }),
+
+  // CRM (Kunder)
+  listCustomers: async () =>
+    request<any[]>("/api/customers"),
+  getCustomer: async (id: string) =>
+    GetCustomerResponse.parse(await request<unknown>(`/api/customers/${id}`)),
+  createCustomer: async (data: any) =>
+    request<any>("/api/customers", {
+      method: "POST",
+      body: JSON.stringify(data),
+    }),
+  updateCustomer: async (id: string, data: any) =>
+    request<any>(`/api/customers/${id}`, {
+      method: "PUT",
+      body: JSON.stringify(data),
+    }),
+  deleteCustomer: async (id: string) =>
+    request<void>(`/api/customers/${id}`, { method: "DELETE" }),
+  addCustomerLink: async (id: string, data: any) =>
+    request<any>(`/api/customers/${id}/links`, {
+      method: "POST",
+      body: JSON.stringify(data),
+    }),
+  deleteCustomerLink: async (linkId: string) =>
+    request<void>(`/api/customers/links/${linkId}`, { method: "DELETE" }),
 };
 
 export type {

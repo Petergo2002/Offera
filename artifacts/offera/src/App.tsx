@@ -9,6 +9,8 @@ import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import Archive from "./pages/archive";
 import AuthPage from "./pages/auth";
+import CustomersPage from "./pages/customers";
+import CustomerDetailPage from "./pages/customer-detail";
 import ProposalBuilder from "./pages/builder";
 import DashboardPage from "./pages/dashboard";
 import LandingPage from "./pages/landing";
@@ -143,6 +145,8 @@ function AuthAwareRouter({
           <Route path="/templates" component={TemplatesPage} />
           <Route path="/settings" component={SettingsPage} />
           <Route path="/archive" component={Archive} />
+          <Route path="/customers" component={CustomersPage} />
+          <Route path="/customers/:id" component={CustomerDetailPage} />
 
           <Route path="/templates/new" component={TemplateBuilderPage} />
           <Route path="/templates/:id" component={TemplateBuilderPage} />

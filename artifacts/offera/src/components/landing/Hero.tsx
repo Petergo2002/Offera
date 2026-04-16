@@ -53,52 +53,30 @@ export function Hero() {
           </div>
         </div>
 
-        {/* Builder Preview - Elite Visual */}
-        <div className="relative max-w-6xl mx-auto group perspective-2000">
-          <div className="absolute -inset-20 bg-gradient-to-r from-primary/30 via-primary-dim/30 to-primary/30 blur-[120px] opacity-20 -z-10 group-hover:opacity-40 transition-opacity duration-1000" />
+        {/* Builder Preview - Premium SaaS Showcase Visual */}
+        <div className="relative max-w-6xl mx-auto group">
+          <div className="absolute -inset-20 bg-gradient-to-r from-primary/30 via-primary-dim/10 to-primary/30 blur-[120px] opacity-20 -z-10" />
           
-          <div className="relative bg-white/30 backdrop-blur-2xl p-3 rounded-[4rem] border border-white/40 shadow-3xl transform rotate-x-6 group-hover:rotate-x-0 transition-all duration-1000 ease-out shadow-primary/5">
-            <div className="bg-white rounded-[3.5rem] shadow-elevated border border-outline-variant/10 overflow-hidden relative">
-              {/* Browser Decorations - Minimalist */}
-              <div className="bg-surface-container-lowest px-10 py-6 flex items-center justify-between border-b border-outline-variant/5">
-                <div className="flex gap-3">
-                  <div className="w-3 h-3 rounded-full bg-error/20" />
-                  <div className="w-3 h-3 rounded-full bg-primary/10" />
-                  <div className="w-3 h-3 rounded-full bg-primary/20" />
-                </div>
-                <div className="px-10 py-2.5 rounded-2xl bg-surface-container-low/50 text-[10px] text-on-surface-variant font-black tracking-[0.2em] uppercase opacity-40 italic border border-outline-variant/5">
-                  offera.agentergroup.com/p/mod-2026
-                </div>
-                <div className="w-12 h-1" />
+          <div className="relative bg-white rounded-[2.5rem] shadow-2xl border border-outline-variant/10 overflow-hidden transform transition-all duration-700 ease-out hover:shadow-primary/10">
+            {/* Refined Minimalist Window Header */}
+            <div className="bg-surface-container-lowest px-8 py-4 flex items-center justify-between border-b border-outline-variant/5">
+              <div className="flex gap-2">
+                <div className="w-3 h-3 rounded-full bg-error/20 border border-error/10" />
+                <div className="w-3 h-3 rounded-full bg-primary/20 border border-primary/10" />
+                <div className="w-3 h-3 rounded-full bg-emerald-500/20 border border-emerald-500/10" />
               </div>
-              
-              <div className="aspect-[16/10] relative overflow-hidden bg-white">
-                <img 
-                  src="/assets/hero-proposal.png"
-                  alt="Offera Elite Proposal Interface"
-                  className="w-full h-full object-cover group-hover:scale-[1.03] transition-transform duration-3000 ease-out"
-                />
-                
-                {/* Floating Micro-UI overlays */}
-                <div className="absolute bottom-12 left-12 p-6 bg-white/95 backdrop-blur-2xl rounded-[2rem] shadow-elevated border border-primary/10 animate-float">
-                  <div className="flex items-center gap-4 mb-4">
-                    <div className="w-12 h-12 rounded-2xl bg-primary/10 flex items-center justify-center text-primary">
-                      <TrendingUp size={24} />
-                    </div>
-                    <div>
-                      <p className="text-[10px] font-black uppercase tracking-widest text-on-surface-variant opacity-50">Konvertering</p>
-                      <p className="text-xl font-black text-on-surface">+34%</p>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="absolute top-12 right-12 p-6 bg-primary shadow-2xl shadow-primary/40 rounded-[2rem] text-white animate-pulse-slow">
-                  <div className="flex items-center gap-3">
-                    <ShieldCheck size={20} />
-                    <span className="text-sm font-black uppercase tracking-widest">Verifierad Signatur</span>
-                  </div>
-                </div>
+              <div className="px-6 py-1.5 rounded-lg bg-surface-container-low/30 text-[8px] text-on-surface-variant font-black tracking-[0.2em] uppercase opacity-40 italic border border-outline-variant/5">
+                Live Preview System
               </div>
+              <div className="w-12" />
+            </div>
+            
+            <div className="aspect-[16/10] relative overflow-hidden bg-white p-4">
+              <img 
+                src="/assets/hero.png"
+                alt="Offera Dashboard Interface"
+                className="w-full h-full object-contain"
+              />
             </div>
           </div>
         </div>
