@@ -1,9 +1,10 @@
-import { Router } from "express";
-import { eq, and } from "drizzle-orm";
+import { Router, type Request } from "express";
+import { eq, and, sql } from "drizzle-orm";
 import {
   CreateCustomerBody,
   UpdateCustomerBody,
   CreateCustomerLinkBody,
+  CustomerSchema,
   GetCustomerResponse,
   ListCustomersResponse,
 } from "@workspace/api-zod";
@@ -26,9 +27,22 @@ type CustomerRecord = {
   city?: string | null;
   value?: number | string | null;
   valuePeriod?: "month" | "year" | null;
-  createdAt: Date;
-  updatedAt: Date;
+  createdAt: Date | string;
+  updatedAt: Date | string;
 };
+
+type CustomerColumnSupport = {
+  orgNumber: boolean;
+  contactPerson: boolean;
+  phone: boolean;
+  address: boolean;
+  postalCode: boolean;
+  city: boolean;
+  value: boolean;
+  valuePeriod: boolean;
+};
+
+let customerColumnSupportPromise: Promise<CustomerColumnSupport> | undefined;
 
 function normalizeOptionalText(value: string | null | undefined) {
   if (typeof value !== "string") {
@@ -39,27 +53,57 @@ function normalizeOptionalText(value: string | null | undefined) {
   return trimmed ? trimmed : null;
 }
 
+function normalizeOptionalEmail(value: string | null | undefined) {
+  const normalized = normalizeOptionalText(value);
+  if (!normalized) {
+    return null;
+  }
+
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(normalized) ? normalized : null;
+}
+
+function normalizeCustomerValue(value: number | string | null | undefined) {
+  if (value == null) {
+    return null;
+  }
+
+  const parsed = typeof value === "string" ? Number(value) : value;
+  return Number.isFinite(parsed) ? parsed : null;
+}
+
+function normalizeCustomerValuePeriod(value: string | null | undefined) {
+  return value === "month" || value === "year" ? value : null;
+}
+
+function toIsoString(value: Date | string) {
+  if (value instanceof Date) {
+    return value.toISOString();
+  }
+
+  const parsed = new Date(value);
+  if (!Number.isNaN(parsed.getTime())) {
+    return parsed.toISOString();
+  }
+
+  return new Date(0).toISOString();
+}
+
 function serializeCustomer(customer: CustomerRecord) {
   return {
     id: customer.id,
     workspaceId: customer.workspaceId,
     name: customer.name,
-    email: normalizeOptionalText(customer.email),
+    email: normalizeOptionalEmail(customer.email),
     orgNumber: normalizeOptionalText(customer.orgNumber),
     contactPerson: normalizeOptionalText(customer.contactPerson),
     phone: normalizeOptionalText(customer.phone),
     address: normalizeOptionalText(customer.address),
     postalCode: normalizeOptionalText(customer.postalCode),
     city: normalizeOptionalText(customer.city),
-    value:
-      customer.value == null
-        ? null
-        : typeof customer.value === "string"
-          ? Number(customer.value)
-          : customer.value,
-    valuePeriod: customer.valuePeriod ?? null,
-    createdAt: customer.createdAt.toISOString(),
-    updatedAt: customer.updatedAt.toISOString(),
+    value: normalizeCustomerValue(customer.value),
+    valuePeriod: normalizeCustomerValuePeriod(customer.valuePeriod),
+    createdAt: toIsoString(customer.createdAt),
+    updatedAt: toIsoString(customer.updatedAt),
   };
 }
 
@@ -77,14 +121,28 @@ function toCustomerWriteValues(
     value: number | null;
     valuePeriod: "month" | "year" | null;
   }>,
+  columnSupport: CustomerColumnSupport,
 ) {
-  return {
-    ...values,
-    value:
+  const writeValues: Record<string, unknown> = {};
+
+  if ("workspaceId" in values) writeValues.workspaceId = values.workspaceId;
+  if ("name" in values) writeValues.name = values.name;
+  if ("email" in values) writeValues.email = values.email;
+  if (columnSupport.orgNumber && "orgNumber" in values) writeValues.orgNumber = values.orgNumber;
+  if (columnSupport.contactPerson && "contactPerson" in values) writeValues.contactPerson = values.contactPerson;
+  if (columnSupport.phone && "phone" in values) writeValues.phone = values.phone;
+  if (columnSupport.address && "address" in values) writeValues.address = values.address;
+  if (columnSupport.postalCode && "postalCode" in values) writeValues.postalCode = values.postalCode;
+  if (columnSupport.city && "city" in values) writeValues.city = values.city;
+  if (columnSupport.value && "value" in values) {
+    writeValues.value =
       typeof values.value === "number"
         ? values.value.toFixed(2)
-        : values.value,
-  };
+        : values.value;
+  }
+  if (columnSupport.valuePeriod && "valuePeriod" in values) writeValues.valuePeriod = values.valuePeriod;
+
+  return writeValues;
 }
 
 async function getDbModule() {
@@ -108,19 +166,97 @@ async function getDbModule() {
   };
 }
 
+async function getCustomerColumnSupport(
+  db: Awaited<ReturnType<typeof getDbModule>>["db"],
+) {
+  if (!customerColumnSupportPromise) {
+    customerColumnSupportPromise = (async () => {
+      const result = await db.execute(
+        sql<{ column_name: string }>`
+          select column_name
+          from information_schema.columns
+          where table_schema = 'public'
+            and table_name = 'customers'
+        `,
+      );
+      const columnNames = new Set(result.rows.map((row) => row.column_name));
+
+      return {
+        orgNumber: columnNames.has("org_number"),
+        contactPerson: columnNames.has("contact_person"),
+        phone: columnNames.has("phone"),
+        address: columnNames.has("address"),
+        postalCode: columnNames.has("postal_code"),
+        city: columnNames.has("city"),
+        value: columnNames.has("value"),
+        valuePeriod: columnNames.has("value_period"),
+      } satisfies CustomerColumnSupport;
+    })();
+  }
+
+  return customerColumnSupportPromise;
+}
+
+function getCustomerSelectShape(
+  customersTable: Awaited<ReturnType<typeof getDbModule>>["customersTable"],
+  columnSupport: CustomerColumnSupport,
+) {
+  return {
+    id: customersTable.id,
+    workspaceId: customersTable.workspaceId,
+    name: customersTable.name,
+    email: customersTable.email,
+    ...(columnSupport.orgNumber ? { orgNumber: customersTable.orgNumber } : {}),
+    ...(columnSupport.contactPerson
+      ? { contactPerson: customersTable.contactPerson }
+      : {}),
+    ...(columnSupport.phone ? { phone: customersTable.phone } : {}),
+    ...(columnSupport.address ? { address: customersTable.address } : {}),
+    ...(columnSupport.postalCode ? { postalCode: customersTable.postalCode } : {}),
+    ...(columnSupport.city ? { city: customersTable.city } : {}),
+    ...(columnSupport.value ? { value: customersTable.value } : {}),
+    ...(columnSupport.valuePeriod ? { valuePeriod: customersTable.valuePeriod } : {}),
+    createdAt: customersTable.createdAt,
+    updatedAt: customersTable.updatedAt,
+  };
+}
+
+function parseCustomerList(customers: CustomerRecord[], req: Request) {
+  const serializedCustomers = customers.flatMap((customer) => {
+    const serializedCustomer = serializeCustomer(customer);
+    const parsedCustomer = CustomerSchema.safeParse(serializedCustomer);
+
+    if (!parsedCustomer.success) {
+      req.log.warn(
+        {
+          customerId: customer.id,
+          issues: parsedCustomer.error.issues,
+        },
+        "Skipping invalid customer record",
+      );
+      return [];
+    }
+
+    return [parsedCustomer.data];
+  });
+
+  return ListCustomersResponse.parse(serializedCustomers);
+}
+
 // List all customers in workspace
 router.get("/", async (req, res) => {
   try {
     const workspaceId = req.auth!.workspaceId;
     const { db, customersTable } = await getDbModule();
+    const columnSupport = await getCustomerColumnSupport(db);
 
     const customers = await db
-      .select()
+      .select(getCustomerSelectShape(customersTable, columnSupport))
       .from(customersTable)
       .where(eq(customersTable.workspaceId, workspaceId))
       .orderBy(customersTable.name);
 
-    return res.json(ListCustomersResponse.parse(customers.map((customer) => serializeCustomer(customer as CustomerRecord))));
+    return res.json(parseCustomerList(customers as CustomerRecord[], req));
   } catch (err) {
     req.log.error({ err }, "Failed to list customers");
     return res.status(500).json({ error: "Internal server error" });
@@ -133,9 +269,10 @@ router.get("/:id", async (req, res) => {
     const { id } = req.params;
     const workspaceId = req.auth!.workspaceId;
     const { db, customersTable, customerLinksTable, proposalsTable } = await getDbModule();
+    const columnSupport = await getCustomerColumnSupport(db);
 
     const [customer] = await db
-      .select()
+      .select(getCustomerSelectShape(customersTable, columnSupport))
       .from(customersTable)
       .where(
         and(
@@ -183,6 +320,7 @@ router.post("/", async (req, res) => {
     const workspaceId = req.auth!.workspaceId;
     const body = CreateCustomerBody.parse(req.body);
     const { db, customersTable } = await getDbModule();
+    const columnSupport = await getCustomerColumnSupport(db);
 
     if (body.orgNumber && /^\d{10}$/.test(body.orgNumber)) {
       body.orgNumber = `${body.orgNumber.slice(0, 6)}-${body.orgNumber.slice(6)}`;
@@ -190,19 +328,24 @@ router.post("/", async (req, res) => {
 
     const [customer] = await db
       .insert(customersTable)
-      .values({
-        workspaceId,
-        name: body.name,
-        email: body.email ?? null,
-        orgNumber: body.orgNumber ?? null,
-        contactPerson: body.contactPerson ?? null,
-        phone: body.phone ?? null,
-        address: body.address ?? null,
-        postalCode: body.postalCode ?? null,
-        city: body.city ?? null,
-        value: body.value == null ? null : body.value.toFixed(2),
-        valuePeriod: body.valuePeriod ?? null,
-      })
+      .values(
+        toCustomerWriteValues(
+          {
+            workspaceId,
+            name: body.name,
+            email: body.email ?? null,
+            orgNumber: body.orgNumber ?? null,
+            contactPerson: body.contactPerson ?? null,
+            phone: body.phone ?? null,
+            address: body.address ?? null,
+            postalCode: body.postalCode ?? null,
+            city: body.city ?? null,
+            value: body.value ?? null,
+            valuePeriod: body.valuePeriod ?? null,
+          },
+          columnSupport,
+        ) as typeof customersTable.$inferInsert,
+      )
       .returning();
 
     return res.status(201).json(serializeCustomer(customer as CustomerRecord));
@@ -219,6 +362,7 @@ router.put("/:id", async (req, res) => {
     const workspaceId = req.auth!.workspaceId;
     const body = UpdateCustomerBody.parse(req.body);
     const { db, customersTable } = await getDbModule();
+    const columnSupport = await getCustomerColumnSupport(db);
     
     // Auto-format org number if it's 10 digits without hyphen
     if (body.orgNumber && /^\d{10}$/.test(body.orgNumber)) {
@@ -227,10 +371,12 @@ router.put("/:id", async (req, res) => {
 
     const [updated] = await db
       .update(customersTable)
-      .set({
-        ...toCustomerWriteValues(body),
-        updatedAt: new Date(),
-      })
+      .set(
+        {
+          ...toCustomerWriteValues(body, columnSupport),
+          updatedAt: new Date(),
+        } as Partial<typeof customersTable.$inferInsert>,
+      )
       .where(
         and(
           eq(customersTable.id, id),
