@@ -27,6 +27,8 @@ type CustomerRecord = {
   city?: string | null;
   value?: number | string | null;
   valuePeriod?: "month" | "year" | null;
+  bindingMonths?: number | null;
+  taxRate?: number | string | null;
   createdAt: Date | string;
   updatedAt: Date | string;
 };
@@ -40,6 +42,8 @@ type CustomerColumnSupport = {
   city: boolean;
   value: boolean;
   valuePeriod: boolean;
+  bindingMonths: boolean;
+  taxRate: boolean;
 };
 
 let customerColumnSupportPromise: Promise<CustomerColumnSupport> | undefined;
@@ -102,6 +106,11 @@ function serializeCustomer(customer: CustomerRecord) {
     city: normalizeOptionalText(customer.city),
     value: normalizeCustomerValue(customer.value),
     valuePeriod: normalizeCustomerValuePeriod(customer.valuePeriod),
+    bindingMonths:
+      typeof customer.bindingMonths === "number" && Number.isInteger(customer.bindingMonths)
+        ? customer.bindingMonths
+        : null,
+    taxRate: normalizeCustomerValue(customer.taxRate),
     createdAt: toIsoString(customer.createdAt),
     updatedAt: toIsoString(customer.updatedAt),
   };
@@ -120,6 +129,8 @@ function toCustomerWriteValues(
     city: string | null;
     value: number | null;
     valuePeriod: "month" | "year" | null;
+    bindingMonths: number | null;
+    taxRate: number | null;
   }>,
   columnSupport: CustomerColumnSupport,
 ) {
@@ -141,6 +152,13 @@ function toCustomerWriteValues(
         : values.value;
   }
   if (columnSupport.valuePeriod && "valuePeriod" in values) writeValues.valuePeriod = values.valuePeriod;
+  if (columnSupport.bindingMonths && "bindingMonths" in values) writeValues.bindingMonths = values.bindingMonths;
+  if (columnSupport.taxRate && "taxRate" in values) {
+    writeValues.taxRate =
+      typeof values.taxRate === "number"
+        ? values.taxRate.toFixed(2)
+        : values.taxRate;
+  }
 
   return writeValues;
 }
@@ -190,6 +208,8 @@ async function getCustomerColumnSupport(
         city: columnNames.has("city"),
         value: columnNames.has("value"),
         valuePeriod: columnNames.has("value_period"),
+        bindingMonths: columnNames.has("binding_months"),
+        taxRate: columnNames.has("tax_rate"),
       } satisfies CustomerColumnSupport;
     })();
   }
@@ -216,6 +236,8 @@ function getCustomerSelectShape(
     ...(columnSupport.city ? { city: customersTable.city } : {}),
     ...(columnSupport.value ? { value: customersTable.value } : {}),
     ...(columnSupport.valuePeriod ? { valuePeriod: customersTable.valuePeriod } : {}),
+    ...(columnSupport.bindingMonths ? { bindingMonths: customersTable.bindingMonths } : {}),
+    ...(columnSupport.taxRate ? { taxRate: customersTable.taxRate } : {}),
     createdAt: customersTable.createdAt,
     updatedAt: customersTable.updatedAt,
   };
@@ -342,6 +364,8 @@ router.post("/", async (req, res) => {
             city: body.city ?? null,
             value: body.value ?? null,
             valuePeriod: body.valuePeriod ?? null,
+            bindingMonths: body.bindingMonths ?? null,
+            taxRate: body.taxRate ?? null,
           },
           columnSupport,
         ) as typeof customersTable.$inferInsert,

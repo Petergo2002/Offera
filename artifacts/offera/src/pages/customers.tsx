@@ -50,8 +50,12 @@ import {
 } from "@/components/ui/select";
 import { formatCurrency } from "@/lib/document";
 import {
+  applyCustomerTax,
+  formatCustomerTaxRate,
+  formatCustomerBinding,
   formatCustomerValue,
   getCustomerAnnualValue,
+  getCustomerCommittedValue,
   getCustomerMonthlyValue,
   hasCustomerValue,
 } from "@/lib/customer-value";
@@ -67,6 +71,8 @@ type CustomerFormState = {
   city: string;
   value: string;
   valuePeriod: CustomerValuePeriod | "";
+  bindingMonths: string;
+  taxRate: string;
 };
 
 const EMPTY_CUSTOMER_FORM: CustomerFormState = {
@@ -80,6 +86,8 @@ const EMPTY_CUSTOMER_FORM: CustomerFormState = {
   city: "",
   value: "",
   valuePeriod: "",
+  bindingMonths: "",
+  taxRate: "",
 };
 
 function parseCustomerValueInput(value: string) {
@@ -92,8 +100,30 @@ function parseCustomerValueInput(value: string) {
   return Number.isFinite(parsed) ? parsed : null;
 }
 
+function parseBindingMonthsInput(value: string) {
+  const normalized = value.trim();
+  if (!normalized) {
+    return null;
+  }
+
+  const parsed = Number(normalized);
+  return Number.isInteger(parsed) && parsed > 0 ? parsed : null;
+}
+
+function parseTaxRateInput(value: string) {
+  const normalized = value.trim().replace(/\s+/g, "").replace(",", ".");
+  if (!normalized) {
+    return null;
+  }
+
+  const parsed = Number(normalized);
+  return Number.isFinite(parsed) && parsed >= 0 && parsed <= 100 ? parsed : null;
+}
+
 function buildCustomerPayload(form: CustomerFormState): CreateCustomerRequest {
   const parsedValue = parseCustomerValueInput(form.value);
+  const parsedBindingMonths = parseBindingMonthsInput(form.bindingMonths);
+  const parsedTaxRate = parseTaxRateInput(form.taxRate);
 
   return {
     name: form.name.trim(),
@@ -106,6 +136,8 @@ function buildCustomerPayload(form: CustomerFormState): CreateCustomerRequest {
     city: form.city.trim() || null,
     value: parsedValue,
     valuePeriod: parsedValue === null ? null : form.valuePeriod || null,
+    bindingMonths: parsedValue === null ? null : parsedBindingMonths,
+    taxRate: parsedTaxRate,
   };
 }
 
@@ -164,6 +196,7 @@ export default function CustomersPage() {
     c.email?.toLowerCase().includes(searchQuery.toLowerCase())
   );
   const hasValueInput = newCustomer.value.trim().length > 0;
+  const hasBindingInput = newCustomer.bindingMonths.trim().length > 0;
 
   return (
     <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
@@ -279,7 +312,7 @@ export default function CustomersPage() {
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-[minmax(0,1fr)_220px] gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-[minmax(0,1fr)_220px_180px_140px] gap-4">
                 <div className="grid gap-2">
                   <Label htmlFor="value" className="text-xs font-bold uppercase tracking-widest text-on-surface-variant/70">Kundvärde</Label>
                   <Input
@@ -309,6 +342,35 @@ export default function CustomersPage() {
                     </SelectContent>
                   </Select>
                 </div>
+                <div className="grid gap-2">
+                  <Label htmlFor="bindingMonths" className="text-xs font-bold uppercase tracking-widest text-on-surface-variant/70">Bindningstid</Label>
+                  <Input
+                    id="bindingMonths"
+                    type="number"
+                    min="1"
+                    step="1"
+                    inputMode="numeric"
+                    placeholder="Månader"
+                    className="h-12 rounded-xl"
+                    value={newCustomer.bindingMonths}
+                    onChange={(e) => setNewCustomer(prev => ({ ...prev, bindingMonths: e.target.value }))}
+                  />
+                </div>
+                <div className="grid gap-2">
+                  <Label htmlFor="taxRate" className="text-xs font-bold uppercase tracking-widest text-on-surface-variant/70">Moms</Label>
+                  <Input
+                    id="taxRate"
+                    type="number"
+                    min="0"
+                    max="100"
+                    step="0.01"
+                    inputMode="decimal"
+                    placeholder="25"
+                    className="h-12 rounded-xl"
+                    value={newCustomer.taxRate}
+                    onChange={(e) => setNewCustomer(prev => ({ ...prev, taxRate: e.target.value }))}
+                  />
+                </div>
               </div>
             </div>
             <DialogFooter className="gap-2 sm:gap-0">
@@ -321,7 +383,12 @@ export default function CustomersPage() {
               </Button>
               <Button 
                 className="h-12 px-6 rounded-xl bg-primary text-white"
-                disabled={!newCustomer.name || createCustomerMutation.isPending || (hasValueInput && !newCustomer.valuePeriod)}
+                disabled={
+                  !newCustomer.name ||
+                  createCustomerMutation.isPending ||
+                  (hasValueInput && !newCustomer.valuePeriod) ||
+                  (hasBindingInput && (!hasValueInput || !newCustomer.valuePeriod))
+                }
                 onClick={() => createCustomerMutation.mutate(buildCustomerPayload(newCustomer))}
               >
                 Spara kund
@@ -468,11 +535,19 @@ export default function CustomersPage() {
                     </div>
                     <div className="rounded-2xl border border-outline-variant/10 bg-white/70 p-4">
                       <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-on-surface-variant/50">
-                        Årsvärde
+                        Bindning
                       </p>
                       <p className="mt-2 text-sm font-bold text-slate-900">
-                        {hasCustomerValue(customer) ? formatCurrency(getCustomerAnnualValue(customer)) : "—"}
+                        {formatCustomerBinding(customer.bindingMonths)}
                       </p>
+                      <p className="mt-1 text-xs font-medium text-on-surface-variant">
+                        Moms: {formatCustomerTaxRate(customer.taxRate)}
+                      </p>
+                      {hasCustomerValue(customer) && customer.bindingMonths ? (
+                        <p className="mt-1 text-xs font-medium text-on-surface-variant">
+                          Bundet inkl: {formatCurrency(applyCustomerTax(getCustomerCommittedValue(customer), customer.taxRate))}
+                        </p>
+                      ) : null}
                     </div>
                   </div>
                   
