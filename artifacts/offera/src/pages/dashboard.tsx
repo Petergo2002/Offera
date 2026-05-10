@@ -13,6 +13,7 @@ import {
   Trash2,
   PieChart,
   Unlink,
+  Wallet,
 } from "lucide-react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { motion, AnimatePresence } from "framer-motion";
@@ -47,6 +48,7 @@ import {
 } from "@/lib/post-send-summary";
 import { formatCurrency, formatDate, TEMPLATE_CATEGORY_LABELS } from "@/lib/document";
 import { Skeleton } from "@/components/ui/skeleton";
+import { getCustomerAnnualValue, getCustomerMonthlyValue, hasCustomerValue } from "@/lib/customer-value";
 
 function DashboardSkeleton() {
   return (
@@ -143,6 +145,11 @@ export default function DashboardPage() {
     queryFn: api.listProposals,
     enabled: isAuthenticated && !isAuthLoading,
   });
+  const { data: customers = [] } = useQuery({
+    queryKey: ["customers"],
+    queryFn: api.listCustomers,
+    enabled: isAuthenticated && !isAuthLoading,
+  });
 
   React.useEffect(() => {
     const summary = consumePostSendSummary();
@@ -203,6 +210,19 @@ export default function DashboardPage() {
       stats: { totalCount, acceptedCount, conversionRate, totalValue }
     };
   }, [proposals, search, statusFilter]);
+
+  const customerStats = React.useMemo(() => {
+    const valuedCustomers = customers.filter((customer) => hasCustomerValue(customer));
+    const totalAnnualValue = customers.reduce((sum, customer) => sum + getCustomerAnnualValue(customer), 0);
+    const totalMonthlyValue = customers.reduce((sum, customer) => sum + getCustomerMonthlyValue(customer), 0);
+
+    return {
+      totalAnnualValue,
+      totalMonthlyValue,
+      valuedCustomersCount: valuedCustomers.length,
+      totalCustomersCount: customers.length,
+    };
+  }, [customers]);
 
   const deleteProposal = async (proposalId: number) => {
     if (deletingProposalId === proposalId) {
@@ -382,11 +402,15 @@ export default function DashboardPage() {
             <span className="text-primary font-bold">
               {stats.totalCount} offerter
             </span>{" "}
+            och{" "}
+            <span className="text-primary font-bold">
+              {customerStats.totalCustomersCount} kunder
+            </span>{" "}
             i ditt arbetsområde just nu.
           </p>
         </header>
 
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 md:gap-6">
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4 md:gap-6">
           <section
             onClick={() => setStatusFilter("all")}
             className={cn(
@@ -432,6 +456,31 @@ export default function DashboardPage() {
             </p>
             <p className="text-3xl font-black tracking-tight text-foreground sm:text-4xl">
               {formatCurrency(stats.totalValue)}
+            </p>
+          </section>
+
+          <section
+            onClick={() => setLocation("/customers")}
+            className={cn(
+              "group cursor-pointer rounded-[2.25rem] border border-outline-variant/10 bg-surface-container-lowest p-5 shadow-subtle transition-all duration-500 hover:-translate-y-1 hover:shadow-elevated animate-in fade-in slide-in-from-bottom-4 delay-[225ms] fill-mode-both sm:p-6",
+            )}
+          >
+            <div className="flex justify-between items-start mb-4">
+              <div className="p-4 bg-amber-50 text-amber-600 rounded-2xl group-hover:scale-110 transition-transform duration-500">
+                <Wallet size={24} />
+              </div>
+              <span className="text-[10px] font-black text-amber-600 bg-amber-50 px-2.5 py-1 rounded-full uppercase tracking-wider">
+                Kunder
+              </span>
+            </div>
+            <p className="text-on-surface-variant text-sm font-bold mb-1 opacity-60">
+              Totalt kundvärde / år
+            </p>
+            <p className="text-3xl font-black tracking-tight text-foreground sm:text-4xl">
+              {formatCurrency(customerStats.totalAnnualValue)}
+            </p>
+            <p className="mt-2 text-xs font-semibold uppercase tracking-[0.18em] text-on-surface-variant/60">
+              {formatCurrency(customerStats.totalMonthlyValue)} / mån • {customerStats.valuedCustomersCount} med värde
             </p>
           </section>
 

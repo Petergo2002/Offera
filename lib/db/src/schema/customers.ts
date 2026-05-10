@@ -1,4 +1,4 @@
-import { pgTable, text, timestamp, uuid } from "drizzle-orm/pg-core";
+import { numeric, pgTable, text, timestamp, uuid } from "drizzle-orm/pg-core";
 import { workspacesTable } from "./workspaces.js";
 
 export const customersTable = pgTable("customers", {
@@ -14,6 +14,8 @@ export const customersTable = pgTable("customers", {
   address: text("address"),
   postalCode: text("postal_code"),
   city: text("city"),
+  value: numeric("value", { precision: 12, scale: 2 }),
+  valuePeriod: text("value_period"),
   createdAt: timestamp("created_at").notNull().defaultNow(),
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
 });

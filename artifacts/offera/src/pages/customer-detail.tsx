@@ -24,7 +24,12 @@ import {
   Unlink,
   Pencil
 } from "lucide-react";
-import { api } from "@/lib/api";
+import {
+  api,
+  type CustomerDetail,
+  type CustomerValuePeriod,
+  type UpdateCustomerRequest,
+} from "@/lib/api";
 import { 
   Card, 
   CardContent, 
@@ -55,6 +60,75 @@ import { Badge } from "@/components/ui/badge";
 import { format } from "date-fns";
 import { sv } from "date-fns/locale";
 import { StatusBadge } from "@/components/status-badge";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { formatCurrency } from "@/lib/document";
+import {
+  formatCustomerValue,
+  getCustomerAnnualValue,
+  getCustomerMonthlyValue,
+  hasCustomerValue,
+} from "@/lib/customer-value";
+
+type CustomerFormState = {
+  name: string;
+  email: string;
+  orgNumber: string;
+  contactPerson: string;
+  phone: string;
+  address: string;
+  postalCode: string;
+  city: string;
+  value: string;
+  valuePeriod: CustomerValuePeriod | "";
+};
+
+function parseCustomerValueInput(value: string) {
+  const normalized = value.trim().replace(/\s+/g, "").replace(",", ".");
+  if (!normalized) {
+    return null;
+  }
+
+  const parsed = Number(normalized);
+  return Number.isFinite(parsed) ? parsed : null;
+}
+
+function toCustomerFormState(customer: CustomerDetail): CustomerFormState {
+  return {
+    name: customer.name,
+    email: customer.email || "",
+    orgNumber: customer.orgNumber || "",
+    contactPerson: customer.contactPerson || "",
+    phone: customer.phone || "",
+    address: customer.address || "",
+    postalCode: customer.postalCode || "",
+    city: customer.city || "",
+    value: typeof customer.value === "number" ? String(customer.value) : "",
+    valuePeriod: customer.valuePeriod || "",
+  };
+}
+
+function buildCustomerPayload(form: CustomerFormState): UpdateCustomerRequest {
+  const parsedValue = parseCustomerValueInput(form.value);
+
+  return {
+    name: form.name.trim(),
+    email: form.email.trim() || null,
+    orgNumber: form.orgNumber.trim() || null,
+    contactPerson: form.contactPerson.trim() || null,
+    phone: form.phone.trim() || null,
+    address: form.address.trim() || null,
+    postalCode: form.postalCode.trim() || null,
+    city: form.city.trim() || null,
+    value: parsedValue,
+    valuePeriod: parsedValue === null ? null : form.valuePeriod || null,
+  };
+}
 
 export default function CustomerDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -145,10 +219,17 @@ export default function CustomerDetailPage() {
           <h1 className="font-display text-3xl font-bold tracking-tight text-slate-900 leading-tight">
             {customer.name}
           </h1>
-          <p className="text-on-surface-variant flex items-center gap-2 mt-1">
-            <Clock size={14} />
-            Kund sedan {format(new Date(customer.createdAt), "MMMM yyyy", { locale: sv })}
-          </p>
+          <div className="mt-1 flex flex-wrap items-center gap-2 text-on-surface-variant">
+            <p className="flex items-center gap-2">
+              <Clock size={14} />
+              Kund sedan {format(new Date(customer.createdAt), "MMMM yyyy", { locale: sv })}
+            </p>
+            {hasCustomerValue(customer) ? (
+              <Badge variant="outline" className="rounded-full border-primary/20 bg-primary/5 px-3 py-1 text-primary">
+                {formatCustomerValue(customer.value, customer.valuePeriod)}
+              </Badge>
+            ) : null}
+          </div>
         </div>
       </div>
 
@@ -165,6 +246,22 @@ export default function CustomerDetailPage() {
             </CardHeader>
             <CardContent className="p-8 pt-4">
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                <div>
+                  <h5 className="text-[10px] font-bold uppercase tracking-[0.2em] text-on-surface-variant/50 mb-2">Kundvärde</h5>
+                  <p className="font-bold text-slate-900">{formatCustomerValue(customer.value, customer.valuePeriod)}</p>
+                </div>
+                <div>
+                  <h5 className="text-[10px] font-bold uppercase tracking-[0.2em] text-on-surface-variant/50 mb-2">Årsvärde</h5>
+                  <p className="font-bold text-slate-900">
+                    {hasCustomerValue(customer) ? formatCurrency(getCustomerAnnualValue(customer)) : "—"}
+                  </p>
+                </div>
+                <div>
+                  <h5 className="text-[10px] font-bold uppercase tracking-[0.2em] text-on-surface-variant/50 mb-2">Månadsvärde</h5>
+                  <p className="font-bold text-slate-900">
+                    {hasCustomerValue(customer) ? formatCurrency(getCustomerMonthlyValue(customer)) : "—"}
+                  </p>
+                </div>
                 <div>
                   <h5 className="text-[10px] font-bold uppercase tracking-[0.2em] text-on-surface-variant/50 mb-2">Organisationsnummer</h5>
                   <p className="font-bold text-slate-900">{customer.orgNumber || "—"}</p>
@@ -412,32 +509,14 @@ export default function CustomerDetailPage() {
   );
 }
 
-function EditCustomerDialog({ customer }: { customer: any }) {
+function EditCustomerDialog({ customer }: { customer: CustomerDetail }) {
   const [open, setOpen] = React.useState(false);
-  const [formData, setFormData] = React.useState({
-    name: (customer as any).name,
-    email: (customer as any).email || "",
-    orgNumber: (customer as any).orgNumber || "",
-    contactPerson: (customer as any).contactPerson || "",
-    phone: (customer as any).phone || "",
-    address: (customer as any).address || "",
-    postalCode: (customer as any).postalCode || "",
-    city: (customer as any).city || ""
-  });
+  const [formData, setFormData] = React.useState<CustomerFormState>(toCustomerFormState(customer));
 
   // Keep form data in sync with customer data
   React.useEffect(() => {
     if (customer) {
-      setFormData({
-        name: customer.name,
-        email: customer.email || "",
-        orgNumber: customer.orgNumber || "",
-        contactPerson: customer.contactPerson || "",
-        phone: customer.phone || "",
-        address: customer.address || "",
-        postalCode: customer.postalCode || "",
-        city: customer.city || ""
-      });
+      setFormData(toCustomerFormState(customer));
     }
   }, [customer]);
 
@@ -445,16 +524,7 @@ function EditCustomerDialog({ customer }: { customer: any }) {
   const { toast } = useToast();
 
   const mutation = useMutation({
-    mutationFn: (data: any) => {
-      // Clean up data before sending (empty strings to null for optional fields)
-      const cleanData = { ...data };
-      Object.keys(cleanData).forEach(key => {
-        if (cleanData[key] === "" && key !== "name") {
-          cleanData[key] = null;
-        }
-      });
-      return api.updateCustomer(customer.id, cleanData);
-    },
+    mutationFn: (data: CustomerFormState) => api.updateCustomer(customer.id, buildCustomerPayload(data)),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["customer", customer.id] });
       queryClient.invalidateQueries({ queryKey: ["customers"] });
@@ -525,14 +595,45 @@ function EditCustomerDialog({ customer }: { customer: any }) {
             </div>
           </div>
 
-          <div className="grid gap-2">
-            <Label htmlFor="edit-phone" className="text-xs font-bold uppercase tracking-widest text-on-surface-variant/70">Telefonnummer</Label>
-            <Input 
+            <div className="grid gap-2">
+              <Label htmlFor="edit-phone" className="text-xs font-bold uppercase tracking-widest text-on-surface-variant/70">Telefonnummer</Label>
+              <Input 
               id="edit-phone" 
               value={formData.phone}
               onChange={(e) => setFormData(prev => ({ ...prev, phone: e.target.value }))}
               className="h-12 rounded-xl"
-            />
+              />
+            </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-[minmax(0,1fr)_220px] gap-4">
+            <div className="grid gap-2">
+              <Label htmlFor="edit-value" className="text-xs font-bold uppercase tracking-widest text-on-surface-variant/70">Kundvärde</Label>
+              <Input
+                id="edit-value"
+                type="number"
+                min="0"
+                step="0.01"
+                inputMode="decimal"
+                value={formData.value}
+                onChange={(e) => setFormData(prev => ({ ...prev, value: e.target.value }))}
+                className="h-12 rounded-xl"
+              />
+            </div>
+            <div className="grid gap-2">
+              <Label className="text-xs font-bold uppercase tracking-widest text-on-surface-variant/70">Period</Label>
+              <Select
+                value={formData.valuePeriod || undefined}
+                onValueChange={(value) => setFormData(prev => ({ ...prev, valuePeriod: value as CustomerValuePeriod }))}
+              >
+                <SelectTrigger className="h-12 rounded-xl">
+                  <SelectValue placeholder="Välj period" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="month">Per månad</SelectItem>
+                  <SelectItem value="year">Per år</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
           </div>
 
           <div className="grid gap-2">
@@ -571,7 +672,7 @@ function EditCustomerDialog({ customer }: { customer: any }) {
           <Button 
             className="h-12 px-6 rounded-xl bg-primary text-white"
             onClick={() => mutation.mutate(formData)}
-            disabled={mutation.isPending}
+            disabled={mutation.isPending || (formData.value.trim().length > 0 && !formData.valuePeriod)}
           >
             Spara ändringar
           </Button>

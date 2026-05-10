@@ -13,6 +13,80 @@ const router = Router();
 
 router.use(requireAuth);
 
+type CustomerRecord = {
+  id: string;
+  workspaceId: string;
+  name: string;
+  email?: string | null;
+  orgNumber?: string | null;
+  contactPerson?: string | null;
+  phone?: string | null;
+  address?: string | null;
+  postalCode?: string | null;
+  city?: string | null;
+  value?: number | string | null;
+  valuePeriod?: "month" | "year" | null;
+  createdAt: Date;
+  updatedAt: Date;
+};
+
+function normalizeOptionalText(value: string | null | undefined) {
+  if (typeof value !== "string") {
+    return value ?? null;
+  }
+
+  const trimmed = value.trim();
+  return trimmed ? trimmed : null;
+}
+
+function serializeCustomer(customer: CustomerRecord) {
+  return {
+    id: customer.id,
+    workspaceId: customer.workspaceId,
+    name: customer.name,
+    email: normalizeOptionalText(customer.email),
+    orgNumber: normalizeOptionalText(customer.orgNumber),
+    contactPerson: normalizeOptionalText(customer.contactPerson),
+    phone: normalizeOptionalText(customer.phone),
+    address: normalizeOptionalText(customer.address),
+    postalCode: normalizeOptionalText(customer.postalCode),
+    city: normalizeOptionalText(customer.city),
+    value:
+      customer.value == null
+        ? null
+        : typeof customer.value === "string"
+          ? Number(customer.value)
+          : customer.value,
+    valuePeriod: customer.valuePeriod ?? null,
+    createdAt: customer.createdAt.toISOString(),
+    updatedAt: customer.updatedAt.toISOString(),
+  };
+}
+
+function toCustomerWriteValues(
+  values: Partial<{
+    workspaceId: string;
+    name: string;
+    email: string | null;
+    orgNumber: string | null;
+    contactPerson: string | null;
+    phone: string | null;
+    address: string | null;
+    postalCode: string | null;
+    city: string | null;
+    value: number | null;
+    valuePeriod: "month" | "year" | null;
+  }>,
+) {
+  return {
+    ...values,
+    value:
+      typeof values.value === "number"
+        ? values.value.toFixed(2)
+        : values.value,
+  };
+}
+
 async function getDbModule() {
   const [
     { db },
@@ -46,7 +120,7 @@ router.get("/", async (req, res) => {
       .where(eq(customersTable.workspaceId, workspaceId))
       .orderBy(customersTable.name);
 
-    return res.json(customers);
+    return res.json(ListCustomersResponse.parse(customers.map((customer) => serializeCustomer(customer as CustomerRecord))));
   } catch (err) {
     req.log.error({ err }, "Failed to list customers");
     return res.status(500).json({ error: "Internal server error" });
@@ -92,11 +166,11 @@ router.get("/:id", async (req, res) => {
         .orderBy(proposalsTable.updatedAt),
     ]);
 
-    return res.json({
-      ...customer,
+    return res.json(GetCustomerResponse.parse({
+      ...serializeCustomer(customer as CustomerRecord),
       links,
       proposals: proposals.reverse(),
-    });
+    }));
   } catch (err) {
     req.log.error({ err }, "Failed to get customer detail");
     return res.status(500).json({ error: "Internal server error" });
@@ -110,15 +184,28 @@ router.post("/", async (req, res) => {
     const body = CreateCustomerBody.parse(req.body);
     const { db, customersTable } = await getDbModule();
 
+    if (body.orgNumber && /^\d{10}$/.test(body.orgNumber)) {
+      body.orgNumber = `${body.orgNumber.slice(0, 6)}-${body.orgNumber.slice(6)}`;
+    }
+
     const [customer] = await db
       .insert(customersTable)
       .values({
         workspaceId,
-        ...body,
+        name: body.name,
+        email: body.email ?? null,
+        orgNumber: body.orgNumber ?? null,
+        contactPerson: body.contactPerson ?? null,
+        phone: body.phone ?? null,
+        address: body.address ?? null,
+        postalCode: body.postalCode ?? null,
+        city: body.city ?? null,
+        value: body.value == null ? null : body.value.toFixed(2),
+        valuePeriod: body.valuePeriod ?? null,
       })
       .returning();
 
-    return res.status(201).json(customer);
+    return res.status(201).json(serializeCustomer(customer as CustomerRecord));
   } catch (err) {
     req.log.error({ err }, "Failed to create customer");
     return res.status(500).json({ error: "Internal server error" });
@@ -141,7 +228,7 @@ router.put("/:id", async (req, res) => {
     const [updated] = await db
       .update(customersTable)
       .set({
-        ...body,
+        ...toCustomerWriteValues(body),
         updatedAt: new Date(),
       })
       .where(
@@ -156,7 +243,7 @@ router.put("/:id", async (req, res) => {
       return res.status(404).json({ error: "Kund hittades inte" });
     }
 
-    return res.json(updated);
+    return res.json(serializeCustomer(updated as CustomerRecord));
   } catch (err) {
     req.log.error({ err }, "Failed to update customer");
     return res.status(500).json({ error: "Internal server error" });

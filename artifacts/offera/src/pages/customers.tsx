@@ -9,10 +9,12 @@ import {
   ChevronRight, 
   MoreVertical,
   Trash2,
-  ExternalLink,
-  User as UserIcon
+  User as UserIcon,
+  Wallet,
+  CalendarRange,
+  BarChart3
 } from "lucide-react";
-import { api } from "@/lib/api";
+import { api, type CreateCustomerRequest, type CustomerValuePeriod } from "@/lib/api";
 import { 
   Card, 
   CardContent, 
@@ -39,6 +41,73 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger 
 } from "@/components/ui/dropdown-menu";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { formatCurrency } from "@/lib/document";
+import {
+  formatCustomerValue,
+  getCustomerAnnualValue,
+  getCustomerMonthlyValue,
+  hasCustomerValue,
+} from "@/lib/customer-value";
+
+type CustomerFormState = {
+  name: string;
+  email: string;
+  orgNumber: string;
+  contactPerson: string;
+  phone: string;
+  address: string;
+  postalCode: string;
+  city: string;
+  value: string;
+  valuePeriod: CustomerValuePeriod | "";
+};
+
+const EMPTY_CUSTOMER_FORM: CustomerFormState = {
+  name: "",
+  email: "",
+  orgNumber: "",
+  contactPerson: "",
+  phone: "",
+  address: "",
+  postalCode: "",
+  city: "",
+  value: "",
+  valuePeriod: "",
+};
+
+function parseCustomerValueInput(value: string) {
+  const normalized = value.trim().replace(/\s+/g, "").replace(",", ".");
+  if (!normalized) {
+    return null;
+  }
+
+  const parsed = Number(normalized);
+  return Number.isFinite(parsed) ? parsed : null;
+}
+
+function buildCustomerPayload(form: CustomerFormState): CreateCustomerRequest {
+  const parsedValue = parseCustomerValueInput(form.value);
+
+  return {
+    name: form.name.trim(),
+    email: form.email.trim() || null,
+    orgNumber: form.orgNumber.trim() || null,
+    contactPerson: form.contactPerson.trim() || null,
+    phone: form.phone.trim() || null,
+    address: form.address.trim() || null,
+    postalCode: form.postalCode.trim() || null,
+    city: form.city.trim() || null,
+    value: parsedValue,
+    valuePeriod: parsedValue === null ? null : form.valuePeriod || null,
+  };
+}
 
 export default function CustomersPage() {
   const [, setLocation] = useLocation();
@@ -46,37 +115,31 @@ export default function CustomersPage() {
   const queryClient = useQueryClient();
   const [searchQuery, setSearchQuery] = React.useState("");
   const [isCreateDialogOpen, setIsCreateDialogOpen] = React.useState(false);
-  const [newCustomer, setNewCustomer] = React.useState({ 
-    name: "", 
-    email: "",
-    orgNumber: "",
-    contactPerson: "",
-    phone: "",
-    address: "",
-    postalCode: "",
-    city: ""
-  });
+  const [newCustomer, setNewCustomer] = React.useState<CustomerFormState>(EMPTY_CUSTOMER_FORM);
 
   const { data: customers = [], isLoading } = useQuery({
     queryKey: ["customers"],
     queryFn: api.listCustomers,
   });
 
+  const customerMetrics = React.useMemo(() => {
+    const valuedCustomers = customers.filter((customer) => hasCustomerValue(customer));
+    const totalMonthlyValue = customers.reduce((sum, customer) => sum + getCustomerMonthlyValue(customer), 0);
+    const totalAnnualValue = customers.reduce((sum, customer) => sum + getCustomerAnnualValue(customer), 0);
+
+    return {
+      valuedCustomersCount: valuedCustomers.length,
+      totalMonthlyValue,
+      totalAnnualValue,
+    };
+  }, [customers]);
+
   const createCustomerMutation = useMutation({
     mutationFn: api.createCustomer,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["customers"] });
       setIsCreateDialogOpen(false);
-      setNewCustomer({ 
-        name: "", 
-        email: "",
-        orgNumber: "",
-        contactPerson: "",
-        phone: "",
-        address: "",
-        postalCode: "",
-        city: ""
-      });
+      setNewCustomer(EMPTY_CUSTOMER_FORM);
       toast({ title: "Kund skapad", description: "Kunden har lagts till i CRM." });
     },
     onError: (error: any) => {
@@ -100,6 +163,7 @@ export default function CustomersPage() {
     c.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
     c.email?.toLowerCase().includes(searchQuery.toLowerCase())
   );
+  const hasValueInput = newCustomer.value.trim().length > 0;
 
   return (
     <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
@@ -214,6 +278,38 @@ export default function CustomersPage() {
                   />
                 </div>
               </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-[minmax(0,1fr)_220px] gap-4">
+                <div className="grid gap-2">
+                  <Label htmlFor="value" className="text-xs font-bold uppercase tracking-widest text-on-surface-variant/70">Kundvärde</Label>
+                  <Input
+                    id="value"
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    inputMode="decimal"
+                    placeholder="T.ex. 12500"
+                    className="h-12 rounded-xl"
+                    value={newCustomer.value}
+                    onChange={(e) => setNewCustomer(prev => ({ ...prev, value: e.target.value }))}
+                  />
+                </div>
+                <div className="grid gap-2">
+                  <Label className="text-xs font-bold uppercase tracking-widest text-on-surface-variant/70">Period</Label>
+                  <Select
+                    value={newCustomer.valuePeriod || undefined}
+                    onValueChange={(value) => setNewCustomer(prev => ({ ...prev, valuePeriod: value as CustomerValuePeriod }))}
+                  >
+                    <SelectTrigger className="h-12 rounded-xl">
+                      <SelectValue placeholder="Välj period" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="month">Per månad</SelectItem>
+                      <SelectItem value="year">Per år</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
             </div>
             <DialogFooter className="gap-2 sm:gap-0">
               <Button 
@@ -225,8 +321,8 @@ export default function CustomersPage() {
               </Button>
               <Button 
                 className="h-12 px-6 rounded-xl bg-primary text-white"
-                disabled={!newCustomer.name || createCustomerMutation.isPending}
-                onClick={() => createCustomerMutation.mutate(newCustomer)}
+                disabled={!newCustomer.name || createCustomerMutation.isPending || (hasValueInput && !newCustomer.valuePeriod)}
+                onClick={() => createCustomerMutation.mutate(buildCustomerPayload(newCustomer))}
               >
                 Spara kund
               </Button>
@@ -243,6 +339,68 @@ export default function CustomersPage() {
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
         />
+      </div>
+
+      <div className="grid gap-4 md:grid-cols-3">
+        <Card className="rounded-[2rem] border border-outline-variant/15 bg-white shadow-subtle">
+          <CardContent className="p-6">
+            <div className="mb-4 flex items-start justify-between">
+              <div className="rounded-2xl bg-primary/10 p-3 text-primary">
+                <Wallet size={22} />
+              </div>
+              <span className="rounded-full bg-primary/5 px-2.5 py-1 text-[10px] font-black uppercase tracking-wider text-primary">
+                År
+              </span>
+            </div>
+            <p className="text-sm font-bold text-on-surface-variant/70">Totalt kundvärde</p>
+            <p className="mt-2 text-3xl font-black tracking-tight text-slate-900">
+              {formatCurrency(customerMetrics.totalAnnualValue)}
+            </p>
+            <p className="mt-2 text-sm text-on-surface-variant">
+              Normaliserat till årsvärde för alla kunder.
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card className="rounded-[2rem] border border-outline-variant/15 bg-white shadow-subtle">
+          <CardContent className="p-6">
+            <div className="mb-4 flex items-start justify-between">
+              <div className="rounded-2xl bg-emerald-50 p-3 text-emerald-600">
+                <CalendarRange size={22} />
+              </div>
+              <span className="rounded-full bg-emerald-50 px-2.5 py-1 text-[10px] font-black uppercase tracking-wider text-emerald-600">
+                Mån
+              </span>
+            </div>
+            <p className="text-sm font-bold text-on-surface-variant/70">Månadsvärde</p>
+            <p className="mt-2 text-3xl font-black tracking-tight text-slate-900">
+              {formatCurrency(customerMetrics.totalMonthlyValue)}
+            </p>
+            <p className="mt-2 text-sm text-on-surface-variant">
+              Visar samma portfölj omräknad till månadsnivå.
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card className="rounded-[2rem] border border-outline-variant/15 bg-white shadow-subtle">
+          <CardContent className="p-6">
+            <div className="mb-4 flex items-start justify-between">
+              <div className="rounded-2xl bg-amber-50 p-3 text-amber-600">
+                <BarChart3 size={22} />
+              </div>
+              <span className="rounded-full bg-amber-50 px-2.5 py-1 text-[10px] font-black uppercase tracking-wider text-amber-600">
+                CRM
+              </span>
+            </div>
+            <p className="text-sm font-bold text-on-surface-variant/70">Kunder med värde</p>
+            <p className="mt-2 text-3xl font-black tracking-tight text-slate-900">
+              {customerMetrics.valuedCustomersCount} / {customers.length}
+            </p>
+            <p className="mt-2 text-sm text-on-surface-variant">
+              Antal kunder där månad eller årsvärde är satt.
+            </p>
+          </CardContent>
+        </Card>
       </div>
 
       {isLoading ? (
@@ -298,6 +456,25 @@ export default function CustomersPage() {
                       <span className="text-sm truncate font-medium">{customer.email}</span>
                     </div>
                   )}
+
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="rounded-2xl border border-outline-variant/10 bg-white/70 p-4">
+                      <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-on-surface-variant/50">
+                        Kundvärde
+                      </p>
+                      <p className="mt-2 text-sm font-bold text-slate-900">
+                        {formatCustomerValue(customer.value, customer.valuePeriod)}
+                      </p>
+                    </div>
+                    <div className="rounded-2xl border border-outline-variant/10 bg-white/70 p-4">
+                      <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-on-surface-variant/50">
+                        Årsvärde
+                      </p>
+                      <p className="mt-2 text-sm font-bold text-slate-900">
+                        {hasCustomerValue(customer) ? formatCurrency(getCustomerAnnualValue(customer)) : "—"}
+                      </p>
+                    </div>
+                  </div>
                   
                   <div className="pt-6 mt-6 border-t border-outline-variant/10 flex items-center justify-between">
                     <span className="text-xs font-bold uppercase tracking-widest text-on-surface-variant/50">

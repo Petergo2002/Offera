@@ -1,7 +1,9 @@
 import {
   CompanyProfileSchema,
+  CustomerSchema,
   CopyTemplateBody,
   CreateProposalBody,
+  CreateCustomerBody,
   CreateTemplateBody,
   MeResponse,
   ProposalEvidenceResponse,
@@ -9,17 +11,23 @@ import {
   GetCustomerResponse,
   GetPublicProposalResponse,
   GetTemplateResponse,
+  ListCustomersResponse,
   ListProposalsResponse,
   ListTemplatesResponse,
   RespondToProposalBody,
   RespondToProposalResponse,
   SendProposalBody,
   SendProposalResponse,
+  UpdateCustomerBody,
   UpdateProposalBody,
   UpdateProposalResponse,
   UpdateCompanyProfileBody,
   UpdateTemplateBody,
   type CompanyProfile,
+  type Customer,
+  type CustomerDetail,
+  type CustomerValuePeriod,
+  type CreateCustomerRequest,
   type CopyTemplateRequest,
   type CreateProposalRequest,
   type CreateTemplateRequest,
@@ -30,6 +38,7 @@ import {
   type RespondToProposalRequest,
   type SendProposalRequest,
   type Template,
+  type UpdateCustomerRequest,
   type UpdateProposalRequest,
   type UpdateTemplateRequest,
   type UpdateCompanyProfileRequest,
@@ -168,19 +177,23 @@ export const api = {
 
   // CRM (Kunder)
   listCustomers: async () =>
-    request<any[]>("/api/customers"),
+    ListCustomersResponse.parse(await request<unknown>("/api/customers")),
   getCustomer: async (id: string) =>
     GetCustomerResponse.parse(await request<unknown>(`/api/customers/${id}`)),
-  createCustomer: async (data: any) =>
-    request<any>("/api/customers", {
-      method: "POST",
-      body: JSON.stringify(data),
-    }),
-  updateCustomer: async (id: string, data: any) =>
-    request<any>(`/api/customers/${id}`, {
-      method: "PUT",
-      body: JSON.stringify(data),
-    }),
+  createCustomer: async (data: CreateCustomerRequest) =>
+    CustomerSchema.parse(
+      await request<unknown>("/api/customers", {
+        method: "POST",
+        body: JSON.stringify(CreateCustomerBody.parse(data)),
+      }),
+    ),
+  updateCustomer: async (id: string, data: UpdateCustomerRequest) =>
+    CustomerSchema.parse(
+      await request<unknown>(`/api/customers/${id}`, {
+        method: "PUT",
+        body: JSON.stringify(UpdateCustomerBody.parse(data)),
+      }),
+    ),
   deleteCustomer: async (id: string) =>
     request<void>(`/api/customers/${id}`, { method: "DELETE" }),
   addCustomerLink: async (id: string, data: any) =>
@@ -194,9 +207,14 @@ export const api = {
 
 export type {
   CompanyProfile,
+  Customer,
+  CustomerDetail,
+  CustomerValuePeriod,
+  CreateCustomerRequest,
   Me,
   Proposal,
   ProposalEvidence,
   PublicProposalView,
   Template,
+  UpdateCustomerRequest,
 };
