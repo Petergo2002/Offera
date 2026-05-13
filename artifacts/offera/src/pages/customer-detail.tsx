@@ -603,7 +603,7 @@ function EditCustomerDialog({ customer }: { customer: CustomerDetail }) {
           <Pencil size={16} className="text-on-surface-variant" />
         </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[600px] rounded-3xl p-8 max-h-[90vh] overflow-y-auto">
+      <DialogContent className="sm:max-w-[720px] xl:max-w-[900px] rounded-3xl p-8 max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="text-2xl font-display font-bold">Redigera kunduppgifter</DialogTitle>
           <DialogDescription>Uppdatera företagets information i CRM.</DialogDescription>
@@ -661,8 +661,8 @@ function EditCustomerDialog({ customer }: { customer: CustomerDetail }) {
               />
             </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-[minmax(0,1fr)_220px_180px_140px] gap-4">
-            <div className="grid gap-2">
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-[minmax(0,1fr)_220px_180px_140px]">
+            <div className="grid min-w-0 gap-2">
               <Label htmlFor="edit-value" className="text-xs font-bold uppercase tracking-widest text-on-surface-variant/70">Kundvärde</Label>
               <Input
                 id="edit-value"
@@ -675,7 +675,7 @@ function EditCustomerDialog({ customer }: { customer: CustomerDetail }) {
                 className="h-12 rounded-xl"
               />
             </div>
-            <div className="grid gap-2">
+            <div className="grid min-w-0 gap-2">
               <Label className="text-xs font-bold uppercase tracking-widest text-on-surface-variant/70">Period</Label>
               <Select
                 value={formData.valuePeriod || undefined}
@@ -690,7 +690,7 @@ function EditCustomerDialog({ customer }: { customer: CustomerDetail }) {
                 </SelectContent>
               </Select>
             </div>
-            <div className="grid gap-2">
+            <div className="grid min-w-0 gap-2">
               <Label htmlFor="edit-bindingMonths" className="text-xs font-bold uppercase tracking-widest text-on-surface-variant/70">Bindningstid</Label>
               <Input
                 id="edit-bindingMonths"
@@ -704,7 +704,7 @@ function EditCustomerDialog({ customer }: { customer: CustomerDetail }) {
                 placeholder="Månader"
               />
             </div>
-            <div className="grid gap-2">
+            <div className="grid min-w-0 gap-2">
               <Label htmlFor="edit-taxRate" className="text-xs font-bold uppercase tracking-widest text-on-surface-variant/70">Moms</Label>
               <Input
                 id="edit-taxRate"
