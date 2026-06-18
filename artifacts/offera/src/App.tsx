@@ -81,7 +81,12 @@ function AuthAwareRouter({
       return;
     }
 
-    if (!isAuthenticated && !isPublicRoute && !isAuthRoute && location !== "/") {
+    if (
+      !isAuthenticated &&
+      !isPublicRoute &&
+      !isAuthRoute &&
+      location !== "/"
+    ) {
       setLocation("/auth");
       return;
     }
@@ -123,8 +128,7 @@ function AuthAwareRouter({
     if (isAuthRoute) {
       return <AuthPage />;
     }
-    // Otherwise redirect to auth
-    setLocation("/auth");
+    // The effect above performs the redirect after render.
     return <AppLoader />;
   }
 

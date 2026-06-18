@@ -1,46 +1,39 @@
 import React from "react";
 import { useLocation } from "wouter";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { 
-  Users, 
-  Plus, 
-  Search, 
-  Mail, 
-  ChevronRight, 
-  MoreVertical,
-  Trash2,
-  User as UserIcon,
-  Wallet,
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { format } from "date-fns";
+import { sv } from "date-fns/locale";
+import {
+  AlertCircle,
+  ArrowUpDown,
   CalendarRange,
-  BarChart3
+  CheckCircle2,
+  Eye,
+  Loader2,
+  Mail,
+  MoreHorizontal,
+  Phone,
+  Plus,
+  RefreshCw,
+  Search,
+  Trash2,
+  Users,
+  Wallet,
 } from "lucide-react";
-import { api, type CreateCustomerRequest, type CustomerValuePeriod } from "@/lib/api";
-import { 
-  Card, 
-  CardContent, 
-  CardHeader, 
-  CardTitle,
-  CardDescription 
-} from "@/components/ui/card";
+
+import { CustomerFormDialog } from "@/components/customer-form-dialog";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { 
-  Dialog, 
-  DialogContent, 
-  DialogHeader, 
-  DialogTitle, 
-  DialogDescription,
-  DialogTrigger,
-  DialogFooter
-} from "@/components/ui/dialog";
-import { Label } from "@/components/ui/label";
-import { useToast } from "@/hooks/use-toast";
-import { 
+import { Card, CardContent } from "@/components/ui/card";
+import { useConfirm } from "@/components/ui/custom-confirm";
+import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuTrigger 
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { Input } from "@/components/ui/input";
 import {
   Select,
   SelectContent,
@@ -48,544 +41,549 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { formatCurrency } from "@/lib/document";
+import { Skeleton } from "@/components/ui/skeleton";
+import { useToast } from "@/hooks/use-toast";
+import { api, type CreateCustomerRequest, type Customer } from "@/lib/api";
 import {
-  applyCustomerTax,
-  formatCustomerTaxRate,
   formatCustomerBinding,
   formatCustomerValue,
   getCustomerAnnualValue,
-  getCustomerCommittedValue,
   getCustomerMonthlyValue,
-  hasCustomerValue,
 } from "@/lib/customer-value";
+import { formatCurrency } from "@/lib/document";
 
-type CustomerFormState = {
-  name: string;
-  email: string;
-  orgNumber: string;
-  contactPerson: string;
-  phone: string;
-  address: string;
-  postalCode: string;
-  city: string;
-  value: string;
-  valuePeriod: CustomerValuePeriod | "";
-  bindingMonths: string;
-  taxRate: string;
+type CustomerSort = "updated" | "newest" | "name" | "value";
+
+function hasContactMethod(customer: Customer) {
+  return Boolean(customer.email?.trim() || customer.phone?.trim());
+}
+
+function ContactStatus({ customer }: { customer: Customer }) {
+  const isContactable = hasContactMethod(customer);
+  return (
+    <Badge
+      variant="outline"
+      className={
+        isContactable
+          ? "border-emerald-200 bg-emerald-50 text-emerald-700"
+          : "border-amber-200 bg-amber-50 text-amber-700"
+      }
+    >
+      {isContactable ? "Kontakt klar" : "Saknar kontaktväg"}
+    </Badge>
+  );
+}
+
+type CustomerActionsProps = {
+  customer: Customer;
+  isDeleting: boolean;
+  onView: () => void;
+  onDelete: () => void;
 };
 
-const EMPTY_CUSTOMER_FORM: CustomerFormState = {
-  name: "",
-  email: "",
-  orgNumber: "",
-  contactPerson: "",
-  phone: "",
-  address: "",
-  postalCode: "",
-  city: "",
-  value: "",
-  valuePeriod: "",
-  bindingMonths: "",
-  taxRate: "",
-};
-
-function parseCustomerValueInput(value: string) {
-  const normalized = value.trim().replace(/\s+/g, "").replace(",", ".");
-  if (!normalized) {
-    return null;
-  }
-
-  const parsed = Number(normalized);
-  return Number.isFinite(parsed) ? parsed : null;
+function CustomerActions({
+  customer,
+  isDeleting,
+  onView,
+  onDelete,
+}: CustomerActionsProps) {
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button
+          variant="ghost"
+          size="icon"
+          className="h-9 w-9 rounded-xl"
+          aria-label={`Åtgärder för ${customer.name}`}
+          disabled={isDeleting}
+        >
+          {isDeleting ? (
+            <Loader2 className="h-4 w-4 animate-spin" />
+          ) : (
+            <MoreHorizontal size={18} />
+          )}
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end" className="w-48 rounded-xl">
+        <DropdownMenuItem onClick={onView} className="gap-2 rounded-lg">
+          <Eye size={16} />
+          Visa kund
+        </DropdownMenuItem>
+        {customer.email ? (
+          <DropdownMenuItem asChild className="gap-2 rounded-lg">
+            <a href={`mailto:${customer.email}`}>
+              <Mail size={16} />
+              Skicka e-post
+            </a>
+          </DropdownMenuItem>
+        ) : null}
+        {customer.phone ? (
+          <DropdownMenuItem asChild className="gap-2 rounded-lg">
+            <a href={`tel:${customer.phone}`}>
+              <Phone size={16} />
+              Ring kunden
+            </a>
+          </DropdownMenuItem>
+        ) : null}
+        <DropdownMenuSeparator />
+        <DropdownMenuItem
+          onClick={onDelete}
+          className="gap-2 rounded-lg text-destructive focus:text-destructive"
+        >
+          <Trash2 size={16} />
+          Ta bort kund
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
+  );
 }
 
-function parseBindingMonthsInput(value: string) {
-  const normalized = value.trim();
-  if (!normalized) {
-    return null;
-  }
-
-  const parsed = Number(normalized);
-  return Number.isInteger(parsed) && parsed > 0 ? parsed : null;
-}
-
-function parseTaxRateInput(value: string) {
-  const normalized = value.trim().replace(/\s+/g, "").replace(",", ".");
-  if (!normalized) {
-    return null;
-  }
-
-  const parsed = Number(normalized);
-  return Number.isFinite(parsed) && parsed >= 0 && parsed <= 100 ? parsed : null;
-}
-
-function buildCustomerPayload(form: CustomerFormState): CreateCustomerRequest {
-  const parsedValue = parseCustomerValueInput(form.value);
-  const parsedBindingMonths = parseBindingMonthsInput(form.bindingMonths);
-  const parsedTaxRate = parseTaxRateInput(form.taxRate);
-
-  return {
-    name: form.name.trim(),
-    email: form.email.trim() || null,
-    orgNumber: form.orgNumber.trim() || null,
-    contactPerson: form.contactPerson.trim() || null,
-    phone: form.phone.trim() || null,
-    address: form.address.trim() || null,
-    postalCode: form.postalCode.trim() || null,
-    city: form.city.trim() || null,
-    value: parsedValue,
-    valuePeriod: parsedValue === null ? null : form.valuePeriod || null,
-    bindingMonths: parsedValue === null ? null : parsedBindingMonths,
-    taxRate: parsedTaxRate,
-  };
+function CustomerListSkeleton() {
+  return (
+    <div className="overflow-hidden rounded-3xl border border-outline-variant/10 bg-white">
+      {[1, 2, 3, 4].map((item) => (
+        <div
+          key={item}
+          className="flex items-center gap-4 border-b border-outline-variant/10 p-5 last:border-0"
+        >
+          <Skeleton className="h-10 w-10 rounded-xl" />
+          <div className="flex-1 space-y-2">
+            <Skeleton className="h-4 w-48" />
+            <Skeleton className="h-3 w-32" />
+          </div>
+          <Skeleton className="hidden h-6 w-24 rounded-full sm:block" />
+          <Skeleton className="hidden h-4 w-24 md:block" />
+        </div>
+      ))}
+    </div>
+  );
 }
 
 export default function CustomersPage() {
   const [, setLocation] = useLocation();
   const { toast } = useToast();
+  const confirm = useConfirm();
   const queryClient = useQueryClient();
   const [searchQuery, setSearchQuery] = React.useState("");
+  const [sort, setSort] = React.useState<CustomerSort>("updated");
   const [isCreateDialogOpen, setIsCreateDialogOpen] = React.useState(false);
-  const [newCustomer, setNewCustomer] = React.useState<CustomerFormState>(EMPTY_CUSTOMER_FORM);
 
-  const { data: customers = [], isLoading } = useQuery({
+  const {
+    data: customers = [],
+    isLoading,
+    isFetching,
+    error,
+    refetch,
+  } = useQuery({
     queryKey: ["customers"],
     queryFn: api.listCustomers,
   });
 
-  const customerMetrics = React.useMemo(() => {
-    const valuedCustomers = customers.filter((customer) => hasCustomerValue(customer));
-    const totalMonthlyValue = customers.reduce((sum, customer) => sum + getCustomerMonthlyValue(customer), 0);
-    const totalAnnualValue = customers.reduce((sum, customer) => sum + getCustomerAnnualValue(customer), 0);
-
-    return {
-      valuedCustomersCount: valuedCustomers.length,
-      totalMonthlyValue,
-      totalAnnualValue,
-    };
-  }, [customers]);
-
   const createCustomerMutation = useMutation({
     mutationFn: api.createCustomer,
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["customers"] });
+    onSuccess: (customer) => {
+      queryClient.setQueryData<Customer[]>(["customers"], (current = []) => [
+        customer,
+        ...current,
+      ]);
       setIsCreateDialogOpen(false);
-      setNewCustomer(EMPTY_CUSTOMER_FORM);
-      toast({ title: "Kund skapad", description: "Kunden har lagts till i CRM." });
-    },
-    onError: (error: any) => {
-      toast({ 
-        title: "Ett fel uppstod", 
-        description: error instanceof Error ? error.message : "Kunde inte skapa kunden.", 
-        variant: "destructive" 
+      toast({
+        title: "Kund skapad",
+        description: `${customer.name} har lagts till i CRM.`,
       });
-    }
+    },
+    onError: (mutationError: unknown) => {
+      toast({
+        title: "Kunde inte skapa kunden",
+        description:
+          mutationError instanceof Error
+            ? mutationError.message
+            : "Försök igen.",
+        variant: "destructive",
+      });
+    },
   });
 
   const deleteCustomerMutation = useMutation({
     mutationFn: api.deleteCustomer,
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["customers"] });
+    onSuccess: (_data, customerId) => {
+      queryClient.setQueryData<Customer[]>(["customers"], (current = []) =>
+        current.filter((customer) => customer.id !== customerId),
+      );
       toast({ title: "Kund borttagen" });
-    }
+    },
+    onError: (mutationError: unknown) => {
+      toast({
+        title: "Kunde inte ta bort kunden",
+        description:
+          mutationError instanceof Error
+            ? mutationError.message
+            : "Försök igen.",
+        variant: "destructive",
+      });
+    },
   });
 
-  const filteredCustomers = customers.filter(c => 
-    c.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    c.email?.toLowerCase().includes(searchQuery.toLowerCase())
-  );
-  const hasValueInput = newCustomer.value.trim().length > 0;
-  const hasBindingInput = newCustomer.bindingMonths.trim().length > 0;
+  const customerMetrics = React.useMemo(() => {
+    return {
+      totalMonthlyValue: customers.reduce(
+        (sum, customer) => sum + getCustomerMonthlyValue(customer),
+        0,
+      ),
+      totalAnnualValue: customers.reduce(
+        (sum, customer) => sum + getCustomerAnnualValue(customer),
+        0,
+      ),
+      contactableCount: customers.filter(hasContactMethod).length,
+    };
+  }, [customers]);
+
+  const visibleCustomers = React.useMemo(() => {
+    const query = searchQuery.trim().toLocaleLowerCase("sv-SE");
+    const filtered = query
+      ? customers.filter((customer) =>
+          [
+            customer.name,
+            customer.email,
+            customer.phone,
+            customer.contactPerson,
+            customer.orgNumber,
+            customer.city,
+          ]
+            .filter(Boolean)
+            .join(" ")
+            .toLocaleLowerCase("sv-SE")
+            .includes(query),
+        )
+      : [...customers];
+
+    return filtered.sort((a, b) => {
+      if (sort === "name") return a.name.localeCompare(b.name, "sv");
+      if (sort === "newest")
+        return (
+          new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+        );
+      if (sort === "value")
+        return getCustomerAnnualValue(b) - getCustomerAnnualValue(a);
+      return new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime();
+    });
+  }, [customers, searchQuery, sort]);
+
+  const handleDelete = async (customer: Customer) => {
+    const confirmed = await confirm({
+      title: `Ta bort ${customer.name}?`,
+      description:
+        "Kundprofilen och sparade resurslänkar tas bort permanent. Kopplade offerter finns kvar men kopplas loss från kunden.",
+      confirmLabel: "Ta bort kund",
+      variant: "destructive",
+    });
+    if (confirmed) deleteCustomerMutation.mutate(customer.id);
+  };
+
+  const openCustomer = (customerId: string) =>
+    setLocation(`/customers/${customerId}`);
 
   return (
-    <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+    <div className="space-y-6 animate-in fade-in duration-500">
+      <header className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <h1 className="font-display text-4xl font-bold tracking-tight text-slate-900">Kunder</h1>
-          <p className="mt-2 text-on-surface-variant max-w-2xl">
-            Hantera dina kundrelationer, projektreferenser och signerade avtal.
+          <p className="mb-2 text-xs font-bold uppercase tracking-[0.16em] text-primary">
+            CRM
+          </p>
+          <h1 className="font-display text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl">
+            Kunder
+          </h1>
+          <p className="mt-2 max-w-2xl text-on-surface-variant">
+            Samla kontaktuppgifter, avtalsvärden, offerter och kundresurser på
+            ett ställe.
           </p>
         </div>
-        <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
-          <DialogTrigger asChild>
-            <Button className="h-12 px-6 rounded-xl bg-primary-gradient text-white shadow-elevated hover:shadow-hover transition-all group shrink-0">
-              <Plus size={20} className="mr-2 group-hover:rotate-90 transition-transform duration-300" />
+        <CustomerFormDialog
+          open={isCreateDialogOpen}
+          onOpenChange={setIsCreateDialogOpen}
+          onSubmit={(data: CreateCustomerRequest) =>
+            createCustomerMutation.mutate(data)
+          }
+          isPending={createCustomerMutation.isPending}
+          trigger={
+            <Button className="h-11 shrink-0 rounded-xl px-5">
+              <Plus size={18} className="mr-2" />
               Ny kund
             </Button>
-          </DialogTrigger>
-          <DialogContent className="sm:max-w-[720px] xl:max-w-[900px] rounded-3xl p-8 max-h-[90vh] overflow-y-auto">
-            <DialogHeader>
-              <DialogTitle className="text-2xl font-display font-bold">Skapa ny kund</DialogTitle>
-              <DialogDescription>Fyll i företagsuppgifter för att lägga till en ny kund i CRM.</DialogDescription>
-            </DialogHeader>
-            <div className="grid gap-6 py-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="grid gap-2">
-                  <Label htmlFor="name" className="text-xs font-bold uppercase tracking-widest text-on-surface-variant/70">Företagsnamn</Label>
-                  <Input 
-                    id="name" 
-                    placeholder="T.ex. Antigravity AB"
-                    className="h-12 rounded-xl"
-                    value={newCustomer.name}
-                    onChange={(e) => setNewCustomer(prev => ({ ...prev, name: e.target.value }))}
-                  />
-                </div>
-                <div className="grid gap-2">
-                  <Label htmlFor="orgNumber" className="text-xs font-bold uppercase tracking-widest text-on-surface-variant/70">Organisationsnummer</Label>
-                  <Input 
-                    id="orgNumber" 
-                    placeholder="556677-8899"
-                    className="h-12 rounded-xl"
-                    value={newCustomer.orgNumber}
-                    onChange={(e) => setNewCustomer(prev => ({ ...prev, orgNumber: e.target.value }))}
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="grid gap-2">
-                  <Label htmlFor="contactPerson" className="text-xs font-bold uppercase tracking-widest text-on-surface-variant/70">Kontaktperson</Label>
-                  <Input 
-                    id="contactPerson" 
-                    placeholder="För- och efternamn"
-                    className="h-12 rounded-xl"
-                    value={newCustomer.contactPerson}
-                    onChange={(e) => setNewCustomer(prev => ({ ...prev, contactPerson: e.target.value }))}
-                  />
-                </div>
-                <div className="grid gap-2">
-                  <Label htmlFor="email" className="text-xs font-bold uppercase tracking-widest text-on-surface-variant/70">E-postadress</Label>
-                  <Input 
-                    id="email" 
-                    type="email"
-                    placeholder="namn@foretag.se"
-                    className="h-12 rounded-xl"
-                    value={newCustomer.email}
-                    onChange={(e) => setNewCustomer(prev => ({ ...prev, email: e.target.value }))}
-                  />
-                </div>
-              </div>
-
-              <div className="grid gap-2">
-                <Label htmlFor="phone" className="text-xs font-bold uppercase tracking-widest text-on-surface-variant/70">Telefonnummer</Label>
-                <Input 
-                  id="phone" 
-                  placeholder="070-123 45 67"
-                  className="h-12 rounded-xl"
-                  value={newCustomer.phone}
-                  onChange={(e) => setNewCustomer(prev => ({ ...prev, phone: e.target.value }))}
-                />
-              </div>
-
-              <div className="grid gap-2">
-                <Label htmlFor="address" className="text-xs font-bold uppercase tracking-widest text-on-surface-variant/70">Fullständig Adress</Label>
-                <Input 
-                  id="address" 
-                  placeholder="Gatunamn 123"
-                  className="h-12 rounded-xl"
-                  value={newCustomer.address}
-                  onChange={(e) => setNewCustomer(prev => ({ ...prev, address: e.target.value }))}
-                />
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="grid gap-2">
-                  <Label htmlFor="postalCode" className="text-xs font-bold uppercase tracking-widest text-on-surface-variant/70">Postnummer</Label>
-                  <Input 
-                    id="postalCode" 
-                    placeholder="123 45"
-                    className="h-12 rounded-xl"
-                    value={newCustomer.postalCode}
-                    onChange={(e) => setNewCustomer(prev => ({ ...prev, postalCode: e.target.value }))}
-                  />
-                </div>
-                <div className="grid gap-2">
-                  <Label htmlFor="city" className="text-xs font-bold uppercase tracking-widest text-on-surface-variant/70">Stad / Ort</Label>
-                  <Input 
-                    id="city" 
-                    placeholder="Stockholm"
-                    className="h-12 rounded-xl"
-                    value={newCustomer.city}
-                    onChange={(e) => setNewCustomer(prev => ({ ...prev, city: e.target.value }))}
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-[minmax(0,1fr)_220px_180px_140px]">
-                <div className="grid min-w-0 gap-2">
-                  <Label htmlFor="value" className="text-xs font-bold uppercase tracking-widest text-on-surface-variant/70">Kundvärde</Label>
-                  <Input
-                    id="value"
-                    type="number"
-                    min="0"
-                    step="0.01"
-                    inputMode="decimal"
-                    placeholder="T.ex. 12500"
-                    className="h-12 rounded-xl"
-                    value={newCustomer.value}
-                    onChange={(e) => setNewCustomer(prev => ({ ...prev, value: e.target.value }))}
-                  />
-                </div>
-                <div className="grid min-w-0 gap-2">
-                  <Label className="text-xs font-bold uppercase tracking-widest text-on-surface-variant/70">Period</Label>
-                  <Select
-                    value={newCustomer.valuePeriod || undefined}
-                    onValueChange={(value) => setNewCustomer(prev => ({ ...prev, valuePeriod: value as CustomerValuePeriod }))}
-                  >
-                    <SelectTrigger className="h-12 rounded-xl">
-                      <SelectValue placeholder="Välj period" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="month">Per månad</SelectItem>
-                      <SelectItem value="year">Per år</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="grid min-w-0 gap-2">
-                  <Label htmlFor="bindingMonths" className="text-xs font-bold uppercase tracking-widest text-on-surface-variant/70">Bindningstid</Label>
-                  <Input
-                    id="bindingMonths"
-                    type="number"
-                    min="1"
-                    step="1"
-                    inputMode="numeric"
-                    placeholder="Månader"
-                    className="h-12 rounded-xl"
-                    value={newCustomer.bindingMonths}
-                    onChange={(e) => setNewCustomer(prev => ({ ...prev, bindingMonths: e.target.value }))}
-                  />
-                </div>
-                <div className="grid min-w-0 gap-2">
-                  <Label htmlFor="taxRate" className="text-xs font-bold uppercase tracking-widest text-on-surface-variant/70">Moms</Label>
-                  <Input
-                    id="taxRate"
-                    type="number"
-                    min="0"
-                    max="100"
-                    step="0.01"
-                    inputMode="decimal"
-                    placeholder="25"
-                    className="h-12 rounded-xl"
-                    value={newCustomer.taxRate}
-                    onChange={(e) => setNewCustomer(prev => ({ ...prev, taxRate: e.target.value }))}
-                  />
-                </div>
-              </div>
-            </div>
-            <DialogFooter className="gap-2 sm:gap-0">
-              <Button 
-                variant="outline" 
-                className="h-12 px-6 rounded-xl"
-                onClick={() => setIsCreateDialogOpen(false)}
-              >
-                Avbryt
-              </Button>
-              <Button 
-                className="h-12 px-6 rounded-xl bg-primary text-white"
-                disabled={
-                  !newCustomer.name ||
-                  createCustomerMutation.isPending ||
-                  (hasValueInput && !newCustomer.valuePeriod) ||
-                  (hasBindingInput && (!hasValueInput || !newCustomer.valuePeriod))
-                }
-                onClick={() => createCustomerMutation.mutate(buildCustomerPayload(newCustomer))}
-              >
-                Spara kund
-              </Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
-      </div>
-
-      <div className="relative">
-        <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-on-surface-variant" size={20} />
-        <Input 
-          placeholder="Sök efter kundnamn eller e-post..." 
-          className="h-14 pl-12 pr-4 bg-surface-container-low border-outline-variant/15 rounded-2xl shadow-subtle focus:shadow-md transition-all text-lg"
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
+          }
         />
+      </header>
+
+      <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+        {[
+          {
+            label: "Kunder",
+            value: customers.length.toLocaleString("sv-SE"),
+            icon: Users,
+          },
+          {
+            label: "Kontaktbara",
+            value: `${customerMetrics.contactableCount} av ${customers.length}`,
+            icon: CheckCircle2,
+          },
+          {
+            label: "Månadsvärde",
+            value: formatCurrency(customerMetrics.totalMonthlyValue),
+            icon: CalendarRange,
+          },
+          {
+            label: "Årsvärde",
+            value: formatCurrency(customerMetrics.totalAnnualValue),
+            icon: Wallet,
+          },
+        ].map(({ label, value, icon: Icon }) => (
+          <Card
+            key={label}
+            className="rounded-2xl border-outline-variant/10 bg-white shadow-subtle"
+          >
+            <CardContent className="flex items-center gap-4 p-5">
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary/5 text-primary">
+                <Icon size={19} />
+              </div>
+              <div className="min-w-0">
+                <p className="text-xs font-semibold text-on-surface-variant">
+                  {label}
+                </p>
+                {isLoading ? (
+                  <Skeleton className="mt-1 h-6 w-24" />
+                ) : (
+                  <p className="truncate text-lg font-bold text-slate-900">
+                    {value}
+                  </p>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+        ))}
       </div>
 
-      <div className="grid gap-4 md:grid-cols-3">
-        <Card className="rounded-[2rem] border border-outline-variant/15 bg-white shadow-subtle">
-          <CardContent className="p-6">
-            <div className="mb-4 flex items-start justify-between">
-              <div className="rounded-2xl bg-primary/10 p-3 text-primary">
-                <Wallet size={22} />
-              </div>
-              <span className="rounded-full bg-primary/5 px-2.5 py-1 text-[10px] font-black uppercase tracking-wider text-primary">
-                År
-              </span>
-            </div>
-            <p className="text-sm font-bold text-on-surface-variant/70">Totalt kundvärde</p>
-            <p className="mt-2 text-3xl font-black tracking-tight text-slate-900">
-              {formatCurrency(customerMetrics.totalAnnualValue)}
-            </p>
-            <p className="mt-2 text-sm text-on-surface-variant">
-              Normaliserat till årsvärde för alla kunder.
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card className="rounded-[2rem] border border-outline-variant/15 bg-white shadow-subtle">
-          <CardContent className="p-6">
-            <div className="mb-4 flex items-start justify-between">
-              <div className="rounded-2xl bg-emerald-50 p-3 text-emerald-600">
-                <CalendarRange size={22} />
-              </div>
-              <span className="rounded-full bg-emerald-50 px-2.5 py-1 text-[10px] font-black uppercase tracking-wider text-emerald-600">
-                Mån
-              </span>
-            </div>
-            <p className="text-sm font-bold text-on-surface-variant/70">Månadsvärde</p>
-            <p className="mt-2 text-3xl font-black tracking-tight text-slate-900">
-              {formatCurrency(customerMetrics.totalMonthlyValue)}
-            </p>
-            <p className="mt-2 text-sm text-on-surface-variant">
-              Visar samma portfölj omräknad till månadsnivå.
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card className="rounded-[2rem] border border-outline-variant/15 bg-white shadow-subtle">
-          <CardContent className="p-6">
-            <div className="mb-4 flex items-start justify-between">
-              <div className="rounded-2xl bg-amber-50 p-3 text-amber-600">
-                <BarChart3 size={22} />
-              </div>
-              <span className="rounded-full bg-amber-50 px-2.5 py-1 text-[10px] font-black uppercase tracking-wider text-amber-600">
-                CRM
-              </span>
-            </div>
-            <p className="text-sm font-bold text-on-surface-variant/70">Kunder med värde</p>
-            <p className="mt-2 text-3xl font-black tracking-tight text-slate-900">
-              {customerMetrics.valuedCustomersCount} / {customers.length}
-            </p>
-            <p className="mt-2 text-sm text-on-surface-variant">
-              Antal kunder där månad eller årsvärde är satt.
-            </p>
-          </CardContent>
-        </Card>
-      </div>
-
-      {isLoading ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {[1, 2, 3].map(i => (
-            <div key={i} className="h-48 rounded-3xl bg-surface-container-low animate-pulse border border-outline-variant/10" />
-          ))}
-        </div>
-      ) : filteredCustomers.length > 0 ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredCustomers.map(customer => (
-            <Card 
-              key={customer.id} 
-              className="group rounded-3xl border-outline-variant/15 bg-surface-container-low hover:bg-white hover:shadow-elevated transition-all duration-300 cursor-pointer overflow-hidden border"
-              onClick={() => setLocation(`/customers/${customer.id}`)}
-            >
-              <CardContent className="p-0">
-                <div className="p-8">
-                  <div className="flex items-start justify-between mb-6">
-                    <div className="h-14 w-14 rounded-2xl bg-primary/5 flex items-center justify-center text-primary border border-primary/10 group-hover:scale-110 transition-transform duration-500">
-                      <UserIcon size={28} />
-                    </div>
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
-                        <Button variant="ghost" size="icon" className="h-10 w-10 rounded-xl hover:bg-surface-container-high transition-colors">
-                          <MoreVertical size={20} className="text-on-surface-variant" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end" className="rounded-xl border-outline-variant/15 shadow-elevated p-1.5">
-                        <DropdownMenuItem 
-                          className="text-error focus:text-error rounded-lg flex items-center gap-2 px-3 py-2"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            if (confirm(`Är du säker på att du vill ta bort ${customer.name}?`)) {
-                              deleteCustomerMutation.mutate(customer.id);
-                            }
-                          }}
-                        >
-                          <Trash2 size={16} />
-                          Ta bort
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </div>
-                  
-                  <h3 className="text-xl font-bold text-slate-900 group-hover:text-primary transition-colors leading-tight mb-2">
-                    {customer.name}
-                  </h3>
-                  
-                  {customer.email && (
-                    <div className="flex items-center gap-2 text-on-surface-variant mb-4">
-                      <Mail size={14} />
-                      <span className="text-sm truncate font-medium">{customer.email}</span>
-                    </div>
-                  )}
-
-                  <div className="grid grid-cols-2 gap-3">
-                    <div className="rounded-2xl border border-outline-variant/10 bg-white/70 p-4">
-                      <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-on-surface-variant/50">
-                        Kundvärde
-                      </p>
-                      <p className="mt-2 text-sm font-bold text-slate-900">
-                        {formatCustomerValue(customer.value, customer.valuePeriod)}
-                      </p>
-                    </div>
-                    <div className="rounded-2xl border border-outline-variant/10 bg-white/70 p-4">
-                      <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-on-surface-variant/50">
-                        Bindning
-                      </p>
-                      <p className="mt-2 text-sm font-bold text-slate-900">
-                        {formatCustomerBinding(customer.bindingMonths)}
-                      </p>
-                      <p className="mt-1 text-xs font-medium text-on-surface-variant">
-                        Moms: {formatCustomerTaxRate(customer.taxRate)}
-                      </p>
-                      {hasCustomerValue(customer) && customer.bindingMonths ? (
-                        <p className="mt-1 text-xs font-medium text-on-surface-variant">
-                          Bundet inkl: {formatCurrency(applyCustomerTax(getCustomerCommittedValue(customer), customer.taxRate))}
-                        </p>
-                      ) : null}
-                    </div>
-                  </div>
-                  
-                  <div className="pt-6 mt-6 border-t border-outline-variant/10 flex items-center justify-between">
-                    <span className="text-xs font-bold uppercase tracking-widest text-on-surface-variant/50">
-                      Visa profil
-                    </span>
-                    <div className="h-8 w-8 rounded-full bg-surface-container-high flex items-center justify-center text-on-surface-variant group-hover:translate-x-1 transition-transform duration-300 border border-outline-variant/15">
-                      <ChevronRight size={16} />
-                    </div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-      ) : (
-        <div className="flex flex-col items-center justify-center py-24 px-6 text-center bg-surface-container-low rounded-[3rem] border border-dashed border-outline-variant/30">
-          <div className="h-20 w-20 rounded-3xl bg-surface-container-high flex items-center justify-center text-on-surface-variant/30 mb-6">
-            <Users size={40} />
+      <section className="space-y-4">
+        <div className="flex flex-col gap-3 md:flex-row md:items-center">
+          <div className="relative flex-1">
+            <Search
+              className="absolute left-3.5 top-1/2 -translate-y-1/2 text-on-surface-variant"
+              size={18}
+            />
+            <Input
+              aria-label="Sök kunder"
+              placeholder="Sök namn, kontakt, e-post, telefon, org.nr eller ort..."
+              className="h-11 rounded-xl bg-white pl-10"
+              value={searchQuery}
+              onChange={(event) => setSearchQuery(event.target.value)}
+            />
           </div>
-          <h3 className="text-2xl font-display font-bold text-slate-900 mb-2">Inga kunder hittades</h3>
-          <p className="text-on-surface-variant max-w-sm">
-            {searchQuery 
-              ? "Din sökning matchade tyvärr inget i din kundlista." 
-              : "Börja med att lägga till din första kund manuellt eller låt systemet skapa dem automatiskt vid signering."}
-          </p>
-          {!searchQuery && (
-            <Button 
-              className="mt-8 h-12 px-6 rounded-xl bg-primary text-white"
-              onClick={() => setIsCreateDialogOpen(true)}
+          <Select
+            value={sort}
+            onValueChange={(value) => setSort(value as CustomerSort)}
+          >
+            <SelectTrigger
+              className="h-11 w-full rounded-xl bg-white md:w-[210px]"
+              aria-label="Sortera kunder"
             >
-              <Plus size={20} className="mr-2" />
-              Skapa din första kund
-            </Button>
-          )}
+              <ArrowUpDown size={16} className="mr-2" />
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="updated">Senast uppdaterad</SelectItem>
+              <SelectItem value="newest">Nyast först</SelectItem>
+              <SelectItem value="name">Namn A–Ö</SelectItem>
+              <SelectItem value="value">Högst årsvärde</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
-      )}
+
+        {isFetching && !isLoading ? (
+          <p
+            className="flex items-center gap-2 text-xs text-on-surface-variant"
+            role="status"
+          >
+            <Loader2 className="h-3.5 w-3.5 animate-spin" /> Uppdaterar
+            kundlistan...
+          </p>
+        ) : null}
+
+        {isLoading ? (
+          <CustomerListSkeleton />
+        ) : error ? (
+          <div className="flex flex-col items-center rounded-3xl border border-destructive/20 bg-destructive/5 px-6 py-12 text-center">
+            <AlertCircle className="mb-4 text-destructive" size={28} />
+            <h2 className="font-bold text-slate-900">
+              Kundlistan kunde inte hämtas
+            </h2>
+            <p className="mt-2 max-w-md text-sm text-on-surface-variant">
+              {error instanceof Error
+                ? error.message
+                : "Kontrollera anslutningen och försök igen."}
+            </p>
+            <Button
+              variant="outline"
+              className="mt-5 rounded-xl"
+              onClick={() => void refetch()}
+            >
+              <RefreshCw className="mr-2 h-4 w-4" /> Försök igen
+            </Button>
+          </div>
+        ) : visibleCustomers.length > 0 ? (
+          <>
+            <div className="hidden overflow-hidden rounded-3xl border border-outline-variant/10 bg-white shadow-subtle md:block">
+              <table className="w-full border-collapse text-left">
+                <thead>
+                  <tr className="border-b border-outline-variant/10 bg-surface-container-low/50 text-xs font-semibold text-on-surface-variant">
+                    <th className="px-6 py-4">Kund</th>
+                    <th className="px-6 py-4">Kontaktstatus</th>
+                    <th className="px-6 py-4">Kundvärde</th>
+                    <th className="px-6 py-4">Uppdaterad</th>
+                    <th className="px-6 py-4 text-right">
+                      <span className="sr-only">Åtgärder</span>
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {visibleCustomers.map((customer) => (
+                    <tr
+                      key={customer.id}
+                      className="border-b border-outline-variant/10 last:border-0 hover:bg-surface-container-low/35"
+                    >
+                      <td className="px-6 py-4">
+                        <button
+                          type="button"
+                          onClick={() => openCustomer(customer.id)}
+                          className="group text-left"
+                        >
+                          <span className="block font-bold text-slate-900 group-hover:text-primary">
+                            {customer.name}
+                          </span>
+                          <span className="mt-1 block text-sm text-on-surface-variant">
+                            {customer.contactPerson ||
+                              customer.email ||
+                              customer.orgNumber ||
+                              "Ingen kontaktinformation"}
+                          </span>
+                        </button>
+                      </td>
+                      <td className="px-6 py-4">
+                        <ContactStatus customer={customer} />
+                      </td>
+                      <td className="px-6 py-4">
+                        <p className="font-semibold text-slate-900">
+                          {formatCustomerValue(
+                            customer.value,
+                            customer.valuePeriod,
+                          )}
+                        </p>
+                        {customer.bindingMonths ? (
+                          <p className="mt-1 text-xs text-on-surface-variant">
+                            {formatCustomerBinding(customer.bindingMonths)}
+                          </p>
+                        ) : null}
+                      </td>
+                      <td className="whitespace-nowrap px-6 py-4 text-sm text-on-surface-variant">
+                        {format(new Date(customer.updatedAt), "d MMM yyyy", {
+                          locale: sv,
+                        })}
+                      </td>
+                      <td className="px-6 py-4 text-right">
+                        <CustomerActions
+                          customer={customer}
+                          isDeleting={
+                            deleteCustomerMutation.isPending &&
+                            deleteCustomerMutation.variables === customer.id
+                          }
+                          onView={() => openCustomer(customer.id)}
+                          onDelete={() => void handleDelete(customer)}
+                        />
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            <div className="grid gap-3 md:hidden">
+              {visibleCustomers.map((customer) => (
+                <Card
+                  key={customer.id}
+                  className="rounded-2xl border-outline-variant/10 bg-white shadow-subtle"
+                >
+                  <CardContent className="p-5">
+                    <div className="flex items-start justify-between gap-3">
+                      <button
+                        type="button"
+                        className="min-w-0 text-left"
+                        onClick={() => openCustomer(customer.id)}
+                      >
+                        <h2 className="truncate font-bold text-slate-900">
+                          {customer.name}
+                        </h2>
+                        <p className="mt-1 truncate text-sm text-on-surface-variant">
+                          {customer.contactPerson ||
+                            customer.email ||
+                            "Ingen kontaktinformation"}
+                        </p>
+                      </button>
+                      <CustomerActions
+                        customer={customer}
+                        isDeleting={
+                          deleteCustomerMutation.isPending &&
+                          deleteCustomerMutation.variables === customer.id
+                        }
+                        onView={() => openCustomer(customer.id)}
+                        onDelete={() => void handleDelete(customer)}
+                      />
+                    </div>
+                    <div className="mt-4 flex flex-wrap items-center justify-between gap-3 border-t border-outline-variant/10 pt-4">
+                      <ContactStatus customer={customer} />
+                      <p className="text-sm font-semibold text-slate-900">
+                        {formatCustomerValue(
+                          customer.value,
+                          customer.valuePeriod,
+                        )}
+                      </p>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          </>
+        ) : (
+          <div className="flex flex-col items-center rounded-3xl border border-dashed border-outline-variant/25 bg-white px-6 py-16 text-center">
+            <div className="mb-5 flex h-14 w-14 items-center justify-center rounded-2xl bg-primary/5 text-primary">
+              <Users size={26} />
+            </div>
+            <h2 className="text-xl font-bold text-slate-900">
+              {searchQuery
+                ? "Inga kunder matchar sökningen"
+                : "Skapa din första kund"}
+            </h2>
+            <p className="mt-2 max-w-md text-sm text-on-surface-variant">
+              {searchQuery
+                ? "Prova ett annat namn, telefonnummer, organisationsnummer eller ort."
+                : "Lägg till en kund manuellt. Kunder kan också skapas automatiskt när en offert accepteras."}
+            </p>
+            {searchQuery ? (
+              <Button
+                variant="outline"
+                className="mt-5 rounded-xl"
+                onClick={() => setSearchQuery("")}
+              >
+                Rensa sökning
+              </Button>
+            ) : (
+              <Button
+                className="mt-5 rounded-xl"
+                onClick={() => setIsCreateDialogOpen(true)}
+              >
+                <Plus className="mr-2 h-4 w-4" /> Skapa kund
+              </Button>
+            )}
+          </div>
+        )}
+      </section>
     </div>
   );
 }

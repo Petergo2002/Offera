@@ -1,5 +1,7 @@
 import {
   CompanyProfileSchema,
+  CreateCustomerLinkBody,
+  CustomerLinkSchema,
   CustomerSchema,
   CopyTemplateBody,
   CreateProposalBody,
@@ -26,7 +28,10 @@ import {
   type CompanyProfile,
   type Customer,
   type CustomerDetail,
+  type CustomerLink,
+  type CustomerProposal,
   type CustomerValuePeriod,
+  type CreateCustomerLinkRequest,
   type CreateCustomerRequest,
   type CopyTemplateRequest,
   type CreateProposalRequest,
@@ -50,10 +55,7 @@ const apiBaseUrl = import.meta.env.VITE_API_BASE_URL?.trim() || null;
 // Configure the API origin eagerly so public routes work before React effects run.
 setBaseUrl(apiBaseUrl);
 
-async function request<T>(
-  input: string,
-  init?: RequestInit,
-): Promise<T> {
+async function request<T>(input: string, init?: RequestInit): Promise<T> {
   return await customFetch<T>(input, {
     responseType: "json",
     headers: {
@@ -67,9 +69,7 @@ async function request<T>(
 export const api = {
   getMe: async () => MeResponse.parse(await request<unknown>("/api/me")),
   getCompanyProfile: async () =>
-    CompanyProfileSchema.parse(
-      await request<unknown>("/api/company-profile"),
-    ),
+    CompanyProfileSchema.parse(await request<unknown>("/api/company-profile")),
   updateCompanyProfile: async (data: UpdateCompanyProfileRequest) =>
     CompanyProfileSchema.parse(
       await request<unknown>("/api/company-profile", {
@@ -116,9 +116,7 @@ export const api = {
     GetPublicProposalResponse.parse(
       await request<unknown>(
         `/api/proposals/public/${slug}${
-          token
-            ? `?token=${encodeURIComponent(token)}`
-            : ""
+          token ? `?token=${encodeURIComponent(token)}` : ""
         }`,
       ),
     ),
@@ -196,11 +194,13 @@ export const api = {
     ),
   deleteCustomer: async (id: string) =>
     request<void>(`/api/customers/${id}`, { method: "DELETE" }),
-  addCustomerLink: async (id: string, data: any) =>
-    request<any>(`/api/customers/${id}/links`, {
-      method: "POST",
-      body: JSON.stringify(data),
-    }),
+  addCustomerLink: async (id: string, data: CreateCustomerLinkRequest) =>
+    CustomerLinkSchema.parse(
+      await request<unknown>(`/api/customers/${id}/links`, {
+        method: "POST",
+        body: JSON.stringify(CreateCustomerLinkBody.parse(data)),
+      }),
+    ),
   deleteCustomerLink: async (linkId: string) =>
     request<void>(`/api/customers/links/${linkId}`, { method: "DELETE" }),
 };
@@ -209,7 +209,10 @@ export type {
   CompanyProfile,
   Customer,
   CustomerDetail,
+  CustomerLink,
+  CustomerProposal,
   CustomerValuePeriod,
+  CreateCustomerLinkRequest,
   CreateCustomerRequest,
   Me,
   Proposal,

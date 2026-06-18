@@ -107,7 +107,8 @@ function serializeCustomer(customer: CustomerRecord) {
     value: normalizeCustomerValue(customer.value),
     valuePeriod: normalizeCustomerValuePeriod(customer.valuePeriod),
     bindingMonths:
-      typeof customer.bindingMonths === "number" && Number.isInteger(customer.bindingMonths)
+      typeof customer.bindingMonths === "number" &&
+      Number.isInteger(customer.bindingMonths)
         ? customer.bindingMonths
         : null,
     taxRate: normalizeCustomerValue(customer.taxRate),
@@ -139,20 +140,25 @@ function toCustomerWriteValues(
   if ("workspaceId" in values) writeValues.workspaceId = values.workspaceId;
   if ("name" in values) writeValues.name = values.name;
   if ("email" in values) writeValues.email = values.email;
-  if (columnSupport.orgNumber && "orgNumber" in values) writeValues.orgNumber = values.orgNumber;
-  if (columnSupport.contactPerson && "contactPerson" in values) writeValues.contactPerson = values.contactPerson;
-  if (columnSupport.phone && "phone" in values) writeValues.phone = values.phone;
-  if (columnSupport.address && "address" in values) writeValues.address = values.address;
-  if (columnSupport.postalCode && "postalCode" in values) writeValues.postalCode = values.postalCode;
+  if (columnSupport.orgNumber && "orgNumber" in values)
+    writeValues.orgNumber = values.orgNumber;
+  if (columnSupport.contactPerson && "contactPerson" in values)
+    writeValues.contactPerson = values.contactPerson;
+  if (columnSupport.phone && "phone" in values)
+    writeValues.phone = values.phone;
+  if (columnSupport.address && "address" in values)
+    writeValues.address = values.address;
+  if (columnSupport.postalCode && "postalCode" in values)
+    writeValues.postalCode = values.postalCode;
   if (columnSupport.city && "city" in values) writeValues.city = values.city;
   if (columnSupport.value && "value" in values) {
     writeValues.value =
-      typeof values.value === "number"
-        ? values.value.toFixed(2)
-        : values.value;
+      typeof values.value === "number" ? values.value.toFixed(2) : values.value;
   }
-  if (columnSupport.valuePeriod && "valuePeriod" in values) writeValues.valuePeriod = values.valuePeriod;
-  if (columnSupport.bindingMonths && "bindingMonths" in values) writeValues.bindingMonths = values.bindingMonths;
+  if (columnSupport.valuePeriod && "valuePeriod" in values)
+    writeValues.valuePeriod = values.valuePeriod;
+  if (columnSupport.bindingMonths && "bindingMonths" in values)
+    writeValues.bindingMonths = values.bindingMonths;
   if (columnSupport.taxRate && "taxRate" in values) {
     writeValues.taxRate =
       typeof values.taxRate === "number"
@@ -164,17 +170,11 @@ function toCustomerWriteValues(
 }
 
 async function getDbModule() {
-  const [
-    { db },
-    {
-      customersTable,
-      customerLinksTable,
-      proposalsTable,
-    },
-  ] = await Promise.all([
-    import("@workspace/db"),
-    import("@workspace/db/schema"),
-  ]);
+  const [{ db }, { customersTable, customerLinksTable, proposalsTable }] =
+    await Promise.all([
+      import("@workspace/db"),
+      import("@workspace/db/schema"),
+    ]);
 
   return {
     db,
@@ -232,11 +232,17 @@ function getCustomerSelectShape(
       : {}),
     ...(columnSupport.phone ? { phone: customersTable.phone } : {}),
     ...(columnSupport.address ? { address: customersTable.address } : {}),
-    ...(columnSupport.postalCode ? { postalCode: customersTable.postalCode } : {}),
+    ...(columnSupport.postalCode
+      ? { postalCode: customersTable.postalCode }
+      : {}),
     ...(columnSupport.city ? { city: customersTable.city } : {}),
     ...(columnSupport.value ? { value: customersTable.value } : {}),
-    ...(columnSupport.valuePeriod ? { valuePeriod: customersTable.valuePeriod } : {}),
-    ...(columnSupport.bindingMonths ? { bindingMonths: customersTable.bindingMonths } : {}),
+    ...(columnSupport.valuePeriod
+      ? { valuePeriod: customersTable.valuePeriod }
+      : {}),
+    ...(columnSupport.bindingMonths
+      ? { bindingMonths: customersTable.bindingMonths }
+      : {}),
     ...(columnSupport.taxRate ? { taxRate: customersTable.taxRate } : {}),
     createdAt: customersTable.createdAt,
     updatedAt: customersTable.updatedAt,
@@ -290,7 +296,8 @@ router.get("/:id", async (req, res) => {
   try {
     const { id } = req.params;
     const workspaceId = req.auth!.workspaceId;
-    const { db, customersTable, customerLinksTable, proposalsTable } = await getDbModule();
+    const { db, customersTable, customerLinksTable, proposalsTable } =
+      await getDbModule();
     const columnSupport = await getCustomerColumnSupport(db);
 
     const [customer] = await db
@@ -299,8 +306,8 @@ router.get("/:id", async (req, res) => {
       .where(
         and(
           eq(customersTable.id, id),
-          eq(customersTable.workspaceId, workspaceId)
-        )
+          eq(customersTable.workspaceId, workspaceId),
+        ),
       );
 
     if (!customer) {
@@ -319,17 +326,19 @@ router.get("/:id", async (req, res) => {
         .where(
           and(
             eq(proposalsTable.customerId, customer.id),
-            eq(proposalsTable.workspaceId, workspaceId)
-          )
+            eq(proposalsTable.workspaceId, workspaceId),
+          ),
         )
         .orderBy(proposalsTable.updatedAt),
     ]);
 
-    return res.json(GetCustomerResponse.parse({
-      ...serializeCustomer(customer as CustomerRecord),
-      links,
-      proposals: proposals.reverse(),
-    }));
+    return res.json(
+      GetCustomerResponse.parse({
+        ...serializeCustomer(customer as CustomerRecord),
+        links,
+        proposals: proposals.reverse(),
+      }),
+    );
   } catch (err) {
     req.log.error({ err }, "Failed to get customer detail");
     return res.status(500).json({ error: "Internal server error" });
@@ -340,7 +349,17 @@ router.get("/:id", async (req, res) => {
 router.post("/", async (req, res) => {
   try {
     const workspaceId = req.auth!.workspaceId;
-    const body = CreateCustomerBody.parse(req.body);
+    const parsedBody = CreateCustomerBody.safeParse(req.body);
+    if (!parsedBody.success) {
+      return res.status(400).json({
+        error: parsedBody.error.issues[0]?.message ?? "Ogiltiga kunduppgifter",
+        issues: parsedBody.error.issues.map((issue) => ({
+          path: issue.path,
+          message: issue.message,
+        })),
+      });
+    }
+    const body = parsedBody.data;
     const { db, customersTable } = await getDbModule();
     const columnSupport = await getCustomerColumnSupport(db);
 
@@ -384,10 +403,20 @@ router.put("/:id", async (req, res) => {
   try {
     const { id } = req.params;
     const workspaceId = req.auth!.workspaceId;
-    const body = UpdateCustomerBody.parse(req.body);
+    const parsedBody = UpdateCustomerBody.safeParse(req.body);
+    if (!parsedBody.success) {
+      return res.status(400).json({
+        error: parsedBody.error.issues[0]?.message ?? "Ogiltiga kunduppgifter",
+        issues: parsedBody.error.issues.map((issue) => ({
+          path: issue.path,
+          message: issue.message,
+        })),
+      });
+    }
+    const body = parsedBody.data;
     const { db, customersTable } = await getDbModule();
     const columnSupport = await getCustomerColumnSupport(db);
-    
+
     // Auto-format org number if it's 10 digits without hyphen
     if (body.orgNumber && /^\d{10}$/.test(body.orgNumber)) {
       body.orgNumber = `${body.orgNumber.slice(0, 6)}-${body.orgNumber.slice(6)}`;
@@ -395,17 +424,15 @@ router.put("/:id", async (req, res) => {
 
     const [updated] = await db
       .update(customersTable)
-      .set(
-        {
-          ...toCustomerWriteValues(body, columnSupport),
-          updatedAt: new Date(),
-        } as Partial<typeof customersTable.$inferInsert>,
-      )
+      .set({
+        ...toCustomerWriteValues(body, columnSupport),
+        updatedAt: new Date(),
+      } as Partial<typeof customersTable.$inferInsert>)
       .where(
         and(
           eq(customersTable.id, id),
-          eq(customersTable.workspaceId, workspaceId)
-        )
+          eq(customersTable.workspaceId, workspaceId),
+        ),
       )
       .returning();
 
@@ -432,8 +459,8 @@ router.delete("/:id", async (req, res) => {
       .where(
         and(
           eq(customersTable.id, id),
-          eq(customersTable.workspaceId, workspaceId)
-        )
+          eq(customersTable.workspaceId, workspaceId),
+        ),
       )
       .returning();
 
@@ -453,7 +480,17 @@ router.post("/:id/links", async (req, res) => {
   try {
     const { id: customerId } = req.params;
     const workspaceId = req.auth!.workspaceId;
-    const body = CreateCustomerLinkBody.parse(req.body);
+    const parsedBody = CreateCustomerLinkBody.safeParse(req.body);
+    if (!parsedBody.success) {
+      return res.status(400).json({
+        error: parsedBody.error.issues[0]?.message ?? "Ogiltiga länkuppgifter",
+        issues: parsedBody.error.issues.map((issue) => ({
+          path: issue.path,
+          message: issue.message,
+        })),
+      });
+    }
+    const body = parsedBody.data;
     const { db, customersTable, customerLinksTable } = await getDbModule();
 
     // Verify customer belongs to workspace
@@ -463,8 +500,8 @@ router.post("/:id/links", async (req, res) => {
       .where(
         and(
           eq(customersTable.id, customerId),
-          eq(customersTable.workspaceId, workspaceId)
-        )
+          eq(customersTable.workspaceId, workspaceId),
+        ),
       );
 
     if (!customer) {
@@ -500,8 +537,8 @@ router.delete("/links/:linkId", async (req, res) => {
       .where(
         and(
           eq(customerLinksTable.id, linkId),
-          eq(customerLinksTable.workspaceId, workspaceId)
-        )
+          eq(customerLinksTable.workspaceId, workspaceId),
+        ),
       )
       .returning();
 
